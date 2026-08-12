@@ -20,6 +20,7 @@ import { Route as AuthenticatedAssociateRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
+import { Route as AuthenticatedPointRouteImport } from './routes/_authenticated/point'
 import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
@@ -82,6 +83,11 @@ const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
 const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
   id: '/kiosk',
   path: '/kiosk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPointRoute = AuthenticatedPointRouteImport.update({
+  id: '/point',
+  path: '/point',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const PaseRefRoute = PaseRefRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
+  '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
+  '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
+  '/_authenticated/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/host'
     | '/kiosk'
+    | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/host'
     | '/kiosk'
+    | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout'
     | '/_authenticated/host'
     | '/_authenticated/kiosk'
+    | '/_authenticated/point'
     | '/pase/$ref'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
@@ -355,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKioskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/point': {
+      id: '/_authenticated/point'
+      path: '/point'
+      fullPath: '/point'
+      preLoaderRoute: typeof AuthenticatedPointRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/pase/$ref': {
       id: '/pase/$ref'
       path: '/pase/$ref'
@@ -452,6 +471,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
+  AuthenticatedPointRoute: typeof AuthenticatedPointRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -460,6 +480,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
+  AuthenticatedPointRoute: AuthenticatedPointRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -477,13 +498,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
