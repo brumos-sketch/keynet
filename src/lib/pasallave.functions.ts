@@ -216,7 +216,7 @@ export const createExchange = createServerFn({ method: "POST" })
     const { data: myHost } = await supabase.rpc("my_host_id");
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
 
-    const position = await reservePosition(supabase, key.kiosk_id!);
+    // The locker position is assigned at deposit time, not now.
     const bookingRef = generateBookingRef();
 
     // Fixed deposit code per key (all plans). Backfill if the key predates this rule.
