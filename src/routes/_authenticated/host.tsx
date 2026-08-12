@@ -155,6 +155,36 @@ function HostPanel() {
 
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
 
+  const keyRows = (data?.keys ?? []).filter((k) =>
+    matchesQuery(
+      [
+        k.name,
+        k.property_name,
+        k.deposit_code,
+        kioskName(k.kiosk_id),
+        ...(data?.exchanges ?? [])
+          .filter((e) => e.key_id === k.id)
+          .flatMap((e) => [e.booking_ref, e.pickup_code, e.return_code]),
+      ],
+      query,
+    ),
+  );
+
+  const exchangeRows = (data?.exchanges ?? []).filter((e) =>
+    matchesQuery(
+      [
+        e.booking_ref,
+        e.deposit_code,
+        e.pickup_code,
+        e.return_code,
+        kioskName(e.kiosk_id),
+        data?.keys.find((k) => k.id === e.key_id)?.name,
+      ],
+      query,
+    ),
+  );
+
+
   const keyStatus = (keyId: string) => {
     const list = (data?.exchanges ?? []).filter((e) => e.key_id === keyId);
     const active = list.find((e) =>
