@@ -32,9 +32,9 @@ export function MarketingFooter() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 grid grid-cols-2 gap-12 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <div className="mb-6 flex items-center gap-1">
+            <div className="mb-6 flex items-center gap-2">
               <Isotype scale={0.5} />
-              <span className="text-xl font-bold tracking-tight text-navy">asallave</span>
+              <span className="text-xl font-bold tracking-tight text-navy">pasallave</span>
             </div>
             <p className="text-sm text-gray-400">
               Cambiando la forma en que el mundo intercambia llaves.
