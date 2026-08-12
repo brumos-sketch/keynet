@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
@@ -39,6 +40,11 @@ const LoginRoute = LoginRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssociateRoute = AuthenticatedAssociateRouteImport.update({
+  id: '/associate',
+  path: '/associate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin'
+    | '/associate'
     | '/host'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/associate'
     | '/host'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/admin'
+    | '/_authenticated/associate'
     | '/_authenticated/host'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/associate': {
+      id: '/_authenticated/associate'
+      path: '/associate'
+      fullPath: '/associate'
+      preLoaderRoute: typeof AuthenticatedAssociateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/host': {
@@ -290,11 +309,13 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
 }
 
