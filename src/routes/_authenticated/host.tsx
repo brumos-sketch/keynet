@@ -481,10 +481,10 @@ function HostPanel() {
                       </td>
                     </tr>
                   ))}
-                  {(data?.exchanges.length ?? 0) === 0 && (
+                  {exchangeRows.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-4 py-6 text-muted-foreground">
-                        Sin intercambios todavía.
+                        {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
                       </td>
                     </tr>
                   )}
