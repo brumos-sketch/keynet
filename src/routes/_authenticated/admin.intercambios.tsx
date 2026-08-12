@@ -22,6 +22,7 @@ import {
   STATUS_LABELS,
   STATUS_TONE,
   formatDate,
+  formatDateTime,
   matchesQuery,
   type ExchangeStatus,
 } from "@/lib/pasallave";
@@ -283,7 +284,7 @@ function AdminExchanges() {
                           {step.label}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {step.at ? formatDate(step.at) : "Pendiente"}
+                          {step.at ? formatDateTime(step.at) : "Pendiente"}
                         </p>
                       </div>
                     </li>

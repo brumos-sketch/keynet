@@ -170,13 +170,20 @@ export function formatDate(value: string | null | undefined): string {
 
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("es-AR", {
+  const d = new Date(value);
+  const parts = new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+    hour12: false,
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("day")}/${get("month")}/${get("year")} - ${get("hour")}:${get("minute")}`;
 }
+
 
 export function describeSchedule(is24h: boolean, schedule: KioskSchedule | null): string {
   if (is24h) return "Abierto 24 horas";

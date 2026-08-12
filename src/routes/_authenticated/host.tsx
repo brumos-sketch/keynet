@@ -37,6 +37,7 @@ import {
   STATUS_TONE,
   formatCountdown,
   formatDate,
+  formatDateTime,
   matchesQuery,
   type ExchangeStatus,
   type SubscriptionType,
@@ -402,7 +403,7 @@ function HostPanel() {
                           {ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—"}
                           {l.person_name ? ` · ${l.person_name}` : ""}
                         </span>
-                        <span className="text-gray-500">{formatDate(l.timestamp)}</span>
+                        <span className="text-gray-500">{formatDateTime(l.timestamp)}</span>
                       </li>
                     ))}
                     {(accessLog ?? []).length === 0 && (
