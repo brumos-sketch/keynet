@@ -271,3 +271,12 @@ function AdminExchanges() {
     </div>
   );
 }
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs tracking-wide text-muted-foreground uppercase">{label}</p>
+      <p className="font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
