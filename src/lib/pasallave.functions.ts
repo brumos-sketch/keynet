@@ -505,7 +505,7 @@ export const validateCode = createServerFn({ method: "POST" })
     const { data: keys } = await supabase
       .from("keys")
       .select("*")
-      .eq("deposit_code", clean)
+      .or(codeSearchConditions("deposit_code", clean))
       .eq("kiosk_id", myKioskId);
     if (keys && keys.length > 0) {
       const key = keys[0]!;
