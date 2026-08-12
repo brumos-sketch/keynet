@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
-import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
