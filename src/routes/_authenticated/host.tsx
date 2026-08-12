@@ -338,9 +338,38 @@ function HostPanel() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLogKeyId(logKeyId === k.id ? null : k.id)}
+                  >
+                    {logKeyId === k.id ? "Ocultar actividad" : "Ver actividad"}
+                  </Button>
                 </div>
+
+                {k.subscription_type === "pro" && (
+                  <ProAccessCodes keyId={k.id} keyName={k.name} />
+                )}
+
+                {logKeyId === k.id && (
+                  <ul className="mt-4 space-y-1.5 rounded-[12px] border border-border p-3">
+                    {(accessLog ?? []).map((l) => (
+                      <li key={l.id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-foreground">
+                          {ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—"}
+                          {l.person_name ? ` · ${l.person_name}` : ""}
+                        </span>
+                        <span className="text-muted-foreground">{formatDate(l.timestamp)}</span>
+                      </li>
+                    ))}
+                    {(accessLog ?? []).length === 0 && (
+                      <li className="text-xs text-muted-foreground">Sin movimientos.</li>
+                    )}
+                  </ul>
+                )}
               </div>
-            ))}
+              );
+            })}
             {!isLoading && (data?.keys.length ?? 0) === 0 && (
               <p className="text-sm text-muted-foreground">Todavía no tenés llaves cargadas.</p>
             )}
