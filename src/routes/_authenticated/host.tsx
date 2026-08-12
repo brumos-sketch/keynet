@@ -70,10 +70,20 @@ function HostPanel() {
   const createExchangeFn = useServerFn(createExchange);
   const renewFn = useServerFn(renewExchange);
   const expireFn = useServerFn(expireOneUseExchanges);
+  const updateExchangeFn = useServerFn(updateExchange);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [exchangeForm, setExchangeForm] = useState({
+    checkIn: "",
+    checkOut: "",
+    pickupTime: "",
+    guestName: "",
+  });
+  const [editEx, setEditEx] = useState<{ id: string; keyName: string; bookingRef: string } | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState({
     checkIn: "",
     checkOut: "",
     pickupTime: "",
