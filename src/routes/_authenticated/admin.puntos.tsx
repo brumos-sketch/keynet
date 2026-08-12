@@ -510,8 +510,29 @@ function AdminKiosks() {
                   <Lock className="h-4 w-4 text-electric" />
                   <CodeChip value={k.access_code} />
                 </span>
-                <span className="text-xs text-gray-500">Código de acceso</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Código de acceso</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(k.access_code);
+                      toast.success("Código copiado");
+                    }}
+                  >
+                    Copiar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={regenerate.isPending}
+                    onClick={() => regenerate.mutate(k.id)}
+                  >
+                    Regenerar
+                  </Button>
+                </span>
               </div>
+
 
               <div className="mt-3 rounded-xl bg-gray-50 px-4 py-3">
                 <div className="flex items-center gap-2">
