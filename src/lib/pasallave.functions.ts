@@ -58,11 +58,14 @@ async function loadAdminClient() {
 async function reservePosition(supabase: TypedSupabase, kioskId: string) {
   const { data: kiosk } = await supabase.from("kiosks").select("positions").eq("id", kioskId).maybeSingle();
   if (!kiosk) throw new Error("Punto no encontrado");
+  // A locker is occupied only while a key is physically inside it:
+  // status 'deposited' (waiting for the guest) or 'completed' (guest returned it).
   const { data: taken } = await supabase
     .from("key_exchanges")
     .select("locker_position")
     .eq("kiosk_id", kioskId)
-    .in("status", ["created", "waiting_deposit", "deposited", "picked_up"]);
+    .in("status", ["deposited", "completed"])
+    .gt("locker_position", 0);
   const position = pickFreePosition(
     kiosk.positions,
     (taken ?? []).map((x: { locker_position: number | null }) => x.locker_position ?? 0).filter(Boolean),
@@ -70,6 +73,7 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
   if (position === 0) throw new Error("No hay posiciones libres");
   return position;
 }
+
 
 // ---------- expire old one-use exchanges ----------
 
