@@ -177,6 +177,13 @@ function AdminHosts() {
                 </td>
               </tr>
             ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-muted-foreground">
+                  {query ? `Sin resultados para "${query}".` : "Todavía no hay anfitriones."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
