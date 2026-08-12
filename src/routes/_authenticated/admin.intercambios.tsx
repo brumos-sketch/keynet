@@ -1,10 +1,44 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { STATUS_LABELS, STATUS_TONE, formatDate, type ExchangeStatus } from "@/lib/pasallave";
+import { cn } from "@/lib/utils";
+
+type ExchangeRow = {
+  id: string;
+  key_id: string | null;
+  kiosk_id: string | null;
+  booking_ref: string;
+  locker_position: number;
+  deposit_code: string;
+  pickup_code: string | null;
+  return_code: string | null;
+  pickup_time: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  status: string;
+  created_at: string;
+  deposited_at: string | null;
+  picked_up_at: string | null;
+  returned_at: string | null;
+};
 
 export const Route = createFileRoute("/_authenticated/admin/intercambios")({
   head: () => ({
@@ -18,6 +52,8 @@ export const Route = createFileRoute("/_authenticated/admin/intercambios")({
 
 function AdminExchanges() {
   const qc = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [detail, setDetail] = useState<ExchangeRow | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "exchanges"],
@@ -66,12 +102,41 @@ function AdminExchanges() {
           ? "completed"
           : null;
 
+  const rows = ((data?.exchanges ?? []) as ExchangeRow[]).filter(
+    (e) => statusFilter === "all" || e.status === statusFilter,
+  );
+
+  const timeline = (e: ExchangeRow) => [
+    { label: "Creado", at: e.created_at },
+    { label: "Depositada", at: e.deposited_at },
+    { label: "Retirada", at: e.picked_up_at },
+    { label: "Devuelta", at: e.returned_at },
+  ];
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
-        <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
+          <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
+        </div>
+        <div className="w-[200px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
 
       <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
         <table className="w-full min-w-[900px] text-sm">
@@ -96,7 +161,7 @@ function AdminExchanges() {
                 </td>
               </tr>
             )}
-            {(data?.exchanges ?? []).map((e) => {
+            {rows.map((e) => {
               const next = nextStatus(e.status);
               return (
                 <tr key={e.id}>
@@ -118,7 +183,10 @@ function AdminExchanges() {
                     </Pill>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Button variant="ghost" size="sm" onClick={() => setDetail(e)}>
+                      Detalle
+                    </Button>
                     {next && (
                       <Button
                         variant="ghost"
@@ -132,9 +200,83 @@ function AdminExchanges() {
                 </tr>
               );
             })}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={9} className="px-4 py-6 text-muted-foreground">
+                  Sin intercambios para este filtro.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
+        <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Intercambio {detail?.booking_ref}</DialogTitle>
+          </DialogHeader>
+          {detail && (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <Info label="Llave" value={keyName(detail.key_id)} />
+                <Info label="Punto" value={kioskName(detail.kiosk_id)} />
+                <Info label="Posición" value={String(detail.locker_position)} />
+                <Info
+                  label="Estado"
+                  value={STATUS_LABELS[detail.status as ExchangeStatus] ?? detail.status}
+                />
+                <Info label="Check-in" value={formatDate(detail.check_in)} />
+                <Info label="Check-out" value={formatDate(detail.check_out)} />
+                <Info label="Retiro previsto" value={detail.pickup_time ?? "—"} />
+                <Info label="Depósito" value={detail.deposit_code} />
+                <Info label="Retiro" value={detail.pickup_code ?? "—"} />
+                <Info label="Devolución" value={detail.return_code ?? "—"} />
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">
+                  Línea de tiempo
+                </p>
+                <ol className="space-y-3">
+                  {timeline(detail).map((step) => (
+                    <li key={step.label} className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
+                          step.at ? "bg-primary" : "bg-border",
+                        )}
+                      />
+                      <div>
+                        <p
+                          className={cn(
+                            "font-medium",
+                            step.at ? "text-foreground" : "text-muted-foreground",
+                          )}
+                        >
+                          {step.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {step.at ? formatDate(step.at) : "Pendiente"}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs tracking-wide text-muted-foreground uppercase">{label}</p>
+      <p className="font-medium text-foreground">{value}</p>
     </div>
   );
 }

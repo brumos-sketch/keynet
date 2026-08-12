@@ -164,3 +164,79 @@ export function describeSchedule(is24h: boolean, schedule: KioskSchedule | null)
     .map((d) => `${d.label.slice(0, 3)} ${schedule[d.key]!.open}-${schedule[d.key]!.close}`)
     .join(" · ");
 }
+
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
+function toMinutes(value: string): number {
+  const [h, m] = value.split(":");
+  return Number(h ?? 0) * 60 + Number(m ?? 0);
+}
+
+export type OpenState = { open: boolean; nextOpen: Date | null; closesAt: string | null };
+
+/** Estado de apertura del punto según su horario semanal. */
+export function kioskOpenState(
+  is24h: boolean,
+  schedule: KioskSchedule | null,
+  now: Date = new Date(),
+): OpenState {
+  if (is24h) return { open: true, nextOpen: null, closesAt: null };
+  if (!schedule) return { open: false, nextOpen: null, closesAt: null };
+
+  const current = now.getHours() * 60 + now.getMinutes();
+  const today = schedule[DAY_KEYS[now.getDay()]!];
+  if (today && toMinutes(today.open) <= current && current < toMinutes(today.close)) {
+    return { open: true, nextOpen: null, closesAt: today.close };
+  }
+
+  for (let i = 0; i < 8; i += 1) {
+    const day = new Date(now);
+    day.setDate(day.getDate() + i);
+    const slot = schedule[DAY_KEYS[day.getDay()]!];
+    if (!slot) continue;
+    const [h, m] = slot.open.split(":");
+    day.setHours(Number(h ?? 0), Number(m ?? 0), 0, 0);
+    if (day.getTime() > now.getTime()) return { open: false, nextOpen: day, closesAt: null };
+  }
+  return { open: false, nextOpen: null, closesAt: null };
+}
+
+/** "2 h 15 min" */
+export function formatCountdown(ms: number): string {
+  if (ms <= 0) return "0 min";
+  const totalMinutes = Math.ceil(ms / 60000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `${days} d ${hours} h`;
+  if (hours > 0) return `${hours} h ${minutes} min`;
+  return `${minutes} min`;
+}
+
+export const ACCESS_ROLES = [
+  { value: "guest", label: "Huésped" },
+  { value: "cleaning", label: "Limpieza" },
+  { value: "maintenance", label: "Mantenimiento" },
+  { value: "other", label: "Otro" },
+] as const;
+
+export const ACCESS_ROLE_LABELS: Record<string, string> = Object.fromEntries(
+  ACCESS_ROLES.map((r) => [r.value, r.label]),
+);
+
+export const ACCESS_SCOPES = [
+  { value: "both", label: "Depósito y retiro" },
+  { value: "deposit", label: "Solo depósito" },
+  { value: "pickup", label: "Solo retiro" },
+] as const;
+
+export const ACCESS_SCOPE_LABELS: Record<string, string> = Object.fromEntries(
+  ACCESS_SCOPES.map((s) => [s.value, s.label]),
+);
+
+export const ACTION_LABELS: Record<string, string> = {
+  deposited: "Depósito",
+  picked_up: "Retiro",
+  completed: "Devolución",
+  exchange_created: "Intercambio creado",
+};

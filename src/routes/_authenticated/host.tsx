@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,6 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
+import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,20 +28,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  ACTION_LABELS,
+  EXTRA_DAY_PRICE,
+  ONE_USE_STORAGE_HOURS,
   PLAN_LABELS,
   STATUS_LABELS,
   STATUS_TONE,
+  formatCountdown,
   formatDate,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
-import { createExchange, renewExchange } from "@/lib/pasallave.functions";
+import { createExchange, expireOneUseExchanges, renewExchange } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
   head: () => ({
     meta: [
       { title: "Mis llaves — PASALLAVE" },
       { name: "description", content: "Gestioná tus llaves e intercambios como anfitrión." },
+      { property: "og:title", content: "Panel de anfitrión PASALLAVE" },
+      {
+        property: "og:description",
+        content: "Llaves, intercambios y accesos en tus puntos asociados.",
+      },
     ],
   }),
   component: HostPanel,
@@ -50,6 +61,7 @@ function HostPanel() {
   const qc = useQueryClient();
   const createExchangeFn = useServerFn(createExchange);
   const renewFn = useServerFn(renewExchange);
+  const expireFn = useServerFn(expireOneUseExchanges);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [exchangeForm, setExchangeForm] = useState({
@@ -60,6 +72,8 @@ function HostPanel() {
   });
   const [renewId, setRenewId] = useState<string | null>(null);
   const [extraDays, setExtraDays] = useState(1);
+  const [logKeyId, setLogKeyId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
   const [selectedExchange, setSelectedExchange] = useState<{
     id: string;
     booking_ref: string;
@@ -69,6 +83,27 @@ function HostPanel() {
     status: string;
     key: { subscription_type: string };
   } | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    void expireFn({ data: undefined }).then(
+      () => qc.invalidateQueries({ queryKey: ["host", "overview"] }),
+      () => undefined,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { data: hostId } = useQuery({
+    queryKey: ["host", "id"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_host_id");
+      return (data as string | null) ?? null;
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["host", "overview"],
@@ -101,7 +136,36 @@ function HostPanel() {
     },
   });
 
+  const { data: accessLog } = useQuery({
+    queryKey: ["host", "access-log", logKeyId],
+    enabled: !!logKeyId,
+    queryFn: async () => {
+      const { data: rows } = await supabase
+        .from("access_log")
+        .select("*")
+        .eq("key_id", logKeyId!)
+        .order("timestamp", { ascending: false })
+        .limit(50);
+      return rows ?? [];
+    },
+  });
+
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+
+  const keyStatus = (keyId: string) => {
+    const list = (data?.exchanges ?? []).filter((e) => e.key_id === keyId);
+    const active = list.find((e) =>
+      ["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status),
+    );
+    if (active) return { label: STATUS_LABELS[active.status as ExchangeStatus], tone: STATUS_TONE[active.status as ExchangeStatus], exchange: active };
+    const expired = list.find((e) => e.status === "expired");
+    if (expired) return { label: "Vencido", tone: "danger" as const, exchange: expired };
+    return { label: "Sin actividad", tone: "neutral" as const, exchange: null };
+  };
+
+  const deadlineFor = (createdAt: string) =>
+    new Date(new Date(createdAt).getTime() + ONE_USE_STORAGE_HOURS * 3600_000);
+
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -153,27 +217,50 @@ function HostPanel() {
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Mis llaves</h1>
-            <p className="text-sm text-muted-foreground">
-              Llaves activas y sus puntos de intercambio.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Mis llaves</h1>
+              <p className="text-sm text-muted-foreground">
+                Llaves activas y sus puntos de intercambio.
+              </p>
+            </div>
+            <NewKeyWizard hostId={hostId ?? null} />
           </div>
 
           {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(data?.keys ?? []).map((k) => (
+            {(data?.keys ?? []).map((k) => {
+              const st = keyStatus(k.id);
+              const oneUseActive =
+                k.subscription_type === "one_use" &&
+                st.exchange &&
+                ["created", "waiting_deposit", "deposited"].includes(st.exchange.status)
+                  ? deadlineFor(st.exchange.created_at)
+                  : null;
+              return (
               <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-foreground">{k.name}</h2>
                     <p className="text-sm text-muted-foreground">{k.property_name ?? "—"}</p>
                   </div>
-                  <Pill tone="info">
-                    {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
-                  </Pill>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <Pill tone="info">
+                      {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
+                    </Pill>
+                    <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
+                    {k.locked && <Pill tone="danger">Bloqueada</Pill>}
+                  </div>
                 </div>
+                {oneUseActive && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {oneUseActive.getTime() > now.getTime()
+                      ? `Vence en ${formatCountdown(oneUseActive.getTime() - now.getTime())} (guardado ${ONE_USE_STORAGE_HOURS} h)`
+                      : "Guardado vencido: renová para recuperar la llave"}
+                  </p>
+                )}
+
                 <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                   <p>Punto: {kioskName(k.kiosk_id)}</p>
                   {k.deposit_code && (
@@ -251,9 +338,38 @@ function HostPanel() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLogKeyId(logKeyId === k.id ? null : k.id)}
+                  >
+                    {logKeyId === k.id ? "Ocultar actividad" : "Ver actividad"}
+                  </Button>
                 </div>
+
+                {k.subscription_type === "pro" && (
+                  <ProAccessCodes keyId={k.id} keyName={k.name} />
+                )}
+
+                {logKeyId === k.id && (
+                  <ul className="mt-4 space-y-1.5 rounded-[12px] border border-border p-3">
+                    {(accessLog ?? []).map((l) => (
+                      <li key={l.id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-foreground">
+                          {ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—"}
+                          {l.person_name ? ` · ${l.person_name}` : ""}
+                        </span>
+                        <span className="text-muted-foreground">{formatDate(l.timestamp)}</span>
+                      </li>
+                    ))}
+                    {(accessLog ?? []).length === 0 && (
+                      <li className="text-xs text-muted-foreground">Sin movimientos.</li>
+                    )}
+                  </ul>
+                )}
               </div>
-            ))}
+              );
+            })}
             {!isLoading && (data?.keys.length ?? 0) === 0 && (
               <p className="text-sm text-muted-foreground">Todavía no tenés llaves cargadas.</p>
             )}
@@ -347,7 +463,7 @@ function HostPanel() {
                   </Select>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Se agregarán ${extraDays * 1500} al próximo resumen de facturación.
+                  Se agregarán ${extraDays * EXTRA_DAY_PRICE} al próximo resumen de facturación.
                 </p>
               </div>
               <DialogFooter>

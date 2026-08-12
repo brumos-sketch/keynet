@@ -6,7 +6,6 @@ import type { Database } from "@/integrations/supabase/types";
 import {
   generateBookingRef,
   generateExchangeCode,
-  generateKioskCode,
   pickFreePosition,
 } from "@/lib/pasallave";
 
@@ -51,10 +50,6 @@ async function isAdmin(context: { supabase: TypedSupabase; userId: string }) {
   return !!data;
 }
 
-async function assertAdmin(context: { supabase: TypedSupabase; userId: string }) {
-  if (!(await isAdmin(context))) throw new Error("Forbidden");
-}
-
 async function loadAdminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -80,8 +75,7 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
 
 export const expireOneUseExchanges = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context);
+  .handler(async () => {
     const supabaseAdmin = await loadAdminClient();
     await supabaseAdmin.rpc("expire_one_use_exchanges");
     return { ok: true };
@@ -101,7 +95,11 @@ export const createKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createKeySchema.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const admin = await isAdmin(context);
+    if (!admin) {
+      const { data: myHost } = await context.supabase.rpc("my_host_id");
+      if (!myHost || myHost !== data.hostId) throw new Error("Forbidden");
+    }
     const supabaseAdmin = await loadAdminClient();
 
     // Verify host and kiosk exist
@@ -153,7 +151,7 @@ export const createKey = createServerFn({ method: "POST" })
       // Pro guest access code: one reusable access code that covers deposit and pickup
       const { error: acError } = await supabaseAdmin.from("access_codes").insert({
         key_id: key.id,
-        code: generateKioskCode().replace("PP-", "").slice(0, 6),
+        code: generateExchangeCode(),
         role: "guest",
         reusable: true,
         scope: "both",
@@ -241,11 +239,10 @@ export const createExchange = createServerFn({ method: "POST" })
 
     await supabase.from("access_log").insert({
       key_id: key.id,
-      exchange_id: exchange.id as never,
       action: "exchange_created",
       role: "host",
       person_name: data.guestName ?? null,
-    } as never);
+    });
 
 
     return { exchangeId: exchange.id, bookingRef } as { exchangeId: string; bookingRef: string };
@@ -323,12 +320,14 @@ export const renewExchange = createServerFn({ method: "POST" })
 const createAccessCodeSchema = z.object({
   keyId: z.string().uuid(),
   scope: z.enum(["deposit", "pickup", "both"]),
+  role: z.enum(["guest", "cleaning", "maintenance", "other"]).default("guest"),
   personName: z.string().trim().max(80).optional().nullable(),
   hasValidity: z.boolean().default(false),
   validFrom: z.string().optional().nullable(),
   validTo: z.string().optional().nullable(),
   timeFrom: z.string().optional().nullable(),
   timeTo: z.string().optional().nullable(),
+  reusable: z.boolean().default(true),
 });
 
 export const createAccessCode = createServerFn({ method: "POST" })
@@ -344,18 +343,18 @@ export const createAccessCode = createServerFn({ method: "POST" })
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
     if (key.subscription_type !== "pro") throw new Error("Los códigos de acceso solo aplican al plan Pro");
 
-    const code = generateKioskCode().replace("PP-", "").slice(0, 6);
+    const code = generateExchangeCode();
     const { error } = await supabase.from("access_codes").insert({
       key_id: key.id,
       code,
-      role: "guest",
+      role: data.role,
       person_name: data.personName ?? null,
       has_validity: data.hasValidity,
       valid_from: data.validFrom ?? null,
       valid_to: data.validTo ?? null,
       time_from: data.timeFrom ?? null,
       time_to: data.timeTo ?? null,
-      reusable: true,
+      reusable: data.reusable,
       scope: data.scope,
       status: "active",
     });
@@ -401,10 +400,19 @@ export const validateCode = createServerFn({ method: "POST" })
     if (!myKioskId) throw new Error("No tenés un punto asignado");
 
     const clean = normalizeCode(data.code);
-    const cleanHyphenated = clean.length === 6 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
     const now = nowIso();
     const today = new Date().toISOString().slice(0, 10);
     const currentTime = new Date().toISOString().slice(11, 16); // HH:MM
+
+    let logKeyId: string | null = null;
+    let logRole: string | null = "kiosk";
+    let logPerson: string | null = null;
+
+    const resolve = async (): Promise<{
+      action: string;
+      position: number | null;
+      bookingRef: string | null;
+    }> => {
 
     // 1. Pro access codes first
     const { data: accessCodes } = await supabase
@@ -416,6 +424,12 @@ export const validateCode = createServerFn({ method: "POST" })
     if (accessCodes && accessCodes.length > 0) {
       const ac = accessCodes[0]!;
       const key = (ac as unknown as { keys: { id: string; kiosk_id: string; host_id: string; subscription_type: string } }).keys;
+      logKeyId = key.id;
+      logRole = ac.role ?? "guest";
+      logPerson = ac.person_name ?? null;
+      await supabase.from("access_codes").update({ uses_count: (ac.uses_count ?? 0) + 1 }).eq("id", ac.id);
+      if (!ac.reusable && (ac.uses_count ?? 0) >= 1) throw new Error("Este código ya fue usado");
+
 
       // validity check
       if (ac.has_validity) {
@@ -509,6 +523,7 @@ export const validateCode = createServerFn({ method: "POST" })
       .eq("kiosk_id", myKioskId);
     if (keys && keys.length > 0) {
       const key = keys[0]!;
+      logKeyId = key.id;
       if (key.subscription_type === "monthly") {
         // Find or create the monthly free exchange
         const { data: existing } = await supabase
@@ -568,6 +583,8 @@ export const validateCode = createServerFn({ method: "POST" })
     if (exchanges && exchanges.length > 0) {
       const ex = exchanges[0]!;
       const key = (ex as unknown as { keys: { subscription_type: string } }).keys;
+      logKeyId = ex.key_id;
+
 
       const returnCodeMatch =
         ex.return_code ?? (key.subscription_type !== "one_use" ? ex.pickup_code : null);
@@ -595,5 +612,66 @@ export const validateCode = createServerFn({ method: "POST" })
       }
     }
 
-    throw new Error("Código no encontrado o no válido");
+      throw new Error("Código no encontrado o no válido");
+    };
+
+    const result = await resolve();
+    await supabase.from("access_log").insert({
+      key_id: logKeyId,
+      action: result.action,
+      role: logRole,
+      person_name: logPerson,
+    });
+    return result;
+  });
+
+// ---------- associate overview (occupancy + commissions) ----------
+
+export const associateOverview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data: associateId } = await supabase.rpc("my_associate_id");
+    if (!associateId) throw new Error("No sos asociado");
+
+    const supabaseAdmin = await loadAdminClient();
+
+    const { data: kiosks } = await supabaseAdmin
+      .from("kiosks")
+      .select("id, name, category, positions, commission_percent, address")
+      .eq("associate_id", associateId)
+      .order("name");
+
+    const kioskIds = (kiosks ?? []).map((k) => k.id);
+    if (kioskIds.length === 0) return { kiosks: [], exchanges: [] };
+
+    const { data: exchanges } = await supabaseAdmin
+      .from("key_exchanges")
+      .select("id, kiosk_id, booking_ref, status, created_at, locker_position, keys(name, subscription_type)")
+      .in("kiosk_id", kioskIds)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    const activeStatuses = ["created", "waiting_deposit", "deposited", "picked_up"];
+    const withOccupancy = (kiosks ?? []).map((k) => ({
+      ...k,
+      used: (exchanges ?? []).filter(
+        (e) => e.kiosk_id === k.id && activeStatuses.includes(e.status),
+      ).length,
+    }));
+
+    return {
+      kiosks: withOccupancy,
+      exchanges: (exchanges ?? []).slice(0, 20).map((e) => ({
+        id: e.id,
+        kiosk_id: e.kiosk_id,
+        booking_ref: e.booking_ref,
+        status: e.status,
+        created_at: e.created_at,
+        keyName: (e as unknown as { keys: { name: string } | null }).keys?.name ?? "—",
+        plan:
+          (e as unknown as { keys: { subscription_type: string } | null }).keys?.subscription_type ??
+          "",
+      })),
+    };
   });
