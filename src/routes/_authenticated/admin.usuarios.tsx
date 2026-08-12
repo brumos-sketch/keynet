@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser, adminSetUserRole, adminDeleteUser } from "@/lib/admin.functions";
+import { adminCreateUser, adminUpdateUser, adminDeleteUser } from "@/lib/admin.functions";
 import { Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { ROLE_LABELS, matchesQuery, type AppRole } from "@/lib/pasallave";
 import { Button } from "@/components/ui/button";
@@ -39,25 +39,29 @@ export const Route = createFileRoute("/_authenticated/admin/usuarios")({
 
 const ROLES: AppRole[] = ["pending", "admin", "associate", "host", "kiosk"];
 
-const ROLE_TONE: Record<AppRole, "neutral" | "info" | "success" | "warning" | "primary"> = {
-  pending: "warning",
-  admin: "primary",
-  associate: "info",
-  host: "success",
-  kiosk: "neutral",
+const ROLE_BADGE: Record<AppRole, string> = {
+  pending: "bg-amber-100 text-amber-800 border-amber-300",
+  admin: "bg-violet-100 text-violet-800 border-violet-300",
+  associate: "bg-sky-100 text-sky-800 border-sky-300",
+  host: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  kiosk: "bg-orange-100 text-orange-800 border-orange-300",
+};
+
+type EditingUser = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: AppRole;
+  kioskId: string | null;
 };
 
 function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState<{
-    id: string;
-    name: string | null;
-    email: string | null;
-    role: AppRole;
-    kioskId: string | null;
-  } | null>(null);
+  const [editing, setEditing] = useState<EditingUser | null>(null);
 
   const [form, setForm] = useState({
     email: "",
@@ -71,19 +75,25 @@ function AdminUsers() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      const [profiles, roles, kiosks] = await Promise.all([
+      const [profiles, roles, kiosks, hosts, associates] = await Promise.all([
         supabase
           .from("profiles")
           .select("id, name, email, kiosk_id, created_at")
           .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("kiosks").select("id, name"),
+        supabase.from("hosts").select("user_id, phone"),
+        supabase.from("associates").select("user_id, phone"),
       ]);
       const roleMap = new Map((roles.data ?? []).map((r) => [r.user_id, r.role as AppRole]));
+      const phoneMap = new Map<string, string | null>();
+      for (const h of hosts.data ?? []) if (h.user_id) phoneMap.set(h.user_id, h.phone);
+      for (const a of associates.data ?? []) if (a.user_id) phoneMap.set(a.user_id, a.phone);
       return {
         kiosks: kiosks.data ?? [],
         users: (profiles.data ?? []).map((p) => ({
           ...p,
+          phone: phoneMap.get(p.id) ?? null,
           role: (roleMap.get(p.id) ?? "pending") as AppRole,
         })),
       };
@@ -111,11 +121,21 @@ function AdminUsers() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const setRole = useMutation({
-    mutationFn: async (vars: { userId: string; role: AppRole; kioskId?: string | null }) =>
-      adminSetUserRole({ data: vars }),
+  const updateUser = useMutation({
+    mutationFn: async (vars: EditingUser) =>
+      adminUpdateUser({
+        data: {
+          userId: vars.id,
+          name: vars.name,
+          email: vars.email,
+          phone: vars.phone || null,
+          password: vars.password ? vars.password : null,
+          role: vars.role,
+          kioskId: vars.role === "kiosk" ? vars.kioskId : null,
+        },
+      }),
     onSuccess: () => {
-      toast.success("Rol actualizado");
+      toast.success("Usuario actualizado");
       setEditing(null);
       void qc.invalidateQueries({ queryKey: ["admin", "users"] });
     },
@@ -131,6 +151,7 @@ function AdminUsers() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
 
 
   const rows = (data?.users ?? []).filter((u) =>
@@ -272,7 +293,7 @@ function AdminUsers() {
                   {new Intl.DateTimeFormat("es-AR").format(new Date(u.created_at))}
                 </td>
                 <td className="px-4 py-3">
-                  <Pill tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
+                  <Pill className={ROLE_BADGE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Button
@@ -282,13 +303,16 @@ function AdminUsers() {
                     onClick={() =>
                       setEditing({
                         id: u.id,
-                        name: u.name,
-                        email: u.email,
+                        name: u.name ?? "",
+                        email: u.email ?? "",
+                        phone: u.phone ?? "",
+                        password: "",
                         role: u.role,
                         kioskId: u.kiosk_id,
                       })
                     }
                   >
+
                     <Pencil className="size-4" />
                   </Button>
                 </td>
@@ -311,10 +335,44 @@ function AdminUsers() {
             <DialogTitle>Editar usuario</DialogTitle>
           </DialogHeader>
           {editing && (
-            <div className="space-y-4">
-              <div className="text-sm text-gray-500">
-                <div className="font-medium text-foreground">{editing.name ?? "—"}</div>
-                {editing.email}
+            <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="e-name">Nombre</Label>
+                <Input
+                  id="e-name"
+                  value={editing.name}
+                  maxLength={80}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-email">Email</Label>
+                <Input
+                  id="e-email"
+                  type="email"
+                  value={editing.email}
+                  maxLength={255}
+                  onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-phone">Teléfono</Label>
+                <Input
+                  id="e-phone"
+                  value={editing.phone}
+                  maxLength={40}
+                  onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-pass">Nueva contraseña</Label>
+                <Input
+                  id="e-pass"
+                  value={editing.password}
+                  maxLength={72}
+                  placeholder="Dejar vacío para no cambiarla"
+                  onChange={(e) => setEditing({ ...editing, password: e.target.value })}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Rol</Label>
@@ -324,6 +382,7 @@ function AdminUsers() {
                     setEditing({ ...editing, role: value as AppRole })
                   }
                 >
+
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -374,15 +433,9 @@ function AdminUsers() {
             </Button>
             <Button
               className="rounded-xl"
-              disabled={setRole.isPending}
-              onClick={() =>
-                editing &&
-                setRole.mutate({
-                  userId: editing.id,
-                  role: editing.role,
-                  kioskId: editing.role === "kiosk" ? editing.kioskId : null,
-                })
-              }
+              disabled={updateUser.isPending}
+              onClick={() => editing && updateUser.mutate(editing)}
+
             >
               Guardar
             </Button>
