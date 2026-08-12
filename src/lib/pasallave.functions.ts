@@ -25,7 +25,20 @@ function in48Hours() {
 }
 
 function normalizeCode(value: string) {
-  return value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function hyphenatedCode(value: string) {
+  const clean = normalizeCode(value);
+  if (clean.length === 6) return `${clean.slice(0, 3)}-${clean.slice(3)}`;
+  return clean;
+}
+
+function codeSearchConditions(field: string, code: string) {
+  const clean = normalizeCode(code);
+  const hyp = hyphenatedCode(code);
+  if (clean === hyp) return `${field}.eq.${clean}`;
+  return `${field}.eq.${clean},${field}.eq.${hyp}`;
 }
 
 async function isAdmin(context: { supabase: TypedSupabase; userId: string }) {
