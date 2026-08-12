@@ -60,16 +60,77 @@ function SearchPage() {
   const [waitlist, setWaitlist] = useState({ address: "", email: "", name: "", phone: "" });
   const [open, setOpen] = useState(false);
 
+  const geocodeFn = useServerFn(geocodeAddress);
+  const [origin, setOrigin] = useState<(GeoPoint & { label: string }) | null>(null);
+  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
+
+  useEffect(() => {
+    const address = query.trim();
+    if (address.length < 5) {
+      setOrigin(null);
+      setGeoState("idle");
+      return;
+    }
+    let cancelled = false;
+    setGeoState("loading");
+    const timer = setTimeout(() => {
+      void geocodeFn({ data: { address } })
+        .then((result) => {
+          if (cancelled) return;
+          if (!result) {
+            setOrigin(null);
+            setGeoState("none");
+            return;
+          }
+          setOrigin(result);
+          setGeoState("idle");
+        })
+        .catch(() => {
+          if (!cancelled) setGeoState("none");
+        });
+    }, 700);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, geocodeFn]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return kiosks;
-    return kiosks.filter(
+    const withDistance = kiosks.map((k) => ({
+      ...k,
+      distance:
+        origin && k.lat != null && k.lng != null
+          ? distanceKm(origin, { lat: k.lat, lng: k.lng })
+          : null,
+    }));
+    if (origin) {
+      return withDistance
+        .slice()
+        .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+    }
+    if (!q) return withDistance;
+    return withDistance.filter(
       (k) =>
         k.name.toLowerCase().includes(q) || (k.address ?? "").toLowerCase().includes(q),
     );
-  }, [kiosks, query]);
+  }, [kiosks, query, origin]);
 
   const current = filtered.find((k) => k.id === selected) ?? filtered[0] ?? null;
+
+  const mapPoints: MapPointItem[] = useMemo(
+    () =>
+      filtered
+        .filter((k) => k.lat != null && k.lng != null)
+        .map((k) => ({
+          id: k.id,
+          name: k.name,
+          address: k.address,
+          lat: k.lat as number,
+          lng: k.lng as number,
+        })),
+    [filtered],
+  );
 
   const join = useMutation({
     mutationFn: async () =>
