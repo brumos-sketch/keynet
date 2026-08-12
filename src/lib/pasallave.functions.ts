@@ -236,7 +236,7 @@ export const createExchange = createServerFn({ method: "POST" })
         key_id: key.id,
         kiosk_id: key.kiosk_id,
         booking_ref: bookingRef,
-        locker_position: position,
+        locker_position: 0,
         deposit_code: depositCode,
         pickup_code: bidiCode,
         return_code: bidiCode,
