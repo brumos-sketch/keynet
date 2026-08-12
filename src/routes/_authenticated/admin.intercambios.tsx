@@ -229,7 +229,7 @@ function AdminExchanges() {
             {!isLoading && rows.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-6 text-muted-foreground">
-                  Sin intercambios para este filtro.
+                  {query ? `Sin resultados para "${query}".` : "Sin intercambios para este filtro."}
                 </td>
               </tr>
             )}
