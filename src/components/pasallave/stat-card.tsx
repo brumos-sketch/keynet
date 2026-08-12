@@ -29,26 +29,29 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "glass-card animate-fade-in p-4 transition-shadow hover:shadow-elevated",
+        "glass-card animate-fade-in min-w-0 p-3 transition-shadow hover:shadow-elevated sm:p-4",
         className,
       )}
       style={{ animationDelay: `${index * 60}ms` }}
     >
-      <span
-        className={cn(
-          "inline-flex size-9 items-center justify-center rounded-xl",
-          accentClasses[accent],
-        )}
-      >
-        <Icon className="size-4.5" />
-      </span>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
-        {value}
-      </p>
-      <p className="mt-0.5 text-xs font-medium tracking-wide text-gray-500 uppercase">
+      <div className="flex items-center justify-between gap-2 sm:block">
+        <span
+          className={cn(
+            "inline-flex size-8 shrink-0 items-center justify-center rounded-xl sm:size-9",
+            accentClasses[accent],
+          )}
+        >
+          <Icon className="size-4 sm:size-4.5" />
+        </span>
+        <p className="text-2xl font-semibold tracking-tight text-foreground tabular-nums sm:mt-3 sm:text-3xl">
+          {value}
+        </p>
+      </div>
+      <p className="mt-2 truncate text-xs font-medium tracking-wide text-gray-500 uppercase sm:mt-0.5">
         {label}
       </p>
       {hint ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
     </div>
   );
 }
+
