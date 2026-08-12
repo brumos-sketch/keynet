@@ -608,5 +608,66 @@ export const validateCode = createServerFn({ method: "POST" })
       }
     }
 
-    throw new Error("Código no encontrado o no válido");
+      throw new Error("Código no encontrado o no válido");
+    };
+
+    const result = await resolve();
+    await supabase.from("access_log").insert({
+      key_id: logKeyId,
+      action: result.action,
+      role: logRole,
+      person_name: logPerson,
+    });
+    return result;
+  });
+
+// ---------- associate overview (occupancy + commissions) ----------
+
+export const associateOverview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase } = context;
+    const { data: associateId } = await supabase.rpc("my_associate_id");
+    if (!associateId) throw new Error("No sos asociado");
+
+    const supabaseAdmin = await loadAdminClient();
+
+    const { data: kiosks } = await supabaseAdmin
+      .from("kiosks")
+      .select("id, name, category, positions, commission_percent, address")
+      .eq("associate_id", associateId)
+      .order("name");
+
+    const kioskIds = (kiosks ?? []).map((k) => k.id);
+    if (kioskIds.length === 0) return { kiosks: [], exchanges: [] };
+
+    const { data: exchanges } = await supabaseAdmin
+      .from("key_exchanges")
+      .select("id, kiosk_id, booking_ref, status, created_at, locker_position, keys(name, subscription_type)")
+      .in("kiosk_id", kioskIds)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    const activeStatuses = ["created", "waiting_deposit", "deposited", "picked_up"];
+    const withOccupancy = (kiosks ?? []).map((k) => ({
+      ...k,
+      used: (exchanges ?? []).filter(
+        (e) => e.kiosk_id === k.id && activeStatuses.includes(e.status),
+      ).length,
+    }));
+
+    return {
+      kiosks: withOccupancy,
+      exchanges: (exchanges ?? []).slice(0, 20).map((e) => ({
+        id: e.id,
+        kiosk_id: e.kiosk_id,
+        booking_ref: e.booking_ref,
+        status: e.status,
+        created_at: e.created_at,
+        keyName: (e as unknown as { keys: { name: string } | null }).keys?.name ?? "—",
+        plan:
+          (e as unknown as { keys: { subscription_type: string } | null }).keys?.subscription_type ??
+          "",
+      })),
+    };
   });
