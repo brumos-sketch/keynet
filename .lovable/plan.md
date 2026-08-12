@@ -7,7 +7,7 @@ Tenés razón: hoy la posición se reserva cuando el anfitrión crea la estadía
 1. Al crear la estadía (o la llave mensual/pro), el intercambio nace **sin posición asignada** y en estado "esperando depósito".
 2. Cuando el encargado del punto ingresa el código de depósito, recién ahí el sistema elige una posición libre real y la confirma en pantalla ("Guardá la llave en el casillero N").
 3. La posición queda ocupada mientras la llave está en el punto (depositada). Cuando el huésped retira, el casillero vuelve a quedar libre para otra llave; en la devolución se asigna de nuevo una posición libre en ese momento.
-4. Al completarse o expirar el intercambio, la posición se libera.
+4. La posición se libera únicamente cuando la llave se retira físicamente. Si el intercambio vence, la llave sigue depositada y el casillero sigue ocupado hasta que alguien la retire; una posición liberada queda disponible para otra llave, porque el casillero físico quedó vacío.
 
 ## Qué cambia en cada pantalla
 
