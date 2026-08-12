@@ -42,7 +42,12 @@ import {
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
-import { createExchange, expireOneUseExchanges, renewExchange } from "@/lib/pasallave.functions";
+import {
+  createExchange,
+  expireOneUseExchanges,
+  renewExchange,
+  updateExchange,
+} from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
   head: () => ({
