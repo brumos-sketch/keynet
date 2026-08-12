@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,6 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
+import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,20 +28,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  ACTION_LABELS,
+  EXTRA_DAY_PRICE,
+  ONE_USE_STORAGE_HOURS,
   PLAN_LABELS,
   STATUS_LABELS,
   STATUS_TONE,
+  formatCountdown,
   formatDate,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
-import { createExchange, renewExchange } from "@/lib/pasallave.functions";
+import { createExchange, expireOneUseExchanges, renewExchange } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
   head: () => ({
     meta: [
       { title: "Mis llaves — PASALLAVE" },
       { name: "description", content: "Gestioná tus llaves e intercambios como anfitrión." },
+      { property: "og:title", content: "Panel de anfitrión PASALLAVE" },
+      {
+        property: "og:description",
+        content: "Llaves, intercambios y accesos en tus puntos asociados.",
+      },
     ],
   }),
   component: HostPanel,
