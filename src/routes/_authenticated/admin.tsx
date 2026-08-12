@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -9,9 +10,12 @@ import {
   Receipt,
   Crown,
   LogOut,
+  Menu,
 } from "lucide-react";
 import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, Pill } from "@/components/pasallave/ui-bits";
+import { ThemeToggle } from "@/components/pasallave/theme-toggle";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +37,8 @@ const NAV = [
 function AdminLayout() {
   const { name, email, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [menuOpen, setMenuOpen] = useState(false);
+
 
   return (
     <RoleGuard allow="admin">
