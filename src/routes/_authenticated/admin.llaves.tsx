@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
-import { PLAN_LABELS, formatDate, type SubscriptionType } from "@/lib/pasallave";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { PLAN_LABELS, formatDate, matchesQuery, type SubscriptionType } from "@/lib/pasallave";
 import { createKey } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/llaves")({
