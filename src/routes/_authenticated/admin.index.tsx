@@ -187,7 +187,10 @@ function AdminDashboard() {
           <ul className="mt-4 space-y-4">
             {data.kiosks.map((k) => {
               const used = data.exchanges.filter(
-                (e) => e.kiosk_id === k.id && ["deposited", "waiting_deposit"].includes(e.status),
+                (e) =>
+                  e.kiosk_id === k.id &&
+                  ["deposited", "completed"].includes(e.status) &&
+                  (e.locker_position ?? 0) > 0,
               ).length;
               const pct = k.positions > 0 ? Math.round((used / k.positions) * 100) : 0;
               const tone = occupancyTone(pct);
