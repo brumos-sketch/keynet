@@ -222,7 +222,7 @@ function BoardingPassPage() {
         <section className="rounded-[16px] border border-border bg-card p-5">
           <h2 className="text-sm font-semibold text-foreground">{t.steps}</h2>
           <ol className="mt-3 space-y-3 text-sm text-muted-foreground">
-            {[t.s1, t.s2, t.s3, t.s4].map((step, i) => (
+            {[t.s1, t.s2, t.s3].map((step, i) => (
               <li key={i} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
                   {i + 1}
@@ -231,6 +231,11 @@ function BoardingPassPage() {
               </li>
             ))}
           </ol>
+          {pass.pickup_time && (
+            <p className="mt-4 text-sm font-medium text-foreground">
+              {t.pickupAvailable} {pass.pickup_time}
+            </p>
+          )}
           <p className="mt-4 text-xs text-muted-foreground">{t.pending}</p>
         </section>
 
