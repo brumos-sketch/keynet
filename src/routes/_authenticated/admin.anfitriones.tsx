@@ -31,6 +31,8 @@ function AdminHosts() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [query, setQuery] = useState("");
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "hosts"],
