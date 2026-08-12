@@ -51,6 +51,14 @@ function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<{
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: AppRole;
+    kioskId: string | null;
+  } | null>(null);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
