@@ -325,12 +325,14 @@ export const renewExchange = createServerFn({ method: "POST" })
 const createAccessCodeSchema = z.object({
   keyId: z.string().uuid(),
   scope: z.enum(["deposit", "pickup", "both"]),
+  role: z.enum(["guest", "cleaning", "maintenance", "other"]).default("guest"),
   personName: z.string().trim().max(80).optional().nullable(),
   hasValidity: z.boolean().default(false),
   validFrom: z.string().optional().nullable(),
   validTo: z.string().optional().nullable(),
   timeFrom: z.string().optional().nullable(),
   timeTo: z.string().optional().nullable(),
+  reusable: z.boolean().default(true),
 });
 
 export const createAccessCode = createServerFn({ method: "POST" })
@@ -346,11 +348,11 @@ export const createAccessCode = createServerFn({ method: "POST" })
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
     if (key.subscription_type !== "pro") throw new Error("Los códigos de acceso solo aplican al plan Pro");
 
-    const code = generateKioskCode().replace("PP-", "").slice(0, 6);
+    const code = generateExchangeCode();
     const { error } = await supabase.from("access_codes").insert({
       key_id: key.id,
       code,
-      role: "guest",
+      role: data.role,
       person_name: data.personName ?? null,
       has_validity: data.hasValidity,
       valid_from: data.validFrom ?? null,
