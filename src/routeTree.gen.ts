@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
+import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
 import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
@@ -50,6 +51,11 @@ const AuthenticatedAssociateRoute = AuthenticatedAssociateRouteImport.update({
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   id: '/host',
   path: '/host',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
+  id: '/kiosk',
+  path: '/kiosk',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
+  '/kiosk': typeof AuthenticatedKioskRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
+  '/kiosk': typeof AuthenticatedKioskRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
+  '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/associate'
     | '/host'
+    | '/kiosk'
     | '/admin/anfitriones'
     | '/admin/facturacion'
     | '/admin/intercambios'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/associate'
     | '/host'
+    | '/kiosk'
     | '/admin/anfitriones'
     | '/admin/facturacion'
     | '/admin/intercambios'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/associate'
     | '/_authenticated/host'
+    | '/_authenticated/kiosk'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/intercambios'
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/host'
       fullPath: '/host'
       preLoaderRoute: typeof AuthenticatedHostRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/kiosk': {
+      id: '/_authenticated/kiosk'
+      path: '/kiosk'
+      fullPath: '/kiosk'
+      preLoaderRoute: typeof AuthenticatedKioskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/': {
@@ -311,12 +330,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
+  AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
+  AuthenticatedKioskRoute: AuthenticatedKioskRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
