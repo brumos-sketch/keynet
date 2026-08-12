@@ -40,7 +40,7 @@ export const ROLE_HOME: Record<AppRole, string> = {
   admin: "/admin",
   associate: "/associate",
   host: "/host",
-  kiosk: "/kiosk",
+  kiosk: "/point",
 };
 
 export const PLAN_LABELS: Record<SubscriptionType, string> = {
