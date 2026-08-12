@@ -433,15 +433,9 @@ function AdminUsers() {
             </Button>
             <Button
               className="rounded-xl"
-              disabled={setRole.isPending}
-              onClick={() =>
-                editing &&
-                setRole.mutate({
-                  userId: editing.id,
-                  role: editing.role,
-                  kioskId: editing.role === "kiosk" ? editing.kioskId : null,
-                })
-              }
+              disabled={updateUser.isPending}
+              onClick={() => editing && updateUser.mutate(editing)}
+
             >
               Guardar
             </Button>
