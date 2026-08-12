@@ -21,7 +21,7 @@ Renombrar la ruta del panel del punto de `/kiosk` a `/point` y rediseñar la int
 - **Teclado grande y táctil**: botones numerados de alto contraste, con zona de código claramente legible, ideal para uso en tablet o celular del encargado.
 - **Feedback inmediato**: resultado de la última validación (depósito, retiro/devolución, error) con color, icono y posición del locker si aplica.
 - **Resumen de ocupación**: visualización compacta de casilleros (posiciones libres/ocupadas) para saber de un vistazo el estado del punto.
-- **Listado de intercambios activos**: reserva, estado, código de huésped y posición, con búsqueda rápida.
+
 - **Bloqueo fuera de horario**: mantener el aviso de punto cerrado, pero con mejor jerarquía visual.
 - Seguir el sistema de diseño existente (modo claro, tokens semánticos, radio `16px`, DM Sans).
 
