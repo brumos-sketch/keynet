@@ -61,14 +61,20 @@ function AdminUsers() {
     queryKey: ["admin", "users"],
     queryFn: async () => {
       const [profiles, roles, kiosks] = await Promise.all([
-        supabase.from("profiles").select("id, name, email, phone, kiosk_id, created_at").order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("id, name, email, kiosk_id, created_at")
+          .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("kiosks").select("id, name"),
       ]);
       const roleMap = new Map((roles.data ?? []).map((r) => [r.user_id, r.role as AppRole]));
       return {
         kiosks: kiosks.data ?? [],
-        users: (profiles.data ?? []).map((p) => ({ ...p, role: roleMap.get(p.id) ?? "pending" })),
+        users: (profiles.data ?? []).map((p) => ({
+          ...p,
+          role: (roleMap.get(p.id) ?? "pending") as AppRole,
+        })),
       };
     },
   });
