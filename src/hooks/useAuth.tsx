@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [name, setName] = useState<string | null>(null);
   const [kioskId, setKioskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const bootstrapped = useRef<string | null>(null);
 
   const loadProfile = async (userId: string | null) => {
     if (!userId) {
@@ -32,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setName(null);
       setKioskId(null);
       return;
+    }
+    if (bootstrapped.current !== userId) {
+      bootstrapped.current = userId;
+      try {
+        await ensureUserBootstrap();
+      } catch {
+        // si falla la reparación seguimos con los datos existentes
+      }
     }
     const [{ data: roleRow }, { data: profile }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle(),
@@ -41,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setName(profile?.name ?? null);
     setKioskId(profile?.kiosk_id ?? null);
   };
+
 
   useEffect(() => {
     let active = true;
