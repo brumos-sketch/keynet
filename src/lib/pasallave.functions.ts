@@ -564,11 +564,12 @@ export const validateCode = createServerFn({ method: "POST" })
 
       if (existing) {
         if (existing.status === "waiting_deposit" || existing.status === "created") {
+          const position = await reservePosition(supabase, myKioskId);
           await supabase
             .from("key_exchanges")
-            .update({ status: "deposited", deposited_at: now })
+            .update({ status: "deposited", deposited_at: now, locker_position: position })
             .eq("id", existing.id);
-          return { action: "deposited", position: existing.locker_position, bookingRef: existing.booking_ref };
+          return { action: "deposited", position, bookingRef: existing.booking_ref };
         }
         if (existing.status === "deposited") throw new Error("Esta llave ya está depositada en el punto");
         throw new Error("La llave está en poder del huésped");
