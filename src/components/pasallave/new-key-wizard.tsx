@@ -65,7 +65,11 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!hostId) throw new Error("No encontramos tu perfil de anfitrión");
+      if (!hostId)
+        throw new Error(
+          "Tu cuenta todavía no tiene ficha de anfitrión. Cerrá sesión y volvé a entrar; si persiste, pedile a un administrador que revise tu usuario.",
+        );
+
       return createKeyFn({
         data: {
           name: form.name,

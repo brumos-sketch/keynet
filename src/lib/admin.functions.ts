@@ -55,11 +55,26 @@ export const adminCreateUser = createServerFn({ method: "POST" })
       await supabaseAdmin.from("profiles").update({ kiosk_id: data.kioskId }).eq("id", userId);
     }
     if (data.role === "host") {
-      await supabaseAdmin
+      const { data: existingHost } = await supabaseAdmin
         .from("hosts")
-        .update({ name: data.name, phone: data.phone ?? null })
-        .eq("user_id", userId);
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (existingHost) {
+        await supabaseAdmin
+          .from("hosts")
+          .update({ name: data.name, email: data.email, phone: data.phone ?? null })
+          .eq("user_id", userId);
+      } else {
+        await supabaseAdmin.from("hosts").insert({
+          user_id: userId,
+          name: data.name,
+          email: data.email,
+          phone: data.phone ?? null,
+        });
+      }
     }
+
 
     return { id: userId };
   });

@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureUserBootstrap } from "@/lib/account.functions";
 import type { AppRole } from "@/lib/pasallave";
+
 
 export type AuthState = {
   loading: boolean;
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [name, setName] = useState<string | null>(null);
   const [kioskId, setKioskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const bootstrapped = useRef<string | null>(null);
 
   const loadProfile = async (userId: string | null) => {
     if (!userId) {
@@ -30,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setName(null);
       setKioskId(null);
       return;
+    }
+    if (bootstrapped.current !== userId) {
+      bootstrapped.current = userId;
+      try {
+        await ensureUserBootstrap();
+      } catch {
+        // si falla la reparación seguimos con los datos existentes
+      }
     }
     const [{ data: roleRow }, { data: profile }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId).limit(1).maybeSingle(),
@@ -39,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setName(profile?.name ?? null);
     setKioskId(profile?.kiosk_id ?? null);
   };
+
 
   useEffect(() => {
     let active = true;
