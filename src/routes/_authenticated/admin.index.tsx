@@ -179,20 +179,26 @@ function AdminDashboard() {
                 (e) => e.kiosk_id === k.id && ["deposited", "waiting_deposit"].includes(e.status),
               ).length;
               const pct = k.positions > 0 ? Math.round((used / k.positions) * 100) : 0;
+              const tone = occupancyTone(pct);
+              const free = k.positions - used;
               return (
                 <li key={k.id}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-foreground">{k.name}</span>
                     <span className="text-gray-500">
-                      {used}/{k.positions}
+                      {used}/{k.positions} · {pct}%
                     </span>
                   </div>
                   <div className="mt-1.5 h-2 rounded-full bg-gray-50">
                     <div
-                      className="h-2 rounded-full bg-electric"
+                      className={cn("h-2 rounded-full transition-all duration-500", tone.bar)}
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
+                  <p className="mt-1 text-xs text-gray-400">
+                    {free} {free === 1 ? "libre" : "libres"} de {k.positions} posiciones ·{" "}
+                    <span className={tone.text}>{tone.label}</span>
+                  </p>
                 </li>
               );
             })}
