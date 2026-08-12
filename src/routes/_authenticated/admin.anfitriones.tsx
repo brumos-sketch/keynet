@@ -156,7 +156,7 @@ function AdminHosts() {
                 </td>
               </tr>
             )}
-            {(data?.hosts ?? []).map((h) => (
+            {rows.map((h) => (
               <tr key={h.id}>
                 <td className="px-4 py-3 text-foreground">{h.name}</td>
                 <td className="px-4 py-3 text-muted-foreground">{h.email}</td>
