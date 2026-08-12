@@ -59,6 +59,7 @@ export const Route = createFileRoute("/_authenticated/admin/intercambios")({
 function AdminExchanges() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
+  const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<ExchangeRow | null>(null);
 
   const { data, isLoading } = useQuery({
