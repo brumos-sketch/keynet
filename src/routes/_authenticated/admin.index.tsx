@@ -14,6 +14,8 @@ import {
 import { KeyRound, Store, UserRound, ArrowLeftRight, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { StatCard } from "@/components/pasallave/stat-card";
+
 import {
   STATUS_LABELS,
   STATUS_TONE,
