@@ -12,7 +12,7 @@ En `src/routes/pase.$ref.tsx` reemplazar los textos de `s1` a `s4` en español, 
 - **s1**: “Andá al punto asociado en la dirección indicada, dentro del horario de atención.”
 - **s2**: “Dá tu código al encargado del punto.”
 - **s3**: “Recibí la llave de la propiedad.”
-- **s4**: “Al finalizar tu estadía, devolvé la llave en el mismo punto usando el código de devolución.”
+
 
 Las traducciones equivalentes se mantienen en inglés y portugués.
 
