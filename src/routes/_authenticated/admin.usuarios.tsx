@@ -2,8 +2,9 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser, adminSetUserRole } from "@/lib/admin.functions";
+import { adminCreateUser, adminSetUserRole, adminDeleteUser } from "@/lib/admin.functions";
 import { Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { ROLE_LABELS, matchesQuery, type AppRole } from "@/lib/pasallave";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   head: () => ({
