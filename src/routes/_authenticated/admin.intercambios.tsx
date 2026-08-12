@@ -161,7 +161,7 @@ function AdminExchanges() {
                 </td>
               </tr>
             )}
-            {(data?.exchanges ?? []).map((e) => {
+            {rows.map((e) => {
               const next = nextStatus(e.status);
               return (
                 <tr key={e.id}>
@@ -183,7 +183,10 @@ function AdminExchanges() {
                     </Pill>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Button variant="ghost" size="sm" onClick={() => setDetail(e)}>
+                      Detalle
+                    </Button>
                     {next && (
                       <Button
                         variant="ghost"
@@ -197,9 +200,74 @@ function AdminExchanges() {
                 </tr>
               );
             })}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={9} className="px-4 py-6 text-muted-foreground">
+                  Sin intercambios para este filtro.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
+        <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Intercambio {detail?.booking_ref}</DialogTitle>
+          </DialogHeader>
+          {detail && (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <Info label="Llave" value={keyName(detail.key_id)} />
+                <Info label="Punto" value={kioskName(detail.kiosk_id)} />
+                <Info label="Posición" value={String(detail.locker_position)} />
+                <Info
+                  label="Estado"
+                  value={STATUS_LABELS[detail.status as ExchangeStatus] ?? detail.status}
+                />
+                <Info label="Check-in" value={formatDate(detail.check_in)} />
+                <Info label="Check-out" value={formatDate(detail.check_out)} />
+                <Info label="Retiro previsto" value={detail.pickup_time ?? "—"} />
+                <Info label="Depósito" value={detail.deposit_code} />
+                <Info label="Retiro" value={detail.pickup_code ?? "—"} />
+                <Info label="Devolución" value={detail.return_code ?? "—"} />
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">
+                  Línea de tiempo
+                </p>
+                <ol className="space-y-3">
+                  {timeline(detail).map((step) => (
+                    <li key={step.label} className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
+                          step.at ? "bg-primary" : "bg-border",
+                        )}
+                      />
+                      <div>
+                        <p
+                          className={cn(
+                            "font-medium",
+                            step.at ? "text-foreground" : "text-muted-foreground",
+                          )}
+                        >
+                          {step.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {step.at ? formatDate(step.at) : "Pendiente"}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
