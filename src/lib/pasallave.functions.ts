@@ -80,8 +80,7 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
 
 export const expireOneUseExchanges = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context);
+  .handler(async () => {
     const supabaseAdmin = await loadAdminClient();
     await supabaseAdmin.rpc("expire_one_use_exchanges");
     return { ok: true };
@@ -101,7 +100,11 @@ export const createKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createKeySchema.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const admin = await isAdmin(context);
+    if (!admin) {
+      const { data: myHost } = await context.supabase.rpc("my_host_id");
+      if (!myHost || myHost !== data.hostId) throw new Error("Forbidden");
+    }
     const supabaseAdmin = await loadAdminClient();
 
     // Verify host and kiosk exist
