@@ -101,7 +101,7 @@ function AdminKiosks() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("kiosks").insert({
+      const payload = {
         name: form.name.trim(),
         address: form.address.trim() || null,
         category: form.category,
@@ -113,17 +113,58 @@ function AdminKiosks() {
         associate_id: form.associateId || null,
         is_24h: form.is24h,
         schedule: form.is24h ? {} : form.schedule,
-        access_code: generateKioskCode(),
-      });
+      };
+      const { error } = editingId
+        ? await supabase.from("kiosks").update(payload).eq("id", editingId)
+        : await supabase.from("kiosks").insert({ ...payload, access_code: generateKioskCode() });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Punto creado");
+      toast.success(editingId ? "Punto actualizado" : "Punto creado");
       setOpen(false);
+      setEditingId(null);
       void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const openNew = () => {
+    setEditingId(null);
+    setForm(blankForm);
+    setOpen(true);
+  };
+
+  const openEdit = (k: {
+    id: string;
+    name: string;
+    address: string | null;
+    category: string;
+    custom_category: string | null;
+    positions: number;
+    commission_percent: number;
+    contact_name: string | null;
+    contact_phone: string | null;
+    associate_id: string | null;
+    is_24h: boolean;
+    schedule: unknown;
+  }) => {
+    setEditingId(k.id);
+    setForm({
+      name: k.name,
+      address: k.address ?? "",
+      category: k.category,
+      customCategory: k.custom_category ?? "",
+      positions: k.positions,
+      commission: k.commission_percent,
+      contactName: k.contact_name ?? "",
+      contactPhone: k.contact_phone ?? "",
+      associateId: k.associate_id ?? "",
+      is24h: k.is_24h,
+      schedule: ((k.schedule as KioskSchedule) ?? emptySchedule) || emptySchedule,
+    });
+    setOpen(true);
+  };
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
