@@ -370,59 +370,137 @@ function AdminKiosks() {
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:justify-between">
+              {editingId && (
+                <Button
+                  variant="ghost"
+                  className="rounded-[10px] text-destructive hover:text-destructive"
+                  onClick={() => {
+                    remove.mutate(editingId);
+                    setOpen(false);
+                  }}
+                >
+                  Eliminar
+                </Button>
+              )}
               <Button
                 className="rounded-[10px]"
                 disabled={create.isPending || !form.name.trim()}
                 onClick={() => create.mutate()}
               >
-                Crear punto
+                {editingId ? "Guardar cambios" : "Crear punto"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-5">
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
-        {(data?.kiosks ?? []).map((k) => (
-          <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-foreground">{k.name}</h2>
-                <p className="text-sm text-muted-foreground">{k.address ?? "Sin dirección"}</p>
+        {(data?.kiosks ?? []).map((k) => {
+          const taken = data?.occupancy[k.id] ?? [];
+          const schedule = (k.schedule as KioskSchedule) ?? null;
+          return (
+            <article key={k.id} className="rounded-[16px] border border-border bg-card p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold text-foreground">{k.name}</h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Pill tone="info">
+                      {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
+                        k.custom_category ??
+                        k.category}
+                    </Pill>
+                    <Pill tone="warning">Comisión {k.commission_percent}%</Pill>
+                    <span className="text-sm text-muted-foreground">
+                      {k.address ?? "Sin dirección"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-[8px] bg-accent px-2.5 py-1 text-sm font-medium text-accent-foreground">
+                    {taken.length}/{k.positions}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    aria-label={`Editar ${k.name}`}
+                    onClick={() => openEdit(k)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <Pill tone="info">
-                {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
-                  k.custom_category ??
-                  k.category}
-              </Pill>
-            </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <p className="text-muted-foreground">
-                {describeSchedule(k.is_24h, (k.schedule as KioskSchedule) ?? null)}
-              </p>
-              <p className="text-muted-foreground">
-                {k.positions} posiciones · comisión {k.commission_percent}%
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Código:</span>
-                <CodeChip value={k.access_code} />
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[12px] bg-secondary px-4 py-3 text-sm">
+                <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
+                <span className="text-muted-foreground">{k.contact_phone ?? "—"}</span>
               </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => remove.mutate(k.id)}
-              >
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        ))}
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-accent px-4 py-3">
+                <span className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" />
+                  <CodeChip value={k.access_code} />
+                </span>
+                <span className="text-xs text-muted-foreground">Código de acceso</span>
+              </div>
+
+              <div className="mt-3 rounded-[12px] bg-secondary px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-semibold tracking-wide text-muted-foreground">
+                    HORARIO
+                  </span>
+                  {k.is_24h && <Pill tone="success">24 HS</Pill>}
+                </div>
+                {k.is_24h ? (
+                  <p className="mt-2 text-sm font-medium text-success">
+                    {describeSchedule(true, null)}, todos los días
+                  </p>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {WEEKDAYS.map((d) => {
+                      const slot = schedule?.[d.key];
+                      return (
+                        <div
+                          key={d.key}
+                          className={cn(
+                            "flex w-14 flex-col items-center rounded-[10px] border px-1 py-1.5",
+                            slot
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-destructive/30 bg-destructive/10 text-destructive",
+                          )}
+                        >
+                          <span className="text-xs font-semibold">{DAY_LETTERS[d.key]}</span>
+                          <span className="text-[10px]">{slot ? slot.open : "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {Array.from({ length: k.positions }, (_, i) => i + 1).map((n) => (
+                  <span
+                    key={n}
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-[8px] border text-xs",
+                      taken.includes(n)
+                        ? "border-primary bg-primary font-semibold text-primary-foreground"
+                        : "border-border bg-card text-muted-foreground",
+                    )}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </article>
+          );
+        })}
       </div>
+
     </div>
   );
 }
