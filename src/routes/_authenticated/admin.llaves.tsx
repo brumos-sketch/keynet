@@ -285,6 +285,13 @@ function AdminKeys() {
                 </td>
               </tr>
             ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                  {query ? `Sin resultados para "${query}".` : "Todavía no hay llaves."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
