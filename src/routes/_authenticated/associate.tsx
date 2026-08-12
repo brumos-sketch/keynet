@@ -102,20 +102,27 @@ function AssociatePanel() {
                 Tus puntos, ocupación y comisiones.
               </p>
             </div>
-            <div className="w-[180px]">
-              <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los períodos</SelectItem>
-                  {periods.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar punto o reserva…"
+              />
+              <div className="w-[180px]">
+                <Select value={period} onValueChange={setPeriod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los períodos</SelectItem>
+                    {periods.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
