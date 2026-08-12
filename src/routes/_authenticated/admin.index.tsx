@@ -123,14 +123,17 @@ function AdminDashboard() {
         <p className="text-sm text-gray-500">Estado general de la red PASALLAVE.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={Store} label="Puntos" value={data.kiosks.length} index={0} />
-        <StatCard icon={UserRound} label="Anfitriones" value={data.hosts.length} accent="info" index={1} />
-        <StatCard icon={KeyRound} label="Llaves" value={data.keys.length} index={2} />
-        <StatCard icon={ArrowLeftRight} label="Intercambios" value={data.exchanges.length} accent="info" index={3} />
-        <StatCard icon={Clock} label="Activos" value={active.length} accent="warning" index={4} />
-        <StatCard icon={CheckCircle2} label="Completados" value={completed.length} accent="success" index={5} />
+      <div className="rounded-2xl bg-muted/40 p-3 sm:bg-transparent sm:p-0">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+          <StatCard icon={Store} label="Puntos" value={data.kiosks.length} index={0} />
+          <StatCard icon={UserRound} label="Anfitriones" value={data.hosts.length} accent="info" index={1} />
+          <StatCard icon={KeyRound} label="Llaves" value={data.keys.length} index={2} />
+          <StatCard icon={ArrowLeftRight} label="Intercambios" value={data.exchanges.length} accent="info" index={3} />
+          <StatCard icon={Clock} label="Activos" value={active.length} accent="warning" index={4} />
+          <StatCard icon={CheckCircle2} label="Completados" value={completed.length} accent="success" index={5} />
+        </div>
       </div>
+
 
 
       <div className="grid gap-4 lg:grid-cols-2">
