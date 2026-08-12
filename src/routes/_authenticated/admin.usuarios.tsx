@@ -48,6 +48,7 @@ const ROLE_TONE: Record<AppRole, "neutral" | "info" | "success" | "warning" | "p
 function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({
     email: "",
     password: "",
