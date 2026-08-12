@@ -618,12 +618,19 @@ export const validateCode = createServerFn({ method: "POST" })
       const isGuestCode = codesMatch(ex.pickup_code, clean) || codesMatch(ex.return_code, clean);
       if (isGuestCode) {
         if (ex.status === "deposited") {
-          await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", ex.id);
+          await supabase
+            .from("key_exchanges")
+            .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
+            .eq("id", ex.id);
           return { action: "picked_up", position: ex.locker_position, bookingRef: ex.booking_ref };
         }
         if (ex.status === "picked_up") {
-          await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", ex.id);
-          return { action: "completed", position: ex.locker_position, bookingRef: ex.booking_ref };
+          const position = await reservePosition(supabase, myKioskId);
+          await supabase
+            .from("key_exchanges")
+            .update({ status: "completed", returned_at: now, locker_position: position })
+            .eq("id", ex.id);
+          return { action: "completed", position, bookingRef: ex.booking_ref };
         }
         if (ex.status === "waiting_deposit" || ex.status === "created")
           throw new Error("La llave todavía no fue depositada en el punto");
@@ -633,10 +640,15 @@ export const validateCode = createServerFn({ method: "POST" })
       if (codesMatch(ex.deposit_code, clean)) {
         if (ex.status !== "waiting_deposit" && ex.status !== "created")
           throw new Error("Esta llave ya fue depositada o el intercambio terminó");
-        await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", ex.id);
-        return { action: "deposited", position: ex.locker_position, bookingRef: ex.booking_ref };
+        const position = await reservePosition(supabase, myKioskId);
+        await supabase
+          .from("key_exchanges")
+          .update({ status: "deposited", deposited_at: now, locker_position: position })
+          .eq("id", ex.id);
+        return { action: "deposited", position, bookingRef: ex.booking_ref };
       }
     }
+
 
 
       throw new Error("Código no encontrado o no válido");
