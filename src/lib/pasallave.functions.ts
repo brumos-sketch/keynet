@@ -136,11 +136,8 @@ export const createKey = createServerFn({ method: "POST" })
     if (!host) throw new Error("Anfitrión no encontrado");
     if (!kiosk) throw new Error("Punto no encontrado");
 
-    // Insert key
-    let depositCode: string | null = null;
-    if (data.subscriptionType !== "one_use") {
-      depositCode = generateExchangeCode(); // fixed deposit code for monthly/pro
-    }
+    // Insert key — every key gets a fixed, unique deposit code (host side)
+    const depositCode = generateExchangeCode();
     const { data: key, error: keyError } = await supabaseAdmin
       .from("keys")
       .insert({
@@ -155,23 +152,24 @@ export const createKey = createServerFn({ method: "POST" })
       .single();
     if (keyError || !key) throw new Error(keyError?.message ?? "No se pudo crear la llave");
 
-    // For monthly create a "free" exchange with a bidirectional return code
+    // For monthly create a "free" exchange with a bidirectional pickup/return code
     if (data.subscriptionType === "monthly") {
-      const returnCode = generateExchangeCode();
+      const bidiCode = generateExchangeCode();
       const { error: exError } = await supabaseAdmin.from("key_exchanges").insert({
         key_id: key.id,
         kiosk_id: data.kioskId,
         booking_ref: generateBookingRef(),
         locker_position: 0,
-        deposit_code: depositCode!,
-        pickup_code: returnCode,
-        return_code: returnCode,
+        deposit_code: depositCode,
+        pickup_code: bidiCode,
+        return_code: bidiCode,
         status: "created",
         check_in: null,
         check_out: null,
       });
       if (exError) throw exError;
     }
+
 
     if (data.subscriptionType === "pro") {
       // Pro guest access code: one reusable access code that covers deposit and pickup
