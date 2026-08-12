@@ -66,6 +66,38 @@ function AdminExchanges() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<ExchangeRow | null>(null);
+  const updateExchangeFn = useServerFn(updateExchange);
+  const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "" });
+
+  useEffect(() => {
+    setEditForm({
+      checkIn: detail?.check_in ?? "",
+      checkOut: detail?.check_out ?? "",
+      pickupTime: detail?.pickup_time ?? "",
+    });
+  }, [detail]);
+
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      if (!detail) throw new Error("Elegí un intercambio");
+      return updateExchangeFn({
+        data: {
+          exchangeId: detail.id,
+          checkIn: editForm.checkIn || null,
+          checkOut: editForm.checkOut || null,
+          pickupTime: editForm.pickupTime || null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Estadía actualizada");
+      setDetail(null);
+      void qc.invalidateQueries({ queryKey: ["admin", "exchanges"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "exchanges"],
