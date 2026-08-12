@@ -414,8 +414,10 @@ function HostPanel() {
               </div>
               );
             })}
-            {!isLoading && (data?.keys.length ?? 0) === 0 && (
-              <p className="text-sm text-muted-foreground">Todavía no tenés llaves cargadas.</p>
+            {!isLoading && keyRows.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
+              </p>
             )}
           </div>
 
