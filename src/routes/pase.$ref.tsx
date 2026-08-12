@@ -18,7 +18,7 @@ export const Route = createFileRoute("/pase/$ref")({
       { property: "og:title", content: "Tu pase de abordar PASALLAVE" },
       {
         property: "og:description",
-        content: "Dirección del punto, horarios, posición del casillero y códigos de acceso.",
+        content: "Dirección del punto, horarios y códigos de acceso.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -44,9 +44,9 @@ const T = {
     checkOut: "Check-out",
     steps: "Cómo retirar la llave",
     s1: "Andá al punto asociado en la dirección indicada, dentro del horario de atención.",
-    s2: "Decí que venís a retirar una llave de PASALLAVE e ingresá tu código en la pantalla.",
-    s3: "Retirá la llave del casillero que te indique la pantalla del punto y revisá que sea la correcta.",
-    s4: "Al finalizar tu estadía, devolvé la llave en el mismo punto usando el código de devolución.",
+    s2: "Dá tu código al encargado del punto.",
+    s3: "Recibí la llave de la propiedad.",
+    pickupAvailable: "Retiro disponible a partir de las",
     open24: "Abierto 24 hs",
     map: "Ver en el mapa",
     pending: "El código de devolución se habilita cuando retirás la llave.",
@@ -63,9 +63,9 @@ const T = {
     checkOut: "Check-out",
     steps: "How to pick up the key",
     s1: "Go to the partner point at the address shown, during opening hours.",
-    s2: "Say you are picking up a PASALLAVE key and enter your code on the screen.",
-    s3: "Take the key from the locker shown on the point screen and check it is the right one.",
-    s4: "At the end of your stay, return the key at the same point using the return code.",
+    s2: "Give your code to the point attendant.",
+    s3: "Receive the property key.",
+    pickupAvailable: "Pickup available from",
     open24: "Open 24/7",
     map: "Open in map",
     pending: "The return code is enabled once you pick up the key.",
@@ -82,9 +82,9 @@ const T = {
     checkOut: "Check-out",
     steps: "Como retirar a chave",
     s1: "Vá até o ponto parceiro no endereço indicado, dentro do horário de atendimento.",
-    s2: "Diga que vai retirar uma chave PASALLAVE e digite seu código na tela.",
-    s3: "Retire a chave do armário indicado na tela do ponto e confira se é a correta.",
-    s4: "No fim da estadia, devolva a chave no mesmo ponto usando o código de devolução.",
+    s2: "Dê seu código ao atendente do ponto.",
+    s3: "Receba a chave da propriedade.",
+    pickupAvailable: "Retirada disponível a partir das",
     open24: "Aberto 24 h",
     map: "Ver no mapa",
     pending: "O código de devolução é liberado após a retirada da chave.",
@@ -222,7 +222,7 @@ function BoardingPassPage() {
         <section className="rounded-[16px] border border-border bg-card p-5">
           <h2 className="text-sm font-semibold text-foreground">{t.steps}</h2>
           <ol className="mt-3 space-y-3 text-sm text-muted-foreground">
-            {[t.s1, t.s2, t.s3, t.s4].map((step, i) => (
+            {[t.s1, t.s2, t.s3].map((step, i) => (
               <li key={i} className="flex gap-3">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
                   {i + 1}
@@ -231,6 +231,11 @@ function BoardingPassPage() {
               </li>
             ))}
           </ol>
+          {pass.pickup_time && (
+            <p className="mt-4 text-sm font-medium text-foreground">
+              {t.pickupAvailable} {pass.pickup_time}
+            </p>
+          )}
           <p className="mt-4 text-xs text-muted-foreground">{t.pending}</p>
         </section>
 
