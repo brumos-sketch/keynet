@@ -222,7 +222,15 @@ function BoardingPassPage() {
                         {DAY_LETTERS[d.key]}
                       </div>
                       <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
-                        {slot ? `${slot.open}\n${slot.close}` : "—"}
+                        {slot ? (
+                          <>
+                            {slot.open}
+                            <br />
+                            {slot.close}
+                          </>
+                        ) : (
+                          "—"
+                        )}
                       </p>
                     </div>
                   );
