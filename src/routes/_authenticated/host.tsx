@@ -61,6 +61,7 @@ function HostPanel() {
   const qc = useQueryClient();
   const createExchangeFn = useServerFn(createExchange);
   const renewFn = useServerFn(renewExchange);
+  const expireFn = useServerFn(expireOneUseExchanges);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [exchangeForm, setExchangeForm] = useState({
@@ -71,6 +72,8 @@ function HostPanel() {
   });
   const [renewId, setRenewId] = useState<string | null>(null);
   const [extraDays, setExtraDays] = useState(1);
+  const [logKeyId, setLogKeyId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
   const [selectedExchange, setSelectedExchange] = useState<{
     id: string;
     booking_ref: string;
@@ -80,6 +83,27 @@ function HostPanel() {
     status: string;
     key: { subscription_type: string };
   } | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    void expireFn({ data: undefined }).then(
+      () => qc.invalidateQueries({ queryKey: ["host", "overview"] }),
+      () => undefined,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { data: hostId } = useQuery({
+    queryKey: ["host", "id"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_host_id");
+      return (data as string | null) ?? null;
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["host", "overview"],
@@ -112,7 +136,36 @@ function HostPanel() {
     },
   });
 
+  const { data: accessLog } = useQuery({
+    queryKey: ["host", "access-log", logKeyId],
+    enabled: !!logKeyId,
+    queryFn: async () => {
+      const { data: rows } = await supabase
+        .from("access_log")
+        .select("*")
+        .eq("key_id", logKeyId!)
+        .order("timestamp", { ascending: false })
+        .limit(50);
+      return rows ?? [];
+    },
+  });
+
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+
+  const keyStatus = (keyId: string) => {
+    const list = (data?.exchanges ?? []).filter((e) => e.key_id === keyId);
+    const active = list.find((e) =>
+      ["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status),
+    );
+    if (active) return { label: STATUS_LABELS[active.status as ExchangeStatus], tone: STATUS_TONE[active.status as ExchangeStatus], exchange: active };
+    const expired = list.find((e) => e.status === "expired");
+    if (expired) return { label: "Vencido", tone: "danger" as const, exchange: expired };
+    return { label: "Sin actividad", tone: "neutral" as const, exchange: null };
+  };
+
+  const deadlineFor = (createdAt: string) =>
+    new Date(new Date(createdAt).getTime() + ONE_USE_STORAGE_HOURS * 3600_000);
+
 
   const createMutation = useMutation({
     mutationFn: async () => {
