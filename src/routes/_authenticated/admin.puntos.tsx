@@ -202,7 +202,7 @@ function AdminKiosks() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-foreground">Puntos</h1>
+        <h1 className="text-2xl font-bold text-navy">Puntos</h1>
         <SearchField
           value={query}
           onChange={setQuery}
@@ -210,12 +210,12 @@ function AdminKiosks() {
         />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]" onClick={openNew}>
+            <Button className="rounded-xl" onClick={openNew}>
               <Plus className="h-4 w-4" />
               Nuevo
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[85vh] overflow-y-auto rounded-[16px] sm:max-w-[560px]">
+          <DialogContent className="max-h-[85vh] overflow-y-auto rounded-2xl sm:max-w-[560px]">
             <DialogHeader>
               <DialogTitle>{editingId ? "Editar punto" : "Nuevo punto"}</DialogTitle>
             </DialogHeader>
@@ -329,7 +329,7 @@ function AdminKiosks() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-[12px] border border-border p-3">
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3">
                 <Label htmlFor="k-24h">Abierto 24 horas</Label>
                 <Switch
                   id="k-24h"
@@ -339,7 +339,7 @@ function AdminKiosks() {
               </div>
 
               {!form.is24h && (
-                <div className="space-y-2 rounded-[12px] border border-border p-3">
+                <div className="space-y-2 rounded-xl border border-gray-100 p-3">
                   {WEEKDAYS.map((d) => {
                     const value = form.schedule[d.key];
                     return (
@@ -365,7 +365,7 @@ function AdminKiosks() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <span className="text-muted-foreground">–</span>
+                            <span className="text-gray-500">–</span>
                             <Select value={value.close} onValueChange={(v) => setDay(d.key, { close: v })}>
                               <SelectTrigger className="h-9 w-[100px]">
                                 <SelectValue />
@@ -390,7 +390,7 @@ function AdminKiosks() {
               {editingId && (
                 <Button
                   variant="ghost"
-                  className="rounded-[10px] text-destructive hover:text-destructive"
+                  className="rounded-xl text-destructive hover:text-destructive"
                   onClick={() => {
                     remove.mutate(editingId);
                     setOpen(false);
@@ -400,7 +400,7 @@ function AdminKiosks() {
                 </Button>
               )}
               <Button
-                className="rounded-[10px]"
+                className="rounded-xl"
                 disabled={create.isPending || !form.name.trim()}
                 onClick={() => create.mutate()}
               >
@@ -412,7 +412,7 @@ function AdminKiosks() {
       </div>
 
       <div className="space-y-5">
-        {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
+        {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
         {kioskRows.map((k) => {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
@@ -420,7 +420,7 @@ function AdminKiosks() {
             <article key={k.id} className="glass-card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg font-semibold text-foreground">{k.name}</h2>
+                  <h2 className="text-lg font-bold text-navy">{k.name}</h2>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Pill tone="info">
                       {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
@@ -428,19 +428,19 @@ function AdminKiosks() {
                         k.category}
                     </Pill>
                     <Pill tone="warning">Comisión {k.commission_percent}%</Pill>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-gray-500">
                       {k.address ?? "Sin dirección"}
                     </span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-[8px] bg-accent px-2.5 py-1 text-sm font-medium text-accent-foreground">
+                  <span className="rounded-[8px] bg-electric/5 px-2.5 py-1 text-sm font-medium text-electric">
                     {taken.length}/{k.positions}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-muted-foreground"
+                    className="text-gray-500"
                     aria-label={`Editar ${k.name}`}
                     onClick={() => openEdit(k)}
                   >
@@ -449,23 +449,23 @@ function AdminKiosks() {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[12px] bg-secondary px-4 py-3 text-sm">
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm">
                 <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
-                <span className="text-muted-foreground">{k.contact_phone ?? "—"}</span>
+                <span className="text-gray-500">{k.contact_phone ?? "—"}</span>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-accent px-4 py-3">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-electric/5 px-4 py-3">
                 <span className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-primary" />
+                  <Lock className="h-4 w-4 text-electric" />
                   <CodeChip value={k.access_code} />
                 </span>
-                <span className="text-xs text-muted-foreground">Código de acceso</span>
+                <span className="text-xs text-gray-500">Código de acceso</span>
               </div>
 
-              <div className="mt-3 rounded-[12px] bg-secondary px-4 py-3">
+              <div className="mt-3 rounded-xl bg-gray-50 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-semibold tracking-wide text-muted-foreground">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="text-xs font-semibold tracking-wide text-gray-500">
                     HORARIO
                   </span>
                   {k.is_24h && <Pill tone="success">24 HS</Pill>}
@@ -482,7 +482,7 @@ function AdminKiosks() {
                         <div
                           key={d.key}
                           className={cn(
-                            "flex w-14 flex-col items-center rounded-[10px] border px-1 py-1.5",
+                            "flex w-14 flex-col items-center rounded-xl border px-1 py-1.5",
                             slot
                               ? "border-success/30 bg-success/10 text-success"
                               : "border-destructive/30 bg-destructive/10 text-destructive",
@@ -504,8 +504,8 @@ function AdminKiosks() {
                     className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-[8px] border text-xs",
                       taken.includes(n)
-                        ? "border-primary bg-primary font-semibold text-primary-foreground"
-                        : "border-border bg-card text-muted-foreground",
+                        ? "border-electric bg-electric font-semibold text-electric-foreground"
+                        : "border-gray-100 bg-white text-gray-500",
                     )}
                   >
                     {n}
@@ -516,7 +516,7 @@ function AdminKiosks() {
           );
         })}
         {!isLoading && kioskRows.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {query ? `Sin resultados para "${query}".` : "Todavía no hay puntos."}
           </p>
         )}

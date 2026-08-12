@@ -20,8 +20,8 @@ export function RoleGuard({ allow, children }: { allow: AppRole; children: React
 
   if (loading || !role) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Cargando…</p>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-sm text-gray-500">Cargando…</p>
       </div>
     );
   }

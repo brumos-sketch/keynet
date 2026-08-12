@@ -111,16 +111,16 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
   });
 
   return (
-    <div className="mt-4 rounded-[12px] border border-border p-3">
+    <div className="mt-4 rounded-xl border border-gray-100 p-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-foreground">Accesos Pro</p>
+        <p className="text-sm font-bold text-navy">Accesos Pro</p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" className="rounded-[10px]">
+            <Button size="sm" variant="outline" className="rounded-xl">
               Nuevo acceso
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+          <DialogContent className="rounded-2xl sm:max-w-[480px]">
             <DialogHeader>
               <DialogTitle>Nuevo acceso · {keyName}</DialogTitle>
             </DialogHeader>
@@ -167,20 +167,20 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
                   </Select>
                 </div>
               </div>
-              <div className="flex items-center justify-between rounded-[12px] border border-border p-3">
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">Reutilizable</p>
-                  <p className="text-xs text-muted-foreground">Si no, sirve una sola vez.</p>
+                  <p className="text-xs text-gray-500">Si no, sirve una sola vez.</p>
                 </div>
                 <Switch
                   checked={form.reusable}
                   onCheckedChange={(v) => setForm({ ...form, reusable: v })}
                 />
               </div>
-              <div className="flex items-center justify-between rounded-[12px] border border-border p-3">
+              <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">Ventana de validez</p>
-                  <p className="text-xs text-muted-foreground">Limitar por fechas y horarios.</p>
+                  <p className="text-xs text-gray-500">Limitar por fechas y horarios.</p>
                 </div>
                 <Switch
                   checked={form.hasValidity}
@@ -230,7 +230,7 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
             </div>
             <DialogFooter>
               <Button
-                className="rounded-[10px]"
+                className="rounded-xl"
                 disabled={mutation.isPending}
                 onClick={() => mutation.mutate()}
               >
@@ -245,7 +245,7 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
         {(codes ?? []).map((c) => (
           <li
             key={c.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] bg-secondary px-3 py-2"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-gray-50 px-3 py-2"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -254,13 +254,13 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
                   {c.status === "active" ? "Activo" : "Revocado"}
                 </Pill>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-gray-500">
                 {c.person_name ?? "Sin nombre"} · {ACCESS_ROLE_LABELS[c.role ?? "guest"] ?? c.role} ·{" "}
                 {ACCESS_SCOPE_LABELS[c.scope ?? "both"] ?? c.scope} ·{" "}
                 {c.reusable ? "reutilizable" : "un uso"} · {c.uses_count} usos
               </p>
               {c.has_validity && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   {formatDate(c.valid_from)} → {formatDate(c.valid_to)}
                   {c.time_from && c.time_to ? ` · ${c.time_from}–${c.time_to}` : ""}
                 </p>
@@ -277,7 +277,7 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
           </li>
         ))}
         {(codes ?? []).length === 0 && (
-          <li className="text-xs text-muted-foreground">Todavía no generaste accesos.</li>
+          <li className="text-xs text-gray-500">Todavía no generaste accesos.</li>
         )}
       </ul>
     </div>

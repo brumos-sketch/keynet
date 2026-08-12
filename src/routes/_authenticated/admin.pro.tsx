@@ -132,32 +132,32 @@ function AdminPro() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Acuerdos Pro</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold text-navy">Acuerdos Pro</h1>
+          <p className="text-sm text-gray-500">
             Contratos a medida para anfitriones con varias propiedades.
           </p>
         </div>
-        <Button className="rounded-[10px]" onClick={() => setForm(EMPTY)}>
+        <Button className="rounded-xl" onClick={() => setForm(EMPTY)}>
           Nuevo acuerdo
         </Button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="glass-card p-4">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">Acuerdos activos</p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">
+          <p className="text-xs tracking-wide text-gray-500 uppercase">Acuerdos activos</p>
+          <p className="mt-2 text-2xl font-bold text-navy">
             {(data?.agreements ?? []).filter((a) => a.status === "active").length}
           </p>
         </div>
         <div className="glass-card p-4">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">Ingreso mensual Pro</p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(monthlyTotal)}</p>
+          <p className="text-xs tracking-wide text-gray-500 uppercase">Ingreso mensual Pro</p>
+          <p className="mt-2 text-2xl font-bold text-navy">{formatMoney(monthlyTotal)}</p>
         </div>
       </div>
 
       <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[760px] text-sm">
-          <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+          <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
             <tr>
               <th className="px-4 py-3 font-medium">Anfitrión</th>
               <th className="px-4 py-3 font-medium">Precio mensual</th>
@@ -172,14 +172,14 @@ function AdminPro() {
           <tbody className="divide-y divide-border">
             {isLoading && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={8} className="px-4 py-6 text-gray-500">
                   Cargando…
                 </td>
               </tr>
             )}
             {!isLoading && (data?.agreements ?? []).length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={8} className="px-4 py-6 text-gray-500">
                   Todavía no hay acuerdos Pro.
                 </td>
               </tr>
@@ -187,13 +187,13 @@ function AdminPro() {
             {(data?.agreements ?? []).map((a) => (
               <tr key={a.id}>
                 <td className="px-4 py-3 text-foreground">{hostName(a.host_id)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{formatMoney(a.monthly_price)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{a.keys_included ?? 0}</td>
-                <td className="px-4 py-3 text-muted-foreground">
+                <td className="px-4 py-3 text-gray-500">{formatMoney(a.monthly_price)}</td>
+                <td className="px-4 py-3 text-gray-500">{a.keys_included ?? 0}</td>
+                <td className="px-4 py-3 text-gray-500">
                   {hostKeys(a.host_id)} / {a.keys_included ?? 0}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{a.discount_percent}%</td>
-                <td className="px-4 py-3 text-muted-foreground">
+                <td className="px-4 py-3 text-gray-500">{a.discount_percent}%</td>
+                <td className="px-4 py-3 text-gray-500">
                   {a.start_date ? formatDate(a.start_date) : "—"}
                 </td>
                 <td className="px-4 py-3">
@@ -227,7 +227,7 @@ function AdminPro() {
       </div>
 
       <Dialog open={form !== null} onOpenChange={(open) => !open && setForm(null)}>
-        <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+        <DialogContent className="rounded-2xl sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>{form?.id ? "Editar acuerdo Pro" : "Nuevo acuerdo Pro"}</DialogTitle>
           </DialogHeader>

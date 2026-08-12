@@ -84,11 +84,11 @@ function AssociatePanel() {
   return (
     <RoleGuard allow="associate">
       <div className="min-h-screen bg-background">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
+        <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
           <Brand />
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">{name}</span>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()}>
+            <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
           </div>
@@ -97,8 +97,8 @@ function AssociatePanel() {
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">Panel asociado</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-2xl font-bold text-navy">Panel asociado</h1>
+              <p className="text-sm text-gray-500">
                 Tus puntos, ocupación y comisiones.
               </p>
             </div>
@@ -128,24 +128,24 @@ function AssociatePanel() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="glass-card p-5">
-              <p className="text-xs text-muted-foreground uppercase">Pendiente</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">
+              <p className="text-xs text-gray-500 uppercase">Pendiente</p>
+              <p className="mt-2 text-2xl font-bold text-navy">
                 {formatMoney(totalPending)}
               </p>
             </div>
             <div className="glass-card p-5">
-              <p className="text-xs text-muted-foreground uppercase">Pagado</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(totalPaid)}</p>
+              <p className="text-xs text-gray-500 uppercase">Pagado</p>
+              <p className="mt-2 text-2xl font-bold text-navy">{formatMoney(totalPaid)}</p>
             </div>
             <div className="glass-card p-5">
-              <p className="text-xs text-muted-foreground uppercase">Puntos</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{allKiosks.length}</p>
+              <p className="text-xs text-gray-500 uppercase">Puntos</p>
+              <p className="mt-2 text-2xl font-bold text-navy">{allKiosks.length}</p>
             </div>
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">Mis puntos</h2>
-            {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
+            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Mis puntos</h2>
+            {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
             <div className="grid gap-4 md:grid-cols-2">
               {kiosks.map((k) => {
                 const pct = k.positions ? Math.min(100, (k.used / k.positions) * 100) : 0;
@@ -153,8 +153,8 @@ function AssociatePanel() {
                   <div key={k.id} className="glass-card p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="font-semibold text-foreground">{k.name}</h3>
-                        <p className="text-sm text-muted-foreground">{k.address ?? "—"}</p>
+                        <h3 className="font-bold text-navy">{k.name}</h3>
+                        <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
                       </div>
                       <Pill tone="neutral">
                         {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ?? k.category}
@@ -162,15 +162,15 @@ function AssociatePanel() {
                     </div>
                     <div className="mt-4">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Ocupación</span>
+                        <span className="text-gray-500">Ocupación</span>
                         <span className="font-medium text-foreground">
                           {k.used} / {k.positions}
                         </span>
                       </div>
                       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border">
-                        <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                        <div className="h-full bg-electric transition-all" style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
+                      <p className="mt-2 text-xs text-gray-500">
                         Comisión {k.commission_percent}%
                       </p>
                     </div>
@@ -178,16 +178,16 @@ function AssociatePanel() {
                 );
               })}
               {kiosks.length === 0 && !isLoading && (
-                <p className="text-sm text-muted-foreground">No tenés puntos asignados.</p>
+                <p className="text-sm text-gray-500">No tenés puntos asignados.</p>
               )}
             </div>
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">Comisiones</h2>
+            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Comisiones</h2>
             <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[560px] text-sm">
-                <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+                <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 font-medium">Período</th>
                     <th className="px-4 py-3 font-medium">Punto</th>
@@ -199,14 +199,14 @@ function AssociatePanel() {
                 <tbody className="divide-y divide-border">
                   {filtered.map((c) => (
                     <tr key={c.id}>
-                      <td className="px-4 py-3 text-muted-foreground">{c.period}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{kioskName(c.kiosk_id)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="px-4 py-3 text-gray-500">{c.period}</td>
+                      <td className="px-4 py-3 text-gray-500">{kioskName(c.kiosk_id)}</td>
+                      <td className="px-4 py-3 text-gray-500">
                         {formatMoney(c.plans_revenue ?? 0)}
                       </td>
                       <td className="px-4 py-3 text-foreground">
                         {formatMoney(c.total ?? 0)}
-                        <span className="ml-1 text-xs text-muted-foreground">
+                        <span className="ml-1 text-xs text-gray-500">
                           ({c.commission_percent}%)
                         </span>
                       </td>
@@ -219,7 +219,7 @@ function AssociatePanel() {
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-muted-foreground">
+                      <td colSpan={5} className="px-4 py-6 text-gray-500">
                         Sin comisiones registradas.
                       </td>
                     </tr>
@@ -230,10 +230,10 @@ function AssociatePanel() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">Últimos intercambios</h2>
+            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Últimos intercambios</h2>
             <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[560px] text-sm">
-                <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+                <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 font-medium">Reserva</th>
                     <th className="px-4 py-3 font-medium">Punto</th>
@@ -248,8 +248,8 @@ function AssociatePanel() {
                       <td className="px-4 py-3">
                         <CodeChip value={e.booking_ref} />
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
+                      <td className="px-4 py-3 text-gray-500">
                         {e.keyName} · {PLAN_LABELS[e.plan as SubscriptionType] ?? e.plan}
                       </td>
                       <td className="px-4 py-3">
@@ -257,12 +257,12 @@ function AssociatePanel() {
                           {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
                         </Pill>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
+                      <td className="px-4 py-3 text-gray-500">{formatDate(e.created_at)}</td>
                     </tr>
                   ))}
                   {exchangeRows.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-muted-foreground">
+                      <td colSpan={5} className="px-4 py-6 text-gray-500">
                         {query ? `Sin resultados para "${query}".` : "Sin intercambios."}
                       </td>
                     </tr>

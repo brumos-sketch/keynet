@@ -81,15 +81,15 @@ function AdminHosts() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Anfitriones</h1>
-          <p className="text-sm text-muted-foreground">Clientes que publican propiedades.</p>
+          <h1 className="text-2xl font-bold text-navy">Anfitriones</h1>
+          <p className="text-sm text-gray-500">Clientes que publican propiedades.</p>
         </div>
         <SearchField value={query} onChange={setQuery} placeholder="Buscar anfitrión…" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]">Nuevo anfitrión</Button>
+            <Button className="rounded-xl">Nuevo anfitrión</Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[16px]">
+          <DialogContent className="rounded-2xl">
             <DialogHeader>
               <DialogTitle>Nuevo anfitrión</DialogTitle>
             </DialogHeader>
@@ -125,7 +125,7 @@ function AdminHosts() {
             </div>
             <DialogFooter>
               <Button
-                className="rounded-[10px]"
+                className="rounded-xl"
                 disabled={create.isPending || !form.name.trim() || !form.email.trim()}
                 onClick={() => create.mutate()}
               >
@@ -138,7 +138,7 @@ function AdminHosts() {
 
       <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[680px] text-sm">
-          <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+          <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
             <tr>
               <th className="px-4 py-3 font-medium">Nombre</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -151,7 +151,7 @@ function AdminHosts() {
           <tbody className="divide-y divide-border">
             {isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={6} className="px-4 py-6 text-gray-500">
                   Cargando…
                 </td>
               </tr>
@@ -159,12 +159,12 @@ function AdminHosts() {
             {rows.map((h) => (
               <tr key={h.id}>
                 <td className="px-4 py-3 text-foreground">{h.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{h.email}</td>
-                <td className="px-4 py-3 text-muted-foreground">{h.phone ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">
+                <td className="px-4 py-3 text-gray-500">{h.email}</td>
+                <td className="px-4 py-3 text-gray-500">{h.phone ?? "—"}</td>
+                <td className="px-4 py-3 text-gray-500">
                   {(data?.keys ?? []).filter((k) => k.host_id === h.id).length}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(h.created_at)}</td>
+                <td className="px-4 py-3 text-gray-500">{formatDate(h.created_at)}</td>
                 <td className="px-4 py-3 text-right">
                   <Button
                     variant="ghost"
@@ -179,7 +179,7 @@ function AdminHosts() {
             ))}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={6} className="px-4 py-6 text-gray-500">
                   {query ? `Sin resultados para "${query}".` : "Todavía no hay anfitriones."}
                 </td>
               </tr>

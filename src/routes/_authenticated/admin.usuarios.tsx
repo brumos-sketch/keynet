@@ -141,17 +141,17 @@ function AdminUsers() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Usuarios</h1>
-          <p className="text-sm text-muted-foreground">Aprobá cuentas y asigná roles.</p>
+          <h1 className="text-2xl font-bold text-navy">Usuarios</h1>
+          <p className="text-sm text-gray-500">Aprobá cuentas y asigná roles.</p>
         </div>
 
         <SearchField value={query} onChange={setQuery} placeholder="Buscar por nombre o email…" />
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]">Nuevo usuario</Button>
+            <Button className="rounded-xl">Nuevo usuario</Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[16px]">
+          <DialogContent className="rounded-2xl">
             <DialogHeader>
               <DialogTitle>Nuevo usuario</DialogTitle>
             </DialogHeader>
@@ -236,7 +236,7 @@ function AdminUsers() {
               <Button
                 onClick={() => createUser.mutate()}
                 disabled={createUser.isPending || !form.email || form.password.length < 6 || !form.name}
-                className="rounded-[10px]"
+                className="rounded-xl"
               >
                 Crear
               </Button>
@@ -247,7 +247,7 @@ function AdminUsers() {
 
       <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[720px] text-sm">
-          <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+          <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
             <tr>
               <th className="px-4 py-3 font-medium">Nombre</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -259,7 +259,7 @@ function AdminUsers() {
           <tbody className="divide-y divide-border">
             {isLoading && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={5} className="px-4 py-6 text-gray-500">
                   Cargando…
                 </td>
               </tr>
@@ -267,8 +267,8 @@ function AdminUsers() {
             {rows.map((u) => (
               <tr key={u.id}>
                 <td className="px-4 py-3 text-foreground">{u.name ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                <td className="px-4 py-3 text-muted-foreground">
+                <td className="px-4 py-3 text-gray-500">{u.email}</td>
+                <td className="px-4 py-3 text-gray-500">
                   {new Intl.DateTimeFormat("es-AR").format(new Date(u.created_at))}
                 </td>
                 <td className="px-4 py-3">
@@ -296,7 +296,7 @@ function AdminUsers() {
             ))}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={5} className="px-4 py-6 text-gray-500">
                   {query ? `Sin resultados para "${query}".` : "Todavía no hay usuarios."}
                 </td>
               </tr>
@@ -306,13 +306,13 @@ function AdminUsers() {
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="rounded-[16px]">
+        <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>Editar usuario</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-500">
                 <div className="font-medium text-foreground">{editing.name ?? "—"}</div>
                 {editing.email}
               </div>
@@ -361,7 +361,7 @@ function AdminUsers() {
           <DialogFooter className="gap-2 sm:justify-between">
             <Button
               variant="destructive"
-              className="rounded-[10px]"
+              className="rounded-xl"
               disabled={deleteUser.isPending}
               onClick={() => {
                 if (!editing) return;
@@ -373,7 +373,7 @@ function AdminUsers() {
               Eliminar usuario
             </Button>
             <Button
-              className="rounded-[10px]"
+              className="rounded-xl"
               disabled={setRole.isPending}
               onClick={() =>
                 editing &&

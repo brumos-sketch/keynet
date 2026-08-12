@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { KeyRound, MapPin, Clock, ShieldCheck } from "lucide-react";
-import { Brand } from "@/components/pasallave/ui-bits";
-import { Button } from "@/components/ui/button";
+import { MarketingNav } from "@/components/pasallave/marketing-nav";
+import { MarketingFooter } from "@/components/pasallave/marketing-footer";
+import { FeatureStep } from "@/components/pasallave/feature-step";
+import { PlanCard } from "@/components/pasallave/plan-card";
+import { PhoneMockup } from "@/components/pasallave/phone-mockup";
+import { StickerMockup } from "@/components/pasallave/sticker-mockup";
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -15,13 +18,13 @@ const JSON_LD = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PASALLAVE | Intercambio de llaves para alquileres temporarios" },
+      { title: "PASALLAVE | Intercambiá llaves sin coordinar horarios" },
       {
         name: "description",
         content:
           "Dejá y retirá las llaves de tu alquiler temporario en kioscos, cafés y comercios asociados. Sin esperas ni check-in presencial.",
       },
-      { property: "og:title", content: "PASALLAVE — Tus llaves, siempre disponibles" },
+      { property: "og:title", content: "PASALLAVE — Intercambiá llaves sin coordinar horarios" },
       {
         property: "og:description",
         content:
@@ -38,78 +41,169 @@ export const Route = createFileRoute("/")({
 
 const FEATURES = [
   {
-    icon: MapPin,
-    title: "Puntos cerca de tu propiedad",
-    text: "Kioscos, cafés y comercios asociados con casilleros numerados.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+    ),
+    title: "Dejá la llave",
+    description: "Elegí un punto en el mapa y dejá tu llave de forma segura. Nosotros nos encargamos del resto.",
   },
   {
-    icon: Clock,
-    title: "Check-in a cualquier hora",
-    text: "Tu huésped retira la llave con un código, incluso en puntos 24 hs.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+    ),
+    title: "Compartí el código",
+    description: "Tu huésped recibe un código único por WhatsApp o email para realizar el retiro.",
   },
   {
-    icon: ShieldCheck,
-    title: "Trazabilidad total",
-    text: "Cada depósito, retiro y devolución queda registrado y te llega un aviso.",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    title: "Check-in listo",
+    description: "El huésped retira la llave en segundos y disfruta de su estadía sin esperas.",
+  },
+];
+
+const PLANS = [
+  {
+    name: "pasa una",
+    subtitle: "Uso ocasional",
+    price: "$X",
+    priceLabel: "/ intercambio",
+    features: ["1 intercambio de llave", "Soporte vía App", "Notificaciones en tiempo real"],
+    cta: "Empezar ahora",
+    variant: "default" as const,
   },
   {
-    icon: KeyRound,
-    title: "Planes flexibles",
-    text: "Un uso, mensual o acuerdos Pro para varias propiedades.",
+    name: "pasa mes",
+    subtitle: "Anfitriones recurrentes",
+    price: "$X",
+    priceLabel: "/ mes",
+    features: ["Intercambios ilimitados (1 llave)", "Soporte prioritario", "Historial de accesos completo"],
+    cta: "Elegir plan",
+    variant: "recommended" as const,
+  },
+  {
+    name: "pasa pro",
+    subtitle: "Gestión profesional",
+    price: "Consultar",
+    priceLabel: "/ cuenta",
+    features: ["Gestión de múltiples llaves", "Dashboard para agencias", "API para integración"],
+    cta: "Contactar ventas",
+    variant: "outline" as const,
   },
 ];
 
 function Landing() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
-        <Brand />
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/buscar">Puntos</Link>
-          </Button>
-          <Button asChild size="sm" className="rounded-[10px]">
-            <Link to="/login">Ingresar</Link>
-          </Button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white text-gray-800">
+      <MarketingNav />
 
-      <main>
-        <section className="mx-auto max-w-4xl px-5 py-16 text-center md:py-24">
-          <h1 className="text-3xl font-semibold text-foreground md:text-5xl">
-            Tus llaves, siempre disponibles
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
-            PASALLAVE conecta anfitriones de alquileres temporarios con kioscos y comercios
-            asociados para dejar y retirar llaves sin coordinar horarios.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild className="rounded-[10px]">
-              <Link to="/buscar">Buscar un punto</Link>
-            </Button>
-            <Button asChild variant="outline" className="rounded-[10px]">
-              <Link to="/login">Soy anfitrión</Link>
-            </Button>
+      {/* Hero */}
+      <section className="hero-gradient overflow-hidden pt-32 pb-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-12 lg:flex-row">
+            <div className="flex-1 text-center lg:text-left">
+              <h1 className="mb-6 text-5xl leading-tight font-bold text-navy lg:text-6xl">
+                Intercambiá llaves <br />
+                <span className="text-electric">sin coordinar horarios</span>
+              </h1>
+              <p className="mx-auto mb-10 max-w-xl text-xl text-gray-600 lg:mx-0">
+                La red de puntos seguros en los mejores comercios de tu barrio. Simple, humano y 100% confiable.
+              </p>
+
+              <div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
+                <Link
+                  to="/buscar"
+                  className="rounded-full bg-electric px-8 py-4 text-lg font-bold text-white shadow-xl shadow-blue-200 transition-all hover:bg-blue-700"
+                >
+                  Encontrar punto cercano
+                </Link>
+              </div>
+
+              <div className="mx-auto grid max-w-2xl grid-cols-1 gap-6 border-t border-gray-200 pt-8 sm:grid-cols-3 lg:mx-0">
+                <div className="flex items-center justify-center gap-3 sm:justify-start">
+                  <div className="font-bold text-electric">✓ Seguro</div>
+                  <div className="text-xs text-gray-400">Llaves resguardadas</div>
+                </div>
+                <div className="flex items-center justify-center gap-3 sm:justify-start">
+                  <div className="font-bold text-electric">✓ Flexible</div>
+                  <div className="text-xs text-gray-400">Sin esperas</div>
+                </div>
+                <div className="flex items-center justify-center gap-3 sm:justify-start">
+                  <div className="font-bold text-electric">✓ Cercano</div>
+                  <div className="text-xs text-gray-400">En tu cuadra</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <PhoneMockup />
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto max-w-5xl px-5 pb-16">
-          <h2 className="sr-only">Beneficios</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+      {/* Cómo funciona */}
+      <section id="como-funciona" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="mb-16 text-4xl font-bold text-navy">¿Cómo funciona?</h2>
+          <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
             {FEATURES.map((f) => (
-              <article key={f.title} className="rounded-[16px] border border-border bg-card p-5">
-                <f.icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-3 font-semibold text-foreground">{f.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
-              </article>
+              <FeatureStep key={f.title} icon={f.icon} title={f.title} description={f.description} />
             ))}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <footer className="border-t border-border bg-card px-5 py-6 text-center text-sm text-muted-foreground">
-        PASALLAVE · Intercambio de llaves en Argentina
-      </footer>
+      {/* Planes */}
+      <section id="planes" className="bg-gray-50 py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-bold text-navy">Elegí tu plan</h2>
+            <p className="text-gray-500">Tenemos una opción para cada tipo de anfitrión.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {PLANS.map((plan) => (
+              <PlanCard key={plan.name} {...plan} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Banner identificación física */}
+      <section className="overflow-hidden bg-navy py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-16 md:flex-row">
+            <div className="flex-1 text-white">
+              <h2 className="mb-6 text-4xl font-bold">Buscá este sticker en tu ciudad</h2>
+              <p className="mb-8 text-lg leading-relaxed text-blue-200">
+                Nuestros locales asociados están identificados con el sello oficial de Pasallave. Seguridad y amabilidad garantizada.
+              </p>
+              <div className="flex gap-4">
+                <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <p className="font-bold text-electric">Confianza</p>
+                  <p className="text-xs text-blue-200">Personal verificado</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <p className="font-bold text-electric">Visibilidad</p>
+                  <p className="text-xs text-blue-200">Fácil de encontrar</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <StickerMockup />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <MarketingFooter />
     </div>
   );
 }

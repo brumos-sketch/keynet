@@ -42,7 +42,7 @@ export const Route = createFileRoute("/buscar")({
     ],
   }),
   errorComponent: () => (
-    <p className="p-8 text-sm text-muted-foreground">No pudimos cargar los puntos.</p>
+    <p className="p-8 text-sm text-gray-500">No pudimos cargar los puntos.</p>
   ),
   component: SearchPage,
 });
@@ -92,29 +92,29 @@ function SearchPage() {
       : null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
+    <div className="min-h-screen bg-white">
+      <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
         <Brand />
-        <Button asChild variant="ghost" size="sm">
+        <Button asChild variant="outline" size="sm" className="rounded-full border-gray-200">
           <Link to="/login">Ingresar</Link>
         </Button>
       </header>
 
       <main className="mx-auto max-w-6xl space-y-6 p-5 md:p-8">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Puntos de intercambio</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-bold text-navy">Puntos de intercambio</h1>
+          <p className="text-sm text-gray-500">
             Buscá el kiosco, café o comercio asociado más cercano a tu propiedad.
           </p>
         </div>
 
         <div className="relative">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por barrio, dirección o nombre"
-            className="pl-9"
+            className="h-12 rounded-2xl border-gray-200 pl-11"
             aria-label="Buscar puntos"
           />
         </div>
@@ -122,17 +122,17 @@ function SearchPage() {
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="space-y-3">
             {filtered.length === 0 && (
-              <div className="rounded-[16px] border border-border bg-card p-6 text-center">
-                <p className="text-sm text-muted-foreground">
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-card">
+                <p className="text-sm text-gray-500">
                   Todavía no tenemos un punto en esa zona.
                 </p>
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
-                    <Button className="mt-4 rounded-[10px]">Avisame cuando abran uno</Button>
+                    <Button className="mt-4 rounded-2xl">Avisame cuando abran uno</Button>
                   </DialogTrigger>
-                  <DialogContent className="rounded-[16px] sm:max-w-[420px]">
+                  <DialogContent className="rounded-2xl sm:max-w-[420px]">
                     <DialogHeader>
-                      <DialogTitle>Lista de espera</DialogTitle>
+                      <DialogTitle className="text-navy">Lista de espera</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-1.5">
@@ -141,6 +141,7 @@ function SearchPage() {
                           id="wl-address"
                           value={waitlist.address}
                           onChange={(e) => setWaitlist({ ...waitlist, address: e.target.value })}
+                          className="rounded-xl border-gray-200"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -150,6 +151,7 @@ function SearchPage() {
                           type="email"
                           value={waitlist.email}
                           onChange={(e) => setWaitlist({ ...waitlist, email: e.target.value })}
+                          className="rounded-xl border-gray-200"
                         />
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -159,6 +161,7 @@ function SearchPage() {
                             id="wl-name"
                             value={waitlist.name}
                             onChange={(e) => setWaitlist({ ...waitlist, name: e.target.value })}
+                            className="rounded-xl border-gray-200"
                           />
                         </div>
                         <div className="space-y-1.5">
@@ -167,6 +170,7 @@ function SearchPage() {
                             id="wl-phone"
                             value={waitlist.phone}
                             onChange={(e) => setWaitlist({ ...waitlist, phone: e.target.value })}
+                            className="rounded-xl border-gray-200"
                           />
                         </div>
                       </div>
@@ -188,20 +192,22 @@ function SearchPage() {
                 <button
                   key={k.id}
                   onClick={() => setSelected(k.id)}
-                  className={`w-full rounded-[16px] border bg-card p-4 text-left transition-colors ${
-                    active ? "border-primary" : "border-border hover:bg-secondary"
+                  className={`w-full rounded-2xl border bg-white p-4 text-left transition-all ${
+                    active
+                      ? "border-electric shadow-glow"
+                      : "border-gray-100 hover:border-gray-200 hover:shadow-card"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-foreground">{k.name}</p>
-                      <p className="text-sm text-muted-foreground">{k.address ?? "—"}</p>
+                      <p className="font-bold text-navy">{k.name}</p>
+                      <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
                     </div>
                     <Pill tone={state.open ? "success" : "danger"}>
                       {k.is_24h ? "24 HS" : state.open ? "Abierto" : "Cerrado"}
                     </Pill>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     <Pill tone="neutral">
                       {k.custom_category ?? categoryLabel(k.category)}
                     </Pill>
@@ -214,7 +220,7 @@ function SearchPage() {
             })}
           </div>
 
-          <div className="overflow-hidden rounded-[16px] border border-border bg-card lg:sticky lg:top-8 lg:self-start">
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card lg:sticky lg:top-8 lg:self-start">
             {mapSrc ? (
               <>
                 <iframe
@@ -225,24 +231,24 @@ function SearchPage() {
                 />
                 <div className="flex items-center justify-between gap-3 p-4">
                   <div className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+                    <MapPin className="mt-0.5 h-4 w-4 text-electric" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">{current?.name}</p>
-                      <p className="text-xs text-muted-foreground">{current?.address}</p>
+                      <p className="text-sm font-bold text-navy">{current?.name}</p>
+                      <p className="text-xs text-gray-500">{current?.address}</p>
                     </div>
                   </div>
                   <a
                     href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm whitespace-nowrap text-primary underline"
+                    className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
                   >
                     Cómo llegar
                   </a>
                 </div>
               </>
             ) : (
-              <div className="flex h-[420px] items-center justify-center p-6 text-center text-sm text-muted-foreground">
+              <div className="flex h-[420px] items-center justify-center p-6 text-center text-sm text-gray-500">
                 Elegí un punto para verlo en el mapa.
               </div>
             )}

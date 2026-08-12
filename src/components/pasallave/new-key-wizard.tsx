@@ -148,9 +148,9 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="rounded-[10px]">Nueva llave</Button>
+        <Button className="rounded-xl">Nueva llave</Button>
       </DialogTrigger>
-      <DialogContent className="rounded-[16px] sm:max-w-[560px]">
+      <DialogContent className="rounded-2xl sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>Alta de llave</DialogTitle>
         </DialogHeader>
@@ -162,13 +162,13 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                 className={cn(
                   "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold",
                   i <= step
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground",
+                    ? "border-electric bg-electric text-electric-foreground"
+                    : "border-gray-100 text-gray-500",
                 )}
               >
                 {i + 1}
               </span>
-              <span className={i === step ? "text-foreground" : "text-muted-foreground"}>
+              <span className={i === step ? "text-foreground" : "text-gray-500"}>
                 {label}
               </span>
             </li>
@@ -199,26 +199,26 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                 />
               </div>
               {address.length >= 5 && (
-                <div className="rounded-[12px] border border-border p-3">
+                <div className="rounded-xl border border-gray-100 p-3">
                   {geoState === "loading" && (
-                    <p className="text-sm text-muted-foreground">Buscando el punto más cercano…</p>
+                    <p className="text-sm text-gray-500">Buscando el punto más cercano…</p>
                   )}
                   {geoState !== "loading" && !nearest && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       No pudimos ubicar esa dirección. Podés elegir el punto en el paso siguiente.
                     </p>
                   )}
                   {geoState !== "loading" && nearest && (
                     <>
-                      <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                      <p className="text-xs tracking-wide text-gray-500 uppercase">
                         Punto más cercano
                       </p>
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-foreground">{nearest.kiosk.name}</span>
                         <Pill tone="info">{formatKm(nearest.km)}</Pill>
                       </div>
-                      <p className="text-sm text-muted-foreground">{nearest.kiosk.address ?? "—"}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-gray-500">{nearest.kiosk.address ?? "—"}</p>
+                      <p className="text-xs text-gray-500">
                         {describeSchedule(
                           nearest.kiosk.is_24h,
                           (nearest.kiosk.schedule as KioskSchedule | null) ?? null,
@@ -227,7 +227,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="mt-2 rounded-[10px]"
+                        className="mt-2 rounded-xl"
                         onClick={() => setForm({ ...form, kioskId: nearest.kiosk.id })}
                       >
                         {form.kioskId === nearest.kiosk.id ? "Punto elegido" : "Elegir este punto"}
@@ -247,10 +247,10 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                   type="button"
                   onClick={() => setForm({ ...form, kioskId: k.id })}
                   className={cn(
-                    "w-full rounded-[12px] border p-3 text-left transition-colors",
+                    "w-full rounded-xl border p-3 text-left transition-colors",
                     form.kioskId === k.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-secondary",
+                      ? "border-electric bg-electric/5"
+                      : "border-gray-100 hover:bg-gray-50",
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -261,14 +261,14 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                         k.category}
                     </Pill>
                   </div>
-                  <p className="text-sm text-muted-foreground">{k.address ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                  <p className="text-xs text-gray-500">
                     {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)}
                   </p>
                 </button>
               ))}
               {(kiosks ?? []).length === 0 && (
-                <p className="text-sm text-muted-foreground">No hay puntos disponibles.</p>
+                <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
               )}
             </div>
           )}
@@ -281,10 +281,10 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                   type="button"
                   onClick={() => setForm({ ...form, plan })}
                   className={cn(
-                    "w-full rounded-[12px] border p-3 text-left transition-colors",
+                    "w-full rounded-xl border p-3 text-left transition-colors",
                     form.plan === plan
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-secondary",
+                      ? "border-electric bg-electric/5"
+                      : "border-gray-100 hover:bg-gray-50",
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -293,14 +293,14 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                       {PLAN_PRICES[plan] === null ? "A convenir" : formatMoney(PLAN_PRICES[plan]!)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{PLAN_DETAILS[plan]}</p>
+                  <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
                 </button>
               ))}
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-3 rounded-[12px] border border-border p-4 text-sm">
+            <div className="space-y-3 rounded-xl border border-gray-100 p-4 text-sm">
               <Row label="Llave" value={form.name} />
               <Row label="Dirección" value={form.propertyName || "—"} />
               <Row label="Punto" value={chosenKiosk?.name ?? "—"} />
@@ -314,7 +314,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                     : formatMoney(PLAN_PRICES[form.plan]!)
                 }
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 Al confirmar generamos los códigos correspondientes al plan elegido.
               </p>
             </div>
@@ -331,7 +331,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
           </Button>
           {step < 3 ? (
             <Button
-              className="rounded-[10px]"
+              className="rounded-xl"
               disabled={!canContinue}
               onClick={() => setStep((s) => s + 1)}
             >
@@ -339,7 +339,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
             </Button>
           ) : (
             <Button
-              className="rounded-[10px]"
+              className="rounded-xl"
               disabled={mutation.isPending}
               onClick={() => mutation.mutate()}
             >
@@ -369,7 +369,7 @@ function formatKm(km: number): string {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-gray-500">{label}</span>
       <span className="text-right font-medium text-foreground">{value}</span>
     </div>
   );

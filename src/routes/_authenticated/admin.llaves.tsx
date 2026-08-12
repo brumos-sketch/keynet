@@ -125,8 +125,8 @@ function AdminKeys() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Llaves</h1>
-          <p className="text-sm text-muted-foreground">Inventario global de llaves gestionadas.</p>
+          <h1 className="text-2xl font-bold text-navy">Llaves</h1>
+          <p className="text-sm text-gray-500">Inventario global de llaves gestionadas.</p>
         </div>
         <SearchField
           value={query}
@@ -135,9 +135,9 @@ function AdminKeys() {
         />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]">Nueva llave</Button>
+            <Button className="rounded-xl">Nueva llave</Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[16px]">
+          <DialogContent className="rounded-2xl">
             <DialogHeader>
               <DialogTitle>Nueva llave</DialogTitle>
             </DialogHeader>
@@ -211,7 +211,7 @@ function AdminKeys() {
             </div>
             <DialogFooter>
               <Button
-                className="rounded-[10px]"
+                className="rounded-xl"
                 disabled={createMutation.isPending || !form.name.trim() || !form.hostId || !form.kioskId}
                 onClick={() => createMutation.mutate()}
               >
@@ -224,7 +224,7 @@ function AdminKeys() {
 
       <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[860px] text-sm">
-          <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+          <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
             <tr>
               <th className="px-4 py-3 font-medium">Llave</th>
               <th className="px-4 py-3 font-medium">Anfitrión</th>
@@ -239,7 +239,7 @@ function AdminKeys() {
           <tbody className="divide-y divide-border">
             {isLoading && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={8} className="px-4 py-6 text-gray-500">
                   Cargando…
                 </td>
               </tr>
@@ -248,10 +248,10 @@ function AdminKeys() {
               <tr key={k.id}>
                 <td className="px-4 py-3">
                   <p className="text-foreground">{k.name}</p>
-                  <p className="text-xs text-muted-foreground">{k.property_name ?? "—"}</p>
+                  <p className="text-xs text-gray-500">{k.property_name ?? "—"}</p>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{hostName(k.host_id)}</td>
-                <td className="px-4 py-3 text-muted-foreground">{kioskName(k.kiosk_id)}</td>
+                <td className="px-4 py-3 text-gray-500">{hostName(k.host_id)}</td>
+                <td className="px-4 py-3 text-gray-500">{kioskName(k.kiosk_id)}</td>
                 <td className="px-4 py-3">
                   <Pill tone="info">
                     {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
@@ -265,7 +265,7 @@ function AdminKeys() {
                     {k.locked ? "Bloqueada" : "Activa"}
                   </Pill>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{formatDate(k.created_at)}</td>
+                <td className="px-4 py-3 text-gray-500">{formatDate(k.created_at)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <Button
                     variant="ghost"
@@ -287,7 +287,7 @@ function AdminKeys() {
             ))}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={8} className="px-4 py-6 text-gray-500">
                   {query ? `Sin resultados para "${query}".` : "Todavía no hay llaves."}
                 </td>
               </tr>

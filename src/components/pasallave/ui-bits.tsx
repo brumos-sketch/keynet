@@ -1,13 +1,15 @@
 import { Search, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "./brand-logo";
 
 const toneClasses: Record<string, string> = {
-  neutral: "bg-muted text-muted-foreground border-border",
-  info: "bg-accent text-accent-foreground border-accent",
+  neutral: "bg-muted text-gray-500 border-gray-100",
+  info: "bg-electric/5 text-electric border-accent",
   success: "bg-success/10 text-success border-success/25",
   warning: "bg-warning/15 text-warning-foreground border-warning/35",
   danger: "bg-destructive/10 text-destructive border-destructive/25",
-  primary: "bg-primary/10 text-primary border-primary/25",
+  primary: "bg-electric/10 text-electric border-electric/25",
 };
 
 export function Pill({
@@ -33,11 +35,11 @@ export function Pill({
 }
 
 export function CodeChip({ value, className }: { value: string | null | undefined; className?: string }) {
-  if (!value) return <span className="text-muted-foreground">—</span>;
+  if (!value) return <span className="text-gray-500">—</span>;
   return (
     <span
       className={cn(
-        "code-chip inline-flex items-center rounded-[8px] border border-border bg-secondary px-2 py-1 text-sm font-medium text-foreground",
+        "code-chip inline-flex items-center rounded-[8px] border border-gray-100 bg-gray-50 px-2 py-1 text-sm font-medium text-foreground",
         className,
       )}
     >
@@ -48,9 +50,9 @@ export function CodeChip({ value, className }: { value: string | null | undefine
 
 export function Brand({ className }: { className?: string }) {
   return (
-    <span className={cn("text-lg font-bold tracking-[0.18em] text-foreground", className)}>
-      PASALLAVE
-    </span>
+    <Link to="/" className={cn("inline-block", className)}>
+      <BrandLogo textClassName="text-lg" />
+    </Link>
   );
 }
 
@@ -67,7 +69,7 @@ export function SearchField({
 }) {
   return (
     <div className={cn("relative w-full sm:max-w-sm", className)}>
-      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-500" />
       <input
         type="search"
         value={value}
@@ -75,14 +77,14 @@ export function SearchField({
         placeholder={placeholder}
         aria-label={placeholder}
         maxLength={120}
-        className="h-10 w-full rounded-[10px] border border-border bg-card pr-9 pl-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none"
+        className="h-10 w-full rounded-xl border border-gray-100 bg-white pr-9 pl-9 text-sm text-foreground outline-none placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none"
       />
       {value ? (
         <button
           type="button"
           onClick={() => onChange("")}
           aria-label="Limpiar búsqueda"
-          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-gray-500 hover:text-foreground"
         >
           <X className="size-4" />
         </button>

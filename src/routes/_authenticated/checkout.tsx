@@ -59,50 +59,50 @@ function Checkout() {
   const total = pending.reduce((s, b) => s + (b.amount ?? 0) + (b.extra_amount ?? 0), 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
+    <div className="min-h-screen bg-white">
+      <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
         <Brand />
-        <Button variant="ghost" size="sm" onClick={() => void navigate({ to: "/host" })}>
+        <Button variant="ghost" size="sm" onClick={() => void navigate({ to: "/host" })} className="text-gray-500 hover:text-navy">
           Volver
         </Button>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-5 p-5 md:p-8">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Pagos</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold text-navy">Pagos</h1>
+          <p className="text-sm text-gray-500">
             Pagos simulados: la integración con MercadoPago se activa más adelante.
           </p>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-5">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">Total pendiente</p>
-          <p className="mt-1 text-3xl font-semibold text-foreground">{formatMoney(total)}</p>
-          <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-card">
+          <p className="text-xs font-bold tracking-wide text-gray-500 uppercase">Total pendiente</p>
+          <p className="mt-1 text-3xl font-bold text-navy">{formatMoney(total)}</p>
+          <p className="mt-2 flex items-center gap-2 text-xs text-gray-500">
             <ShieldCheck className="h-3.5 w-3.5" /> Entorno de prueba, no se cobra dinero real.
           </p>
         </div>
 
-        {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
+        {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
         <div className="space-y-3">
           {(data ?? []).map((b) => (
             <div
               key={b.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-border bg-card p-4"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-card"
             >
               <div>
-                <p className="font-medium text-foreground">
+                <p className="font-bold text-navy">
                   Período {b.period ?? "—"} ·{" "}
                   {b.plan ? (PLAN_LABELS[b.plan as SubscriptionType] ?? b.plan) : "—"}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   {b.keys_count ?? 0} llave(s) · {b.exchanges_count ?? 0} intercambio(s)
                   {b.extra_days ? ` · ${b.extra_days} día(s) extra` : ""}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-foreground">
+                <span className="font-bold text-navy">
                   {formatMoney((b.amount ?? 0) + (b.extra_amount ?? 0))}
                 </span>
                 {b.status === "paid" ? (
@@ -110,7 +110,6 @@ function Checkout() {
                 ) : (
                   <Button
                     size="sm"
-                    className="rounded-[10px]"
                     onClick={() => pay.mutate(b.id)}
                     disabled={paying !== null}
                   >
@@ -122,7 +121,7 @@ function Checkout() {
             </div>
           ))}
           {!isLoading && (data ?? []).length === 0 && (
-            <p className="rounded-[16px] border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            <p className="rounded-2xl border border-gray-100 bg-white p-6 text-center text-sm text-gray-500 shadow-card">
               No tenés cobros generados todavía.
             </p>
           )}

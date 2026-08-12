@@ -67,7 +67,7 @@ function AdminDashboard() {
   });
 
   if (isLoading || !data) {
-    return <p className="text-sm text-muted-foreground">Cargando métricas…</p>;
+    return <p className="text-sm text-gray-500">Cargando métricas…</p>;
   }
 
   const active = data.exchanges.filter((e) =>
@@ -108,8 +108,8 @@ function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Estado general de la red PASALLAVE.</p>
+        <h1 className="text-2xl font-bold text-navy">Dashboard</h1>
+        <p className="text-sm text-gray-500">Estado general de la red PASALLAVE.</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -124,7 +124,7 @@ function AdminDashboard() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card p-5">
-          <h2 className="text-sm font-semibold text-foreground">Intercambios últimos 7 días</h2>
+          <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Intercambios últimos 7 días</h2>
           <div className="mt-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={days}>
@@ -138,7 +138,7 @@ function AdminDashboard() {
         </div>
 
         <div className="glass-card p-5">
-          <h2 className="text-sm font-semibold text-foreground">Estados de intercambio</h2>
+          <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Estados de intercambio</h2>
           <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row">
             <div className="h-48 w-full sm:w-1/2">
               <ResponsiveContainer width="100%" height="100%">
@@ -155,7 +155,7 @@ function AdminDashboard() {
             <ul className="w-full space-y-2 sm:w-1/2">
               {statusCounts.map((entry, index) => (
                 <li key={entry.status} className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-muted-foreground">
+                  <span className="flex items-center gap-2 text-gray-500">
                     <span
                       className="h-2.5 w-2.5 rounded-full"
                       style={{ backgroundColor: donutColors[index % donutColors.length] }}
@@ -172,7 +172,7 @@ function AdminDashboard() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card p-5">
-          <h2 className="text-sm font-semibold text-foreground">Ocupación por punto</h2>
+          <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Ocupación por punto</h2>
           <ul className="mt-4 space-y-4">
             {data.kiosks.map((k) => {
               const used = data.exchanges.filter(
@@ -183,13 +183,13 @@ function AdminDashboard() {
                 <li key={k.id}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-foreground">{k.name}</span>
-                    <span className="text-muted-foreground">
+                    <span className="text-gray-500">
                       {used}/{k.positions}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2 rounded-full bg-secondary">
+                  <div className="mt-1.5 h-2 rounded-full bg-gray-50">
                     <div
-                      className="h-2 rounded-full bg-primary"
+                      className="h-2 rounded-full bg-electric"
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
@@ -197,25 +197,25 @@ function AdminDashboard() {
               );
             })}
             {data.kiosks.length === 0 && (
-              <li className="text-sm text-muted-foreground">Todavía no hay puntos cargados.</li>
+              <li className="text-sm text-gray-500">Todavía no hay puntos cargados.</li>
             )}
           </ul>
         </div>
 
         <div className="glass-card p-5">
-          <h2 className="text-sm font-semibold text-foreground">Intercambios activos</h2>
+          <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Intercambios activos</h2>
           <ul className="mt-4 divide-y divide-border">
             {active.slice(0, 8).map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
                 <CodeChip value={e.booking_ref} />
-                <span className="text-sm text-muted-foreground">{e.locker_position > 0 ? `Pos. ${e.locker_position}` : "Sin posición"}</span>
+                <span className="text-sm text-gray-500">{e.locker_position > 0 ? `Pos. ${e.locker_position}` : "Sin posición"}</span>
                 <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>
                   {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
                 </Pill>
               </li>
             ))}
             {active.length === 0 && (
-              <li className="py-2 text-sm text-muted-foreground">No hay intercambios activos.</li>
+              <li className="py-2 text-sm text-gray-500">No hay intercambios activos.</li>
             )}
           </ul>
         </div>

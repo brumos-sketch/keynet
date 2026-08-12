@@ -136,8 +136,8 @@ function AdminExchanges() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
-          <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
+          <h1 className="text-2xl font-bold text-navy">Intercambios</h1>
+          <p className="text-sm text-gray-500">Depósitos, retiros y devoluciones.</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <SearchField
@@ -166,7 +166,7 @@ function AdminExchanges() {
 
       <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[900px] text-sm">
-          <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+          <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
             <tr>
               <th className="px-4 py-3 font-medium">Reserva</th>
               <th className="px-4 py-3 font-medium">Llave</th>
@@ -182,7 +182,7 @@ function AdminExchanges() {
           <tbody className="divide-y divide-border">
             {isLoading && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={9} className="px-4 py-6 text-gray-500">
                   Cargando…
                 </td>
               </tr>
@@ -194,9 +194,9 @@ function AdminExchanges() {
                   <td className="px-4 py-3">
                     <CodeChip value={e.booking_ref} />
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{keyName(e.key_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.locker_position > 0 ? e.locker_position : "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">{keyName(e.key_id)}</td>
+                  <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
+                  <td className="px-4 py-3 text-gray-500">{e.locker_position > 0 ? e.locker_position : "—"}</td>
                   <td className="px-4 py-3">
                     <CodeChip value={e.deposit_code} />
                   </td>
@@ -208,7 +208,7 @@ function AdminExchanges() {
                       {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
                     </Pill>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
+                  <td className="px-4 py-3 text-gray-500">{formatDate(e.created_at)}</td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <Button variant="ghost" size="sm" onClick={() => setDetail(e)}>
                       Detalle
@@ -228,7 +228,7 @@ function AdminExchanges() {
             })}
             {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-muted-foreground">
+                <td colSpan={9} className="px-4 py-6 text-gray-500">
                   {query ? `Sin resultados para "${query}".` : "Sin intercambios para este filtro."}
                 </td>
               </tr>
@@ -238,7 +238,7 @@ function AdminExchanges() {
       </div>
 
       <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
-        <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+        <DialogContent className="rounded-2xl sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Intercambio {detail?.booking_ref}</DialogTitle>
           </DialogHeader>
@@ -261,7 +261,7 @@ function AdminExchanges() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">
+                <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
                   Línea de tiempo
                 </p>
                 <ol className="space-y-3">
@@ -270,19 +270,19 @@ function AdminExchanges() {
                       <span
                         className={cn(
                           "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
-                          step.at ? "bg-primary" : "bg-border",
+                          step.at ? "bg-electric" : "bg-border",
                         )}
                       />
                       <div>
                         <p
                           className={cn(
                             "font-medium",
-                            step.at ? "text-foreground" : "text-muted-foreground",
+                            step.at ? "text-foreground" : "text-gray-500",
                           )}
                         >
                           {step.label}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-gray-500">
                           {step.at ? formatDate(step.at) : "Pendiente"}
                         </p>
                       </div>
@@ -301,7 +301,7 @@ function AdminExchanges() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs tracking-wide text-muted-foreground uppercase">{label}</p>
+      <p className="text-xs tracking-wide text-gray-500 uppercase">{label}</p>
       <p className="font-medium text-foreground">{value}</p>
     </div>
   );
