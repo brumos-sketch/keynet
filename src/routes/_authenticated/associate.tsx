@@ -139,7 +139,7 @@ function AssociatePanel() {
             </div>
             <div className="rounded-[16px] border border-border bg-card p-5">
               <p className="text-xs text-muted-foreground uppercase">Puntos</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{kiosks.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{allKiosks.length}</p>
             </div>
           </div>
 
