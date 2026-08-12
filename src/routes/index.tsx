@@ -5,6 +5,7 @@ import { FeatureStep } from "@/components/pasallave/feature-step";
 import { PlanCard } from "@/components/pasallave/plan-card";
 import { PhoneMockup } from "@/components/pasallave/phone-mockup";
 import { StickerMockup } from "@/components/pasallave/sticker-mockup";
+import { listPlanPrices, type PlanPriceRow } from "@/lib/pricing.functions";
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -36,6 +37,17 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "https://pasallave.lovable.app/" }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSON_LD) }],
   }),
+  loader: async () => {
+    try {
+      return { plans: await listPlanPrices() };
+    } catch {
+      return { plans: [] as PlanPriceRow[] };
+    }
+  },
+  errorComponent: () => (
+    <div className="p-10 text-center text-navy">No pudimos cargar la página. Recargá.</div>
+  ),
+  notFoundComponent: () => <div className="p-10 text-center text-navy">Página no encontrada.</div>,
   component: Landing,
 });
 
@@ -69,11 +81,20 @@ const FEATURES = [
   },
 ];
 
-const PLANS = [
+const PLAN_META: Record<
+  string,
+  { name: string; variant: "default" | "recommended" | "outline" }
+> = {
+  one_use: { name: "pasa una", variant: "default" },
+  monthly: { name: "pasa mes", variant: "recommended" },
+  pro: { name: "pasa pro", variant: "outline" },
+};
+
+const FALLBACK_PLANS = [
   {
     name: "pasa una",
     subtitle: "Uso ocasional",
-    price: "$X",
+    price: "Consultar",
     priceLabel: "/ intercambio",
     features: ["1 intercambio de llave", "Soporte vía App", "Notificaciones en tiempo real"],
     cta: "Empezar ahora",
@@ -82,7 +103,7 @@ const PLANS = [
   {
     name: "pasa mes",
     subtitle: "Anfitriones recurrentes",
-    price: "$X",
+    price: "Consultar",
     priceLabel: "/ mes",
     features: ["Intercambios ilimitados (1 llave)", "Soporte prioritario", "Historial de accesos completo"],
     cta: "Elegir plan",
@@ -99,7 +120,25 @@ const PLANS = [
   },
 ];
 
+const money = (n: number) =>
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+
 function Landing() {
+  const { plans } = Route.useLoaderData();
+  const PLANS = plans.length
+    ? plans
+        .filter((p) => p.plan in PLAN_META)
+        .map((p) => ({
+          name: PLAN_META[p.plan]!.name,
+          variant: PLAN_META[p.plan]!.variant,
+          subtitle: p.subtitle ?? "",
+          price: p.amount === null ? "Consultar" : money(p.amount),
+          priceLabel: p.price_label ?? "",
+          features: p.features ?? [],
+          cta: p.cta ?? "Empezar ahora",
+        }))
+    : FALLBACK_PLANS;
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <MarketingNav />

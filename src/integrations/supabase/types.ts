@@ -482,6 +482,42 @@ export type Database = {
           },
         ]
       }
+      plan_prices: {
+        Row: {
+          amount: number | null
+          created_at: string
+          cta: string | null
+          features: string[]
+          plan: string
+          price_label: string | null
+          sort_order: number
+          subtitle: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          cta?: string | null
+          features?: string[]
+          plan: string
+          price_label?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          cta?: string | null
+          features?: string[]
+          plan?: string
+          price_label?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       point_commissions: {
         Row: {
           commission_percent: number | null
