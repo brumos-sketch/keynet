@@ -222,7 +222,7 @@ function AdminUsers() {
             <tr>
               <th className="px-4 py-3 font-medium">Nombre</th>
               <th className="px-4 py-3 font-medium">Email</th>
-              <th className="px-4 py-3 font-medium">Teléfono</th>
+              <th className="px-4 py-3 font-medium">Alta</th>
               <th className="px-4 py-3 font-medium">Rol</th>
               <th className="px-4 py-3 font-medium">Cambiar rol</th>
             </tr>
