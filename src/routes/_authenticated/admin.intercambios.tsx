@@ -139,20 +139,27 @@ function AdminExchanges() {
           <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
           <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
         </div>
-        <div className="w-[200px]">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            placeholder="Buscar por reserva, código o llave…"
+          />
+          <div className="w-[200px]">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
