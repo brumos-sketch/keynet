@@ -515,6 +515,11 @@ function AdminKiosks() {
             </article>
           );
         })}
+        {!isLoading && kioskRows.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            {query ? `Sin resultados para "${query}".` : "Todavía no hay puntos."}
+          </p>
+        )}
       </div>
 
     </div>
