@@ -648,7 +648,61 @@ function HostPanel() {
               )}
             </DialogContent>
           </Dialog>
+
+          <Dialog open={!!editEx} onOpenChange={(open) => !open && setEditEx(null)}>
+            <DialogContent className="rounded-2xl sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Editar estadía · {editEx?.keyName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="e-checkin">Check-in</Label>
+                    <Input
+                      id="e-checkin"
+                      type="date"
+                      value={editForm.checkIn}
+                      onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="e-checkout">Check-out</Label>
+                    <Input
+                      id="e-checkout"
+                      type="date"
+                      value={editForm.checkOut}
+                      onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-pickup">Horario de retiro</Label>
+                  <Input
+                    id="e-pickup"
+                    type="time"
+                    value={editForm.pickupTime}
+                    onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-guest">Nombre del huésped</Label>
+                  <Input
+                    id="e-guest"
+                    maxLength={80}
+                    value={editForm.guestName}
+                    onChange={(e) => setEditForm({ ...editForm, guestName: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button disabled={editMutation.isPending} onClick={() => editMutation.mutate()}>
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </main>
+
       </div>
     </RoleGuard>
   );
