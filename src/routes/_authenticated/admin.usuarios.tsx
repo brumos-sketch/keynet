@@ -111,6 +111,10 @@ function AdminUsers() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const rows = (data?.users ?? []).filter((u) =>
+    matchesQuery([u.name, u.email, ROLE_LABELS[u.role as AppRole]], query),
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -118,6 +122,8 @@ function AdminUsers() {
           <h1 className="text-2xl font-semibold text-foreground">Usuarios</h1>
           <p className="text-sm text-muted-foreground">Aprobá cuentas y asigná roles.</p>
         </div>
+
+        <SearchField value={query} onChange={setQuery} placeholder="Buscar por nombre o email…" />
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
