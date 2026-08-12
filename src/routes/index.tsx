@@ -6,6 +6,10 @@ import { PlanCard } from "@/components/pasallave/plan-card";
 import { PhoneMockup } from "@/components/pasallave/phone-mockup";
 import { StickerMockup } from "@/components/pasallave/sticker-mockup";
 import { listPlanPrices, type PlanPriceRow } from "@/lib/pricing.functions";
+import ogImageAsset from "@/assets/og-pasallave.png.asset.json";
+
+const SITE_ORIGIN = "https://keynet.lovable.app";
+const OG_IMAGE_URL = `${SITE_ORIGIN}${ogImageAsset.url}`;
 
 const JSON_LD = {
   "@context": "https://schema.org",
