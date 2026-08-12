@@ -588,6 +588,8 @@ export const validateCode = createServerFn({ method: "POST" })
     if (exchanges && exchanges.length > 0) {
       const ex = exchanges[0]!;
       const key = (ex as unknown as { keys: { subscription_type: string } }).keys;
+      logKeyId = ex.key_id;
+
 
       const returnCodeMatch =
         ex.return_code ?? (key.subscription_type !== "one_use" ? ex.pickup_code : null);
