@@ -239,7 +239,9 @@ function AdminUsers() {
               <tr key={u.id}>
                 <td className="px-4 py-3 text-foreground">{u.name ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                <td className="px-4 py-3 text-muted-foreground">{u.phone ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  {new Intl.DateTimeFormat("es-AR").format(new Date(u.created_at))}
+                </td>
                 <td className="px-4 py-3">
                   <Pill tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
                 </td>
