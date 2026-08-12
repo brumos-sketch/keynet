@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,6 +8,7 @@ import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
+import { NotificationBell } from "@/components/pasallave/notification-bell";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -208,8 +209,12 @@ function HostPanel() {
       <div className="min-h-screen bg-background">
         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
           <Brand />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="hidden text-sm text-muted-foreground sm:inline">{name}</span>
+            <NotificationBell />
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/checkout">Pagos</Link>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => void signOut()}>
               Salir
             </Button>
