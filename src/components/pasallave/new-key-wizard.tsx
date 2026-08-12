@@ -125,7 +125,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
 
   const nearest = useMemo(() => {
     if (!coords) return null;
-    let best: { kiosk: (typeof kiosks)[number]; km: number } | null = null;
+    let best: { kiosk: NonNullable<typeof kiosks>[number]; km: number } | null = null;
     for (const k of kiosks ?? []) {
       if (k.lat == null || k.lng == null) continue;
       const km = haversineKm(coords.lat, coords.lng, k.lat, k.lng);
