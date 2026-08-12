@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/pasallave";
+import { formatDate, WEEKDAYS, type KioskSchedule } from "@/lib/pasallave";
 import { getBoardingPass } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/pase/$ref")({
@@ -37,8 +37,9 @@ const T = {
     label: "Pase de abordar",
     stay: "Estadía",
     point: "Punto asociado",
-    pickupCode: "Código de retiro",
-    returnCode: "Código de devolución",
+    accessCode: "Código de acceso",
+    bidirectional: "Sirve para retirar y para devolver la llave",
+    returnNote: "Usá el mismo código al devolver la llave en el punto.",
     pickupTime: "Horario estimado de retiro",
     checkIn: "Check-in",
     checkOut: "Check-out",
@@ -49,15 +50,15 @@ const T = {
     pickupAvailable: "Retiro disponible a partir de las",
     open24: "Abierto 24 hs",
     map: "Ver en el mapa",
-    pending: "El código de devolución se habilita cuando retirás la llave.",
     status: "Estado",
   },
   en: {
     label: "Boarding pass",
     stay: "Stay",
     point: "Partner point",
-    pickupCode: "Pickup code",
-    returnCode: "Return code",
+    accessCode: "Access code",
+    bidirectional: "Use it to pick up and to return the key",
+    returnNote: "Use the same code when returning the key at the point.",
     pickupTime: "Estimated pickup time",
     checkIn: "Check-in",
     checkOut: "Check-out",
@@ -68,15 +69,15 @@ const T = {
     pickupAvailable: "Pickup available from",
     open24: "Open 24/7",
     map: "Open in map",
-    pending: "The return code is enabled once you pick up the key.",
     status: "Status",
   },
   pt: {
     label: "Cartão de embarque",
     stay: "Estadia",
     point: "Ponto parceiro",
-    pickupCode: "Código de retirada",
-    returnCode: "Código de devolução",
+    accessCode: "Código de acesso",
+    bidirectional: "Serve para retirar e para devolver a chave",
+    returnNote: "Use o mesmo código ao devolver a chave no ponto.",
     pickupTime: "Horário estimado de retirada",
     checkIn: "Check-in",
     checkOut: "Check-out",
@@ -87,7 +88,6 @@ const T = {
     pickupAvailable: "Retirada disponível a partir das",
     open24: "Aberto 24 h",
     map: "Ver no mapa",
-    pending: "O código de devolução é liberado após a retirada da chave.",
     status: "Status",
   },
 } satisfies Record<Lang, Record<string, string>>;
