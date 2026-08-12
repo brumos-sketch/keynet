@@ -383,6 +383,7 @@ export const validateCode = createServerFn({ method: "POST" })
     if (!myKioskId) throw new Error("No tenés un punto asignado");
 
     const clean = normalizeCode(data.code);
+    const cleanHyphenated = clean.length === 6 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
     const now = nowIso();
     const today = new Date().toISOString().slice(0, 10);
     const currentTime = new Date().toISOString().slice(11, 16); // HH:MM
