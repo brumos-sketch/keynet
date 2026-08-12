@@ -17,8 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
-import { STATUS_LABELS, STATUS_TONE, formatDate, type ExchangeStatus } from "@/lib/pasallave";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import {
+  STATUS_LABELS,
+  STATUS_TONE,
+  formatDate,
+  matchesQuery,
+  type ExchangeStatus,
+} from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
 
 type ExchangeRow = {
