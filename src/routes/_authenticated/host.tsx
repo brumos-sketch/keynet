@@ -436,7 +436,7 @@ function HostPanel() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {(data?.exchanges ?? []).map((e) => (
+                  {exchangeRows.map((e) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
