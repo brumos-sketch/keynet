@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/pasallave/ui-bits";
+import { Input } from "@/components/ui/input";
 import { PLAN_LABELS, formatMoney, type SubscriptionType } from "@/lib/pasallave";
+import { generateBillingPeriod } from "@/lib/pasallave.functions";
+
+const currentPeriod = () => new Date().toISOString().slice(0, 7);
 
 export const Route = createFileRoute("/_authenticated/admin/facturacion")({
   head: () => ({
@@ -18,6 +24,19 @@ export const Route = createFileRoute("/_authenticated/admin/facturacion")({
 
 function AdminBilling() {
   const qc = useQueryClient();
+  const generateFn = useServerFn(generateBillingPeriod);
+  const [period, setPeriod] = useState(currentPeriod);
+
+  const generate = useMutation({
+    mutationFn: async () => generateFn({ data: { period } }),
+    onSuccess: (res) => {
+      toast.success(
+        `Período ${res.period} cerrado: ${res.hostRows} cobro(s) y ${res.kioskRows} comisión(es).`,
+      );
+      void qc.invalidateQueries({ queryKey: ["admin", "billing"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "billing"],
@@ -65,9 +84,32 @@ function AdminBilling() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
-        <p className="text-sm text-muted-foreground">Cobros y comisiones (pagos simulados).</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
+          <p className="text-sm text-muted-foreground">Cobros y comisiones (pagos simulados).</p>
+        </div>
+        <div className="flex items-end gap-2">
+          <div className="space-y-1.5">
+            <label htmlFor="period" className="text-xs text-muted-foreground">
+              Período
+            </label>
+            <Input
+              id="period"
+              type="month"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="w-[160px]"
+            />
+          </div>
+          <Button
+            className="rounded-[10px]"
+            onClick={() => generate.mutate()}
+            disabled={generate.isPending}
+          >
+            {generate.isPending ? "Generando…" : "Generar período"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
