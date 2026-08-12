@@ -425,6 +425,9 @@ function AdminKiosks() {
         {kioskRows.map((k) => {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
+          const percent =
+            k.positions > 0 ? Math.min(100, Math.round((taken.length / k.positions) * 100)) : 0;
+          const tone = occupancyTone(percent);
           return (
             <article key={k.id} className="glass-card p-5">
               <div className="flex items-start justify-between gap-3">
