@@ -389,6 +389,8 @@ export type Database = {
           custom_category: string | null
           id: string
           is_24h: boolean
+          lat: number | null
+          lng: number | null
           name: string
           photo_url: string | null
           positions: number
@@ -406,6 +408,8 @@ export type Database = {
           custom_category?: string | null
           id?: string
           is_24h?: boolean
+          lat?: number | null
+          lng?: number | null
           name: string
           photo_url?: string | null
           positions?: number
@@ -423,6 +427,8 @@ export type Database = {
           custom_category?: string | null
           id?: string
           is_24h?: boolean
+          lat?: number | null
+          lng?: number | null
           name?: string
           photo_url?: string | null
           positions?: number
@@ -646,6 +652,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      boarding_pass: {
+        Args: { _ref: string }
+        Returns: {
+          booking_ref: string
+          check_in: string
+          check_out: string
+          deposit_code: string
+          key_name: string
+          kiosk_address: string
+          kiosk_is_24h: boolean
+          kiosk_lat: number
+          kiosk_lng: number
+          kiosk_name: string
+          kiosk_schedule: Json
+          locker_position: number
+          pickup_code: string
+          pickup_time: string
+          property_name: string
+          status: string
+        }[]
+      }
       expire_one_use_exchanges: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -658,6 +685,22 @@ export type Database = {
       my_associate_id: { Args: never; Returns: string }
       my_host_id: { Args: never; Returns: string }
       my_kiosk_id: { Args: never; Returns: string }
+      search_kiosks_public: {
+        Args: never
+        Returns: {
+          address: string
+          category: string
+          custom_category: string
+          free_positions: number
+          id: string
+          is_24h: boolean
+          lat: number
+          lng: number
+          name: string
+          positions: number
+          schedule: Json
+        }[]
+      }
     }
     Enums: {
       app_role: "pending" | "admin" | "associate" | "host" | "kiosk"

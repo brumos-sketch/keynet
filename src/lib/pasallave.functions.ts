@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -78,6 +78,32 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
   .handler(async () => {
     const supabaseAdmin = await loadAdminClient();
     await supabaseAdmin.rpc("expire_one_use_exchanges");
+
+    // Notify hosts about newly overdue stays (one notification per booking)
+    const { data: expired } = await supabaseAdmin
+      .from("key_exchanges")
+      .select("booking_ref, keys(host_id, name)")
+      .eq("status", "expired")
+      .limit(100);
+    for (const row of expired ?? []) {
+      const key = (row as unknown as { keys: { host_id: string | null; name: string } | null }).keys;
+      if (!key?.host_id) continue;
+      const { data: already } = await supabaseAdmin
+        .from("notifications")
+        .select("id")
+        .eq("host_id", key.host_id)
+        .eq("type", "expired")
+        .eq("booking_ref", row.booking_ref)
+        .maybeSingle();
+      if (already) continue;
+      await supabaseAdmin.from("notifications").insert({
+        host_id: key.host_id,
+        type: "expired",
+        booking_ref: row.booking_ref,
+        message: `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`,
+      });
+    }
+
     return { ok: true };
   });
 
@@ -622,6 +648,30 @@ export const validateCode = createServerFn({ method: "POST" })
       role: logRole,
       person_name: logPerson,
     });
+
+    // Notify the host about the movement
+    if (logKeyId) {
+      const supabaseAdmin = await loadAdminClient();
+      const { data: keyRow } = await supabaseAdmin
+        .from("keys")
+        .select("host_id, name")
+        .eq("id", logKeyId)
+        .maybeSingle();
+      if (keyRow?.host_id) {
+        const messages: Record<string, string> = {
+          deposited: `Se depositó la llave "${keyRow.name}" en el punto.`,
+          picked_up: `Se retiró la llave "${keyRow.name}" del punto.`,
+          completed: `Se devolvió la llave "${keyRow.name}" al punto.`,
+        };
+        await supabaseAdmin.from("notifications").insert({
+          host_id: keyRow.host_id,
+          type: result.action,
+          message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,
+          booking_ref: result.bookingRef,
+        });
+      }
+    }
+
     return result;
   });
 
@@ -674,4 +724,298 @@ export const associateOverview = createServerFn({ method: "POST" })
           "",
       })),
     };
+  });
+
+// ---------- public (anon) client ----------
+
+function publicClient(): TypedSupabase {
+  const url = process.env["SUPABASE_URL"]!;
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  return createClient<Database>(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+          h.delete("Authorization");
+        }
+        h.set("apikey", key);
+        return fetch(input as RequestInfo, { ...init, headers: h });
+      },
+    },
+  });
+}
+
+export type PublicKiosk = {
+  id: string;
+  name: string;
+  address: string | null;
+  category: string;
+  custom_category: string | null;
+  positions: number;
+  is_24h: boolean;
+  schedule: Record<string, { open: string; close: string } | null> | null;
+  lat: number | null;
+  lng: number | null;
+  free_positions: number;
+};
+
+export const listPublicKiosks = createServerFn({ method: "GET" }).handler(async () => {
+  const supabasePublic = publicClient();
+  const { data, error } = await (
+    supabasePublic.rpc as unknown as (fn: string) => Promise<{ data: PublicKiosk[] | null; error: { message: string } | null }>
+  )("search_kiosks_public");
+  if (error) return { kiosks: [] as PublicKiosk[], error: error.message };
+  return { kiosks: data ?? [], error: null as string | null };
+});
+
+export type BoardingPass = {
+  booking_ref: string;
+  status: string;
+  locker_position: number;
+  deposit_code: string;
+  pickup_code: string | null;
+  pickup_time: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  key_name: string | null;
+  property_name: string | null;
+  kiosk_name: string | null;
+  kiosk_address: string | null;
+  kiosk_is_24h: boolean | null;
+  kiosk_schedule: Record<string, { open: string; close: string } | null> | null;
+  kiosk_lat: number | null;
+  kiosk_lng: number | null;
+};
+
+export const getBoardingPass = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) => z.object({ ref: z.string().trim().min(3).max(16) }).parse(input))
+  .handler(async ({ data }) => {
+    const supabasePublic = publicClient();
+    const { data: rows } = await (
+      supabasePublic.rpc as unknown as (
+        fn: string,
+        args: Record<string, string>,
+      ) => Promise<{ data: BoardingPass[] | null; error: { message: string } | null }>
+    )("boarding_pass", { _ref: data.ref });
+    return { pass: rows?.[0] ?? null };
+  });
+
+export const joinWaitlist = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        address: z.string().trim().min(3).max(200),
+        email: z.string().trim().email(),
+        name: z.string().trim().max(80).optional().nullable(),
+        phone: z.string().trim().max(40).optional().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const supabasePublic = publicClient();
+    const { error } = await supabasePublic.from("waitlist").insert({
+      address: data.address,
+      email: data.email,
+      name: data.name ?? null,
+      phone: data.phone ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------- billing generation (admin) ----------
+
+const PLAN_AMOUNT: Record<string, number> = { one_use: 7500, monthly: 30000, pro: 0 };
+
+export const generateBillingPeriod = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ period: z.string().regex(/^\d{4}-\d{2}$/) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden");
+    const supabaseAdmin = await loadAdminClient();
+    const period = data.period;
+    const from = `${period}-01T00:00:00.000Z`;
+    const toDate = new Date(`${period}-01T00:00:00.000Z`);
+    toDate.setMonth(toDate.getMonth() + 1);
+    const to = toDate.toISOString();
+
+    const [{ data: hosts }, { data: keys }, { data: exchanges }, { data: pro }] = await Promise.all([
+      supabaseAdmin.from("hosts").select("id"),
+      supabaseAdmin.from("keys").select("id, host_id, kiosk_id, subscription_type"),
+      supabaseAdmin
+        .from("key_exchanges")
+        .select("id, key_id, kiosk_id, created_at")
+        .gte("created_at", from)
+        .lt("created_at", to),
+      supabaseAdmin.from("pro_agreements").select("host_id, monthly_price, status"),
+    ]);
+
+    let hostRows = 0;
+    for (const host of hosts ?? []) {
+      const hostKeys = (keys ?? []).filter((k) => k.host_id === host.id);
+      if (hostKeys.length === 0) continue;
+      const hostKeyIds = hostKeys.map((k) => k.id);
+      const hostExchanges = (exchanges ?? []).filter((e) => e.key_id && hostKeyIds.includes(e.key_id));
+
+      const proDeal = (pro ?? []).find((p) => p.host_id === host.id && p.status === "active");
+      const plan = proDeal
+        ? "pro"
+        : hostKeys.some((k) => k.subscription_type === "monthly")
+          ? "monthly"
+          : "one_use";
+
+      let amount = 0;
+      if (proDeal) {
+        amount = proDeal.monthly_price ?? 0;
+      } else {
+        for (const k of hostKeys) {
+          if (k.subscription_type === "monthly") amount += PLAN_AMOUNT["monthly"]!;
+        }
+        const oneUseKeyIds = hostKeys.filter((k) => k.subscription_type === "one_use").map((k) => k.id);
+        amount +=
+          hostExchanges.filter((e) => e.key_id && oneUseKeyIds.includes(e.key_id)).length *
+          PLAN_AMOUNT["one_use"]!;
+      }
+
+      const { data: existing } = await supabaseAdmin
+        .from("billing")
+        .select("id, extra_days, extra_amount")
+        .eq("host_id", host.id)
+        .eq("period", period)
+        .maybeSingle();
+
+      const payload = {
+        host_id: host.id,
+        period,
+        plan,
+        keys_count: hostKeys.length,
+        exchanges_count: hostExchanges.length,
+        amount,
+      };
+      if (existing) {
+        await supabaseAdmin.from("billing").update(payload).eq("id", existing.id);
+      } else {
+        await supabaseAdmin.from("billing").insert({ ...payload, status: "pending" });
+      }
+      hostRows += 1;
+    }
+
+    // Point commissions
+    const { data: kiosks } = await supabaseAdmin.from("kiosks").select("id, commission_percent");
+    let kioskRows = 0;
+    for (const kiosk of kiosks ?? []) {
+      const kioskExchanges = (exchanges ?? []).filter((e) => e.kiosk_id === kiosk.id);
+      const revenue = kioskExchanges.reduce((sum, e) => {
+        const key = (keys ?? []).find((k) => k.id === e.key_id);
+        if (!key) return sum;
+        return sum + (PLAN_AMOUNT[key.subscription_type] ?? 0);
+      }, 0);
+      const total = Math.round((revenue * (kiosk.commission_percent ?? 0)) / 100);
+
+      const { data: existing } = await supabaseAdmin
+        .from("point_commissions")
+        .select("id")
+        .eq("kiosk_id", kiosk.id)
+        .eq("period", period)
+        .maybeSingle();
+      const payload = {
+        kiosk_id: kiosk.id,
+        period,
+        plans_revenue: revenue,
+        commission_percent: kiosk.commission_percent,
+        total,
+      };
+      if (existing) {
+        await supabaseAdmin.from("point_commissions").update(payload).eq("id", existing.id);
+      } else {
+        await supabaseAdmin.from("point_commissions").insert({ ...payload, status: "pending" });
+      }
+      kioskRows += 1;
+    }
+
+    return { hostRows, kioskRows, period };
+  });
+
+// ---------- simulated payment ----------
+
+export const payBilling = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ billingId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: row } = await supabase
+      .from("billing")
+      .select("id, host_id, amount, extra_amount, status")
+      .eq("id", data.billingId)
+      .maybeSingle();
+    if (!row) throw new Error("Factura no encontrada");
+
+    const admin = await isAdmin(context);
+    const { data: myHost } = await supabase.rpc("my_host_id");
+    if (!admin && myHost !== row.host_id) throw new Error("No tenés permiso para esta factura");
+    if (row.status === "paid") return { ok: true, alreadyPaid: true };
+
+    const supabaseAdmin = await loadAdminClient();
+    const { error } = await supabaseAdmin
+      .from("billing")
+      .update({ status: "paid", paid_at: nowIso() })
+      .eq("id", row.id);
+    if (error) throw error;
+
+    await supabaseAdmin.from("notifications").insert({
+      host_id: row.host_id,
+      type: "payment",
+      message: `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`,
+    });
+
+    return { ok: true, alreadyPaid: false };
+  });
+
+// ---------- pro agreements (admin) ----------
+
+export const saveProAgreement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid().optional().nullable(),
+        hostId: z.string().uuid(),
+        monthlyPrice: z.number().int().min(0),
+        keysIncluded: z.number().int().min(0),
+        discountPercent: z.number().int().min(0).max(100),
+        startDate: z.string().optional().nullable(),
+        status: z.enum(["active", "paused", "ended"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden");
+    const supabaseAdmin = await loadAdminClient();
+    const payload = {
+      host_id: data.hostId,
+      monthly_price: data.monthlyPrice,
+      keys_included: data.keysIncluded,
+      discount_percent: data.discountPercent,
+      start_date: data.startDate || null,
+      status: data.status,
+    };
+    const { error } = data.id
+      ? await supabaseAdmin.from("pro_agreements").update(payload).eq("id", data.id)
+      : await supabaseAdmin.from("pro_agreements").insert(payload);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteProAgreement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden");
+    const supabaseAdmin = await loadAdminClient();
+    const { error } = await supabaseAdmin.from("pro_agreements").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
   });

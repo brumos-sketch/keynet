@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   Store,
   Receipt,
+  Crown,
   LogOut,
 } from "lucide-react";
 import { RoleGuard } from "@/components/pasallave/role-guard";
@@ -25,6 +26,7 @@ const NAV = [
   { to: "/admin/llaves", label: "Llaves", icon: KeyRound, exact: false },
   { to: "/admin/intercambios", label: "Intercambios", icon: ArrowLeftRight, exact: false },
   { to: "/admin/puntos", label: "Puntos", icon: Store, exact: false },
+  { to: "/admin/pro", label: "Acuerdos Pro", icon: Crown, exact: false },
   { to: "/admin/facturacion", label: "Facturación", icon: Receipt, exact: false },
 ] as const;
 
