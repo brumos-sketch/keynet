@@ -413,7 +413,7 @@ function AdminKiosks() {
 
       <div className="space-y-5">
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
-        {(data?.kiosks ?? []).map((k) => {
+        {kioskRows.map((k) => {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
           return (
