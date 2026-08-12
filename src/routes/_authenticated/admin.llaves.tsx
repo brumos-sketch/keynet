@@ -42,6 +42,7 @@ function AdminKeys() {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
