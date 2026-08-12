@@ -78,6 +78,32 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
   .handler(async () => {
     const supabaseAdmin = await loadAdminClient();
     await supabaseAdmin.rpc("expire_one_use_exchanges");
+
+    // Notify hosts about newly overdue stays (one notification per booking)
+    const { data: expired } = await supabaseAdmin
+      .from("key_exchanges")
+      .select("booking_ref, keys(host_id, name)")
+      .eq("status", "expired")
+      .limit(100);
+    for (const row of expired ?? []) {
+      const key = (row as unknown as { keys: { host_id: string | null; name: string } | null }).keys;
+      if (!key?.host_id) continue;
+      const { data: already } = await supabaseAdmin
+        .from("notifications")
+        .select("id")
+        .eq("host_id", key.host_id)
+        .eq("type", "expired")
+        .eq("booking_ref", row.booking_ref)
+        .maybeSingle();
+      if (already) continue;
+      await supabaseAdmin.from("notifications").insert({
+        host_id: key.host_id,
+        type: "expired",
+        booking_ref: row.booking_ref,
+        message: `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`,
+      });
+    }
+
     return { ok: true };
   });
 
