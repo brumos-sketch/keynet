@@ -196,7 +196,7 @@ function AdminExchanges() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{keyName(e.key_id)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.locker_position}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{e.locker_position > 0 ? e.locker_position : "—"}</td>
                   <td className="px-4 py-3">
                     <CodeChip value={e.deposit_code} />
                   </td>
