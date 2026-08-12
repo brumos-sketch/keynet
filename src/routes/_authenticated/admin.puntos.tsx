@@ -2,7 +2,9 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Clock, Lock, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,37 +48,62 @@ const emptySchedule: KioskSchedule = Object.fromEntries(
   WEEKDAYS.map((d) => [d.key, { open: "09:00", close: "20:00" }]),
 );
 
+const DAY_LETTERS: Record<string, string> = {
+  mon: "L",
+  tue: "M",
+  wed: "X",
+  thu: "J",
+  fri: "V",
+  sat: "S",
+  sun: "D",
+};
+
+const blankForm = {
+  name: "",
+  address: "",
+  category: "kiosco",
+  customCategory: "",
+  positions: 10,
+  commission: 20,
+  contactName: "",
+  contactPhone: "",
+  associateId: "",
+  is24h: false,
+  schedule: emptySchedule as KioskSchedule,
+};
+
+const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
+
 function AdminKiosks() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    category: "kiosco",
-    customCategory: "",
-    positions: 10,
-    commission: 20,
-    contactName: "",
-    contactPhone: "",
-    associateId: "",
-    is24h: false,
-    schedule: emptySchedule as KioskSchedule,
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(blankForm);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "kiosks"],
     queryFn: async () => {
-      const [kiosks, associates] = await Promise.all([
+      const [kiosks, associates, exchanges] = await Promise.all([
         supabase.from("kiosks").select("*").order("created_at", { ascending: false }),
         supabase.from("associates").select("id, name"),
+        supabase
+          .from("key_exchanges")
+          .select("kiosk_id, locker_position, status")
+          .in("status", ACTIVE_STATUSES),
       ]);
-      return { kiosks: kiosks.data ?? [], associates: associates.data ?? [] };
+      const occupancy: Record<string, number[]> = {};
+      for (const e of exchanges.data ?? []) {
+        if (!e.kiosk_id) continue;
+        (occupancy[e.kiosk_id] ??= []).push(e.locker_position);
+      }
+      return { kiosks: kiosks.data ?? [], associates: associates.data ?? [], occupancy };
     },
   });
 
+
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("kiosks").insert({
+      const payload = {
         name: form.name.trim(),
         address: form.address.trim() || null,
         category: form.category,
@@ -88,17 +115,58 @@ function AdminKiosks() {
         associate_id: form.associateId || null,
         is_24h: form.is24h,
         schedule: form.is24h ? {} : form.schedule,
-        access_code: generateKioskCode(),
-      });
+      };
+      const { error } = editingId
+        ? await supabase.from("kiosks").update(payload).eq("id", editingId)
+        : await supabase.from("kiosks").insert({ ...payload, access_code: generateKioskCode() });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Punto creado");
+      toast.success(editingId ? "Punto actualizado" : "Punto creado");
       setOpen(false);
+      setEditingId(null);
       void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const openNew = () => {
+    setEditingId(null);
+    setForm(blankForm);
+    setOpen(true);
+  };
+
+  const openEdit = (k: {
+    id: string;
+    name: string;
+    address: string | null;
+    category: string;
+    custom_category: string | null;
+    positions: number;
+    commission_percent: number;
+    contact_name: string | null;
+    contact_phone: string | null;
+    associate_id: string | null;
+    is_24h: boolean;
+    schedule: unknown;
+  }) => {
+    setEditingId(k.id);
+    setForm({
+      name: k.name,
+      address: k.address ?? "",
+      category: k.category,
+      customCategory: k.custom_category ?? "",
+      positions: k.positions,
+      commission: k.commission_percent,
+      contactName: k.contact_name ?? "",
+      contactPhone: k.contact_phone ?? "",
+      associateId: k.associate_id ?? "",
+      is24h: k.is_24h,
+      schedule: ((k.schedule as KioskSchedule) ?? emptySchedule) || emptySchedule,
+    });
+    setOpen(true);
+  };
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -124,19 +192,20 @@ function AdminKiosks() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Puntos asociados</h1>
-          <p className="text-sm text-muted-foreground">Kioscos, cafés y comercios de la red.</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-foreground">Puntos</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]">Nuevo punto</Button>
+            <Button className="rounded-[10px]" onClick={openNew}>
+              <Plus className="h-4 w-4" />
+              Nuevo
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto rounded-[16px] sm:max-w-[560px]">
             <DialogHeader>
-              <DialogTitle>Nuevo punto</DialogTitle>
+              <DialogTitle>{editingId ? "Editar punto" : "Nuevo punto"}</DialogTitle>
             </DialogHeader>
+
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -303,59 +372,137 @@ function AdminKiosks() {
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:justify-between">
+              {editingId && (
+                <Button
+                  variant="ghost"
+                  className="rounded-[10px] text-destructive hover:text-destructive"
+                  onClick={() => {
+                    remove.mutate(editingId);
+                    setOpen(false);
+                  }}
+                >
+                  Eliminar
+                </Button>
+              )}
               <Button
                 className="rounded-[10px]"
                 disabled={create.isPending || !form.name.trim()}
                 onClick={() => create.mutate()}
               >
-                Crear punto
+                {editingId ? "Guardar cambios" : "Crear punto"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-5">
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
-        {(data?.kiosks ?? []).map((k) => (
-          <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-foreground">{k.name}</h2>
-                <p className="text-sm text-muted-foreground">{k.address ?? "Sin dirección"}</p>
+        {(data?.kiosks ?? []).map((k) => {
+          const taken = data?.occupancy[k.id] ?? [];
+          const schedule = (k.schedule as KioskSchedule) ?? null;
+          return (
+            <article key={k.id} className="rounded-[16px] border border-border bg-card p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold text-foreground">{k.name}</h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Pill tone="info">
+                      {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
+                        k.custom_category ??
+                        k.category}
+                    </Pill>
+                    <Pill tone="warning">Comisión {k.commission_percent}%</Pill>
+                    <span className="text-sm text-muted-foreground">
+                      {k.address ?? "Sin dirección"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-[8px] bg-accent px-2.5 py-1 text-sm font-medium text-accent-foreground">
+                    {taken.length}/{k.positions}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground"
+                    aria-label={`Editar ${k.name}`}
+                    onClick={() => openEdit(k)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <Pill tone="info">
-                {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
-                  k.custom_category ??
-                  k.category}
-              </Pill>
-            </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <p className="text-muted-foreground">
-                {describeSchedule(k.is_24h, (k.schedule as KioskSchedule) ?? null)}
-              </p>
-              <p className="text-muted-foreground">
-                {k.positions} posiciones · comisión {k.commission_percent}%
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Código:</span>
-                <CodeChip value={k.access_code} />
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[12px] bg-secondary px-4 py-3 text-sm">
+                <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
+                <span className="text-muted-foreground">{k.contact_phone ?? "—"}</span>
               </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => remove.mutate(k.id)}
-              >
-                Eliminar
-              </Button>
-            </div>
-          </div>
-        ))}
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-accent px-4 py-3">
+                <span className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" />
+                  <CodeChip value={k.access_code} />
+                </span>
+                <span className="text-xs text-muted-foreground">Código de acceso</span>
+              </div>
+
+              <div className="mt-3 rounded-[12px] bg-secondary px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-semibold tracking-wide text-muted-foreground">
+                    HORARIO
+                  </span>
+                  {k.is_24h && <Pill tone="success">24 HS</Pill>}
+                </div>
+                {k.is_24h ? (
+                  <p className="mt-2 text-sm font-medium text-success">
+                    {describeSchedule(true, null)}, todos los días
+                  </p>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {WEEKDAYS.map((d) => {
+                      const slot = schedule?.[d.key];
+                      return (
+                        <div
+                          key={d.key}
+                          className={cn(
+                            "flex w-14 flex-col items-center rounded-[10px] border px-1 py-1.5",
+                            slot
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-destructive/30 bg-destructive/10 text-destructive",
+                          )}
+                        >
+                          <span className="text-xs font-semibold">{DAY_LETTERS[d.key]}</span>
+                          <span className="text-[10px]">{slot ? slot.open : "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {Array.from({ length: k.positions }, (_, i) => i + 1).map((n) => (
+                  <span
+                    key={n}
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-[8px] border text-xs",
+                      taken.includes(n)
+                        ? "border-primary bg-primary font-semibold text-primary-foreground"
+                        : "border-border bg-card text-muted-foreground",
+                    )}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </article>
+          );
+        })}
       </div>
+
     </div>
   );
 }
