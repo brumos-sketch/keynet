@@ -9,16 +9,17 @@
 ## Cambio propuesto
 El panel pasa a ser una pantalla pública en `/point`: el encargado escribe el código de acceso del punto y entra directo, sin email ni contraseña.
 
-### 1. Pantalla de acceso
-- Al abrir `/point` sin sesión de punto, se muestra una tarjeta con el logo, el título "Panel del punto" y un teclado numérico para el código de acceso.
-- Código correcto → entra al panel ya conocido (mismo diseño, mismo teclado 3x3).
+### 1. Pantalla de acceso (estilo keynet24)
+- Al abrir `/point` sin sesión de punto, se muestra sólo el teclado numérico para el código de acceso, con el logo arriba.
+- Código correcto → pasa directo al teclado de validación de códigos.
 - Código incorrecto → mensaje de error con la misma animación de sacudida que ya existe.
-- La sesión del punto queda guardada en el navegador, así el kiosco no tiene que reingresar el código cada vez.
-- Botón "Salir" en el header que borra esa sesión y vuelve a la pantalla de acceso.
+- La sesión del punto queda guardada en el navegador: una vez ingresado el código, el punto queda logueado y no hay botón de salir.
 
 ### 2. Panel
-- Sin cambios visuales: se reutiliza tal cual el teclado, la barra de ocupación, la grilla de casilleros y las pantallas de resultado.
-- Los datos del punto (nombre, dirección, horario, casilleros, intercambios) se obtienen a partir del código de acceso en lugar del usuario logueado.
+- Pantalla enfocada en el teclado numérico y el resultado de cada validación (depositar / entregar / recibir, con el número de casillero).
+- No se muestra la ocupación del punto, la barra de progreso ni la grilla de casilleros.
+- Los datos del punto (nombre, horario, casilleros) se obtienen a partir del código de acceso en lugar del usuario logueado.
+
 
 ### 3. Administración del código
 - En Admin → Puntos, el código de acceso se muestra en la ficha del punto, con opción de copiarlo y de generar uno nuevo.
