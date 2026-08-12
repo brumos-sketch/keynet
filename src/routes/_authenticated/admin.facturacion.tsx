@@ -9,6 +9,7 @@ import { Pill } from "@/components/pasallave/ui-bits";
 import { Input } from "@/components/ui/input";
 import { PLAN_LABELS, formatMoney, type SubscriptionType } from "@/lib/pasallave";
 import { generateBillingPeriod } from "@/lib/pasallave.functions";
+import { PlanPriceEditor } from "@/components/pasallave/plan-price-editor";
 
 const currentPeriod = () => new Date().toISOString().slice(0, 7);
 
@@ -126,6 +127,8 @@ function AdminBilling() {
           <p className="mt-2 text-2xl font-bold text-navy">{formatMoney(pendingPoints)}</p>
         </div>
       </div>
+
+      <PlanPriceEditor />
 
       <section className="space-y-3">
         <h2 className="text-sm font-bold text-navy">Cobros a anfitriones</h2>

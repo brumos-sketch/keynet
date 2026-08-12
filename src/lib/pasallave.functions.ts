@@ -297,7 +297,12 @@ export const renewExchange = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const extraDays = data.extraDays;
-    const extraAmount = extraDays * 1500; // EXTRA_DAY_PRICE
+    const { data: extraRow } = await supabase
+      .from("plan_prices")
+      .select("amount")
+      .eq("plan", "extra_day")
+      .maybeSingle();
+    const extraAmount = extraDays * (extraRow?.amount ?? 1500);
 
     if (billing) {
       await supabase
@@ -839,7 +844,13 @@ export const joinWaitlist = createServerFn({ method: "POST" })
 
 // ---------- billing generation (admin) ----------
 
-const PLAN_AMOUNT: Record<string, number> = { one_use: 7500, monthly: 30000, pro: 0 };
+async function loadPlanAmounts(): Promise<Record<string, number>> {
+  const supabaseAdmin = await loadAdminClient();
+  const { data } = await supabaseAdmin.from("plan_prices").select("plan, amount");
+  const map: Record<string, number> = { one_use: 7500, monthly: 30000, pro: 0 };
+  for (const row of data ?? []) map[row.plan] = row.amount ?? 0;
+  return map;
+}
 
 export const generateBillingPeriod = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -849,6 +860,7 @@ export const generateBillingPeriod = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden");
     const supabaseAdmin = await loadAdminClient();
+    const PLAN_AMOUNT = await loadPlanAmounts();
     const period = data.period;
     const from = `${period}-01T00:00:00.000Z`;
     const toDate = new Date(`${period}-01T00:00:00.000Z`);
