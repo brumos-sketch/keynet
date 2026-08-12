@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureUserBootstrap } from "@/lib/account.functions";
 import type { AppRole } from "@/lib/pasallave";
+
 
 export type AuthState = {
   loading: boolean;
