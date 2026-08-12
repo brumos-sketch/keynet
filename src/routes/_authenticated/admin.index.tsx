@@ -225,7 +225,7 @@ function AdminDashboard() {
             {active.slice(0, 8).map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
                 <CodeChip value={e.booking_ref} />
-                <span className="text-sm text-muted-foreground">Pos. {e.locker_position}</span>
+                <span className="text-sm text-muted-foreground">{e.locker_position > 0 ? `Pos. ${e.locker_position}` : "Sin posición"}</span>
                 <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>
                   {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
                 </Pill>
