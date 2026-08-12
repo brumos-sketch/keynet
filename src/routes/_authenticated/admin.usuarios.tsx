@@ -335,10 +335,44 @@ function AdminUsers() {
             <DialogTitle>Editar usuario</DialogTitle>
           </DialogHeader>
           {editing && (
-            <div className="space-y-4">
-              <div className="text-sm text-gray-500">
-                <div className="font-medium text-foreground">{editing.name ?? "—"}</div>
-                {editing.email}
+            <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="e-name">Nombre</Label>
+                <Input
+                  id="e-name"
+                  value={editing.name}
+                  maxLength={80}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-email">Email</Label>
+                <Input
+                  id="e-email"
+                  type="email"
+                  value={editing.email}
+                  maxLength={255}
+                  onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-phone">Teléfono</Label>
+                <Input
+                  id="e-phone"
+                  value={editing.phone}
+                  maxLength={40}
+                  onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-pass">Nueva contraseña</Label>
+                <Input
+                  id="e-pass"
+                  value={editing.password}
+                  maxLength={72}
+                  placeholder="Dejar vacío para no cambiarla"
+                  onChange={(e) => setEditing({ ...editing, password: e.target.value })}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Rol</Label>
@@ -348,6 +382,7 @@ function AdminUsers() {
                     setEditing({ ...editing, role: value as AppRole })
                   }
                 >
+
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
