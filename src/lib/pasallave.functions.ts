@@ -578,15 +578,21 @@ export const validateCode = createServerFn({ method: "POST" })
         await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", ex.id);
         return { action: "deposited", position: ex.locker_position, bookingRef: ex.booking_ref };
       }
+      // For monthly/pro the same code can return and then pick up; try return first when picked_up.
+      if (codesMatch(returnCodeMatch, clean)) {
+        if (ex.status === "picked_up") {
+          await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", ex.id);
+          return { action: "completed", position: ex.locker_position, bookingRef: ex.booking_ref };
+        }
+        if (ex.status !== "deposited") throw new Error("No hay llave retirada para devolver");
+      }
       if (codesMatch(ex.pickup_code, clean)) {
         if (ex.status !== "deposited") throw new Error("No hay llave depositada para retirar");
         await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", ex.id);
         return { action: "picked_up", position: ex.locker_position, bookingRef: ex.booking_ref };
       }
       if (codesMatch(returnCodeMatch, clean)) {
-        if (ex.status !== "picked_up") throw new Error("No hay llave retirada para devolver");
-        await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", ex.id);
-        return { action: "completed", position: ex.locker_position, bookingRef: ex.booking_ref };
+        throw new Error("No hay llave retirada para devolver");
       }
     }
 
