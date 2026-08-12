@@ -1,0 +1,121 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+const createUserSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(6).max(72),
+  name: z.string().trim().min(1).max(80),
+  role: z.enum(["pending", "admin", "associate", "host", "kiosk"]),
+  kioskId: z.string().uuid().nullable().optional(),
+  phone: z.string().trim().max(40).optional().nullable(),
+});
+
+export const adminCreateUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => createUserSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("is_admin");
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { name: data.name },
+    });
+    if (error || !created.user) throw new Error(error?.message ?? "No se pudo crear el usuario");
+
+    const userId = created.user.id;
+
+    // The signup trigger created a host row + host role by default. Adjust it.
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    if (data.role !== "host") {
+      await supabaseAdmin.from("hosts").delete().eq("user_id", userId);
+    }
+    await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: data.role });
+
+    if (data.role === "associate") {
+      await supabaseAdmin.from("associates").insert({
+        user_id: userId,
+        name: data.name,
+        email: data.email,
+        phone: data.phone ?? null,
+      });
+    }
+    if (data.role === "kiosk" && data.kioskId) {
+      await supabaseAdmin.from("profiles").update({ kiosk_id: data.kioskId }).eq("id", userId);
+    }
+    if (data.role === "host") {
+      await supabaseAdmin
+        .from("hosts")
+        .update({ name: data.name, phone: data.phone ?? null })
+        .eq("user_id", userId);
+    }
+
+    return { id: userId };
+  });
+
+const setRoleSchema = z.object({
+  userId: z.string().uuid(),
+  role: z.enum(["pending", "admin", "associate", "host", "kiosk"]),
+  kioskId: z.string().uuid().nullable().optional(),
+});
+
+export const adminSetUserRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => setRoleSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("is_admin");
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("name, email")
+      .eq("id", data.userId)
+      .maybeSingle();
+
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("user_roles").insert({ user_id: data.userId, role: data.role });
+
+    if (data.role === "host") {
+      const { data: existing } = await supabaseAdmin
+        .from("hosts")
+        .select("id")
+        .eq("user_id", data.userId)
+        .maybeSingle();
+      if (!existing) {
+        await supabaseAdmin.from("hosts").insert({
+          user_id: data.userId,
+          name: profile?.name ?? profile?.email ?? "Anfitrión",
+          email: profile?.email ?? "",
+        });
+      }
+    }
+
+    if (data.role === "associate") {
+      const { data: existing } = await supabaseAdmin
+        .from("associates")
+        .select("id")
+        .eq("user_id", data.userId)
+        .maybeSingle();
+      if (!existing) {
+        await supabaseAdmin.from("associates").insert({
+          user_id: data.userId,
+          name: profile?.name ?? profile?.email ?? "Asociado",
+          email: profile?.email ?? null,
+        });
+      }
+    }
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({ kiosk_id: data.role === "kiosk" ? (data.kioskId ?? null) : null })
+      .eq("id", data.userId);
+
+    return { ok: true };
+  });
