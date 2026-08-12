@@ -18,6 +18,11 @@ import {
 } from "@/components/ui/dialog";
 import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
+import { geocodeAddress } from "@/lib/geo.functions";
+import { distanceKm, formatDistance, type GeoPoint } from "@/lib/geo";
+import type { MapPointItem } from "@/components/pasallave/points-map";
+
+const PointsMap = lazy(() => import("@/components/pasallave/points-map"));
 
 const categoryLabel = (value: string) =>
   KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
