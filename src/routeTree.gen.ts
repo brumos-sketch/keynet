@@ -16,6 +16,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
+import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
 import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
@@ -58,6 +59,11 @@ const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
   id: '/kiosk',
   path: '/kiosk',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const PaseRefRoute = PaseRefRouteImport.update({
+  id: '/pase/$ref',
+  path: '/pase/$ref',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/associate': typeof AuthenticatedAssociateRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/associate'
     | '/host'
     | '/kiosk'
+    | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
     | '/admin/intercambios'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/associate'
     | '/host'
     | '/kiosk'
+    | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
     | '/admin/intercambios'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/associate'
     | '/_authenticated/host'
     | '/_authenticated/kiosk'
+    | '/pase/$ref'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/intercambios'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PaseRefRoute: typeof PaseRefRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/kiosk'
       preLoaderRoute: typeof AuthenticatedKioskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/pase/$ref': {
+      id: '/pase/$ref'
+      path: '/pase/$ref'
+      fullPath: '/pase/$ref'
+      preLoaderRoute: typeof PaseRefRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  PaseRefRoute: PaseRefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

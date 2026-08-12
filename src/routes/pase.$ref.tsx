@@ -32,7 +32,7 @@ export const Route = createFileRoute("/pase/$ref")({
 const LANGS = ["es", "en", "pt"] as const;
 type Lang = (typeof LANGS)[number];
 
-const T: Record<Lang, Record<string, string>> = {
+const T = {
   es: {
     label: "Pase de abordar",
     stay: "Estadía",
@@ -93,7 +93,7 @@ const T: Record<Lang, Record<string, string>> = {
     pending: "O código de devolução é liberado após a retirada da chave.",
     status: "Status",
   },
-};
+} satisfies Record<Lang, Record<string, string>>;
 
 function Fallback({ message }: { message: string }) {
   return (
