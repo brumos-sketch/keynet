@@ -243,7 +243,7 @@ function AssociatePanel() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {(overview?.exchanges ?? []).map((e) => (
+                  {exchangeRows.map((e) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3">
                         <CodeChip value={e.booking_ref} />
