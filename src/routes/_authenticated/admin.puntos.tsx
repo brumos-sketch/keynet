@@ -312,13 +312,16 @@ function AdminKiosks() {
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label>Asociado</Label>
                   <Select
-                    value={form.associateId}
-                    onValueChange={(value) => setForm({ ...form, associateId: value })}
+                    value={form.associateId || "none"}
+                    onValueChange={(value) =>
+                      setForm({ ...form, associateId: value === "none" ? "" : value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sin asociado" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">Sin asociado</SelectItem>
                       {(data?.associates ?? []).map((a) => (
                         <SelectItem key={a.id} value={a.id}>
                           {a.name}
@@ -326,6 +329,12 @@ function AdminKiosks() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {(data?.associates ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      No hay asociados cargados todavía. Creá un usuario con rol Asociado en
+                      Usuarios.
+                    </p>
+                  )}
                 </div>
               </div>
 
