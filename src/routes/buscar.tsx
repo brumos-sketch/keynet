@@ -173,11 +173,21 @@ function SearchPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por barrio, dirección o nombre"
+            placeholder="Escribí una dirección, barrio o el nombre del punto"
             className="h-12 rounded-2xl border-gray-200 pl-11"
             aria-label="Buscar puntos"
           />
         </div>
+        <p className="-mt-3 text-xs text-gray-500">
+          {geoState === "loading"
+            ? "Buscando la dirección…"
+            : origin
+              ? `Ordenado por cercanía a ${origin.label}`
+              : geoState === "none"
+                ? "No encontramos esa dirección; mostramos coincidencias por nombre."
+                : "Escribí una dirección para ordenar los puntos por cercanía."}
+        </p>
+
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="space-y-3">
