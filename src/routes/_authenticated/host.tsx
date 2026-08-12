@@ -398,7 +398,17 @@ function HostPanel() {
                   {(data?.exchanges ?? []).map((e) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3">
-                        <CodeChip value={e.booking_ref} />
+                        <div className="flex items-center gap-2">
+                          <CodeChip value={e.booking_ref} />
+                          <Link
+                            to="/pase/$ref"
+                            params={{ ref: e.booking_ref }}
+                            target="_blank"
+                            className="text-xs text-primary underline"
+                          >
+                            Pase
+                          </Link>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
                       <td className="px-4 py-3 text-muted-foreground">
