@@ -156,10 +156,6 @@ function BoardingPassPage() {
                 {pass.property_name ?? pass.key_name ?? "—"}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.locker}</p>
-              <p className="text-3xl font-semibold text-primary">{pass.locker_position}</p>
-            </div>
           </div>
 
           <div className="grid gap-4 p-5 sm:grid-cols-2">
