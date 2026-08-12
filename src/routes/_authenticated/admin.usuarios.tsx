@@ -242,7 +242,7 @@ function AdminUsers() {
                 </td>
               </tr>
             )}
-            {(data?.users ?? []).map((u) => (
+            {rows.map((u) => (
               <tr key={u.id}>
                 <td className="px-4 py-3 text-foreground">{u.name ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
