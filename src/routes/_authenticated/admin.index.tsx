@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { KeyRound, Store, UserRound, ArrowLeftRight, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { StatCard } from "@/components/pasallave/stat-card";
 
@@ -21,6 +22,16 @@ import {
   STATUS_TONE,
   type ExchangeStatus,
 } from "@/lib/pasallave";
+
+function occupancyTone(percent: number) {
+  if (percent >= 90)
+    return { bar: "bg-destructive", text: "text-destructive", chip: "bg-destructive/10", label: "Crítico" };
+  if (percent >= 75)
+    return { bar: "bg-orange-500", text: "text-orange-600", chip: "bg-orange-500/10", label: "Casi lleno" };
+  if (percent >= 50)
+    return { bar: "bg-amber-400", text: "text-amber-600", chip: "bg-amber-400/15", label: "Moderado" };
+  return { bar: "bg-success", text: "text-success", chip: "bg-success/10", label: "Disponible" };
+}
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
