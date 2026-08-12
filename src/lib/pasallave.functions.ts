@@ -215,32 +215,16 @@ export const createExchange = createServerFn({ method: "POST" })
     const position = await reservePosition(supabase, key.kiosk_id!);
     const bookingRef = generateBookingRef();
 
-    let depositCode: string;
-    let pickupCode: string;
-    let returnCode: string | null = null;
-
-    if (key.subscription_type === "monthly") {
-      // Monthly uses the fixed deposit code and a bidirectional return code
-      depositCode = key.deposit_code!;
-      returnCode = generateExchangeCode();
-      pickupCode = returnCode;
-    } else if (key.subscription_type === "pro") {
-      // Pro uses an access code for both deposit and pickup
-      const { data: codes } = await supabase
-        .from("access_codes")
-        .select("code")
-        .eq("key_id", key.id)
-        .eq("status", "active")
-        .eq("scope", "both")
-        .limit(1);
-      if (!codes || codes.length === 0) throw new Error("No hay código de acceso Pro activo para esta llave");
-      depositCode = codes[0]!.code;
-      pickupCode = codes[0]!.code;
-    } else {
-      // one_use
+    // Fixed deposit code per key (all plans). Backfill if the key predates this rule.
+    let depositCode = key.deposit_code;
+    if (!depositCode) {
       depositCode = generateExchangeCode();
-      pickupCode = generateExchangeCode();
+      await supabase.from("keys").update({ deposit_code: depositCode }).eq("id", key.id);
     }
+
+    // Single bidirectional code: the guest uses it to pick up AND to return.
+    const bidiCode = generateExchangeCode();
+
 
     const { data: exchange, error } = await supabase
       .from("key_exchanges")
