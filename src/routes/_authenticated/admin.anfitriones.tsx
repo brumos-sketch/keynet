@@ -75,6 +75,8 @@ function AdminHosts() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const rows = (data?.hosts ?? []).filter((h) => matchesQuery([h.name, h.email, h.phone], query));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -82,6 +84,7 @@ function AdminHosts() {
           <h1 className="text-2xl font-semibold text-foreground">Anfitriones</h1>
           <p className="text-sm text-muted-foreground">Clientes que publican propiedades.</p>
         </div>
+        <SearchField value={query} onChange={setQuery} placeholder="Buscar anfitrión…" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-[10px]">Nuevo anfitrión</Button>
