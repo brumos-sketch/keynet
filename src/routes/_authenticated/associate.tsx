@@ -43,6 +43,7 @@ function AssociatePanel() {
   const { name, signOut } = useAuth();
   const overviewFn = useServerFn(associateOverview);
   const [period, setPeriod] = useState("all");
+  const [query, setQuery] = useState("");
 
   const { data: overview, isLoading } = useQuery({
     queryKey: ["associate", "overview"],
