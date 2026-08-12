@@ -283,7 +283,7 @@ function HostPanel() {
                   ? deadlineFor(st.exchange.created_at)
                   : null;
               return (
-              <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
+              <div key={k.id} className="glass-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-foreground">{k.name}</h2>
@@ -423,7 +423,7 @@ function HostPanel() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Intercambios</h2>
-            <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+            <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[640px] text-sm">
                 <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
                   <tr>

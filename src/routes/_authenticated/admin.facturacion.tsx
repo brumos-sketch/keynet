@@ -113,13 +113,13 @@ function AdminBilling() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-4">
+        <div className="glass-card p-4">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">
             Por cobrar a anfitriones
           </p>
           <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(pendingHosts)}</p>
         </div>
-        <div className="rounded-[16px] border border-border bg-card p-4">
+        <div className="glass-card p-4">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">
             Por pagar a puntos
           </p>
@@ -129,7 +129,7 @@ function AdminBilling() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Cobros a anfitriones</h2>
-        <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+        <div className="overflow-x-auto glass-card">
           <table className="w-full min-w-[780px] text-sm">
             <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
               <tr>
@@ -190,7 +190,7 @@ function AdminBilling() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Comisiones a puntos</h2>
-        <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+        <div className="overflow-x-auto glass-card">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
               <tr>

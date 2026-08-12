@@ -14,6 +14,8 @@ import {
 import { KeyRound, Store, UserRound, ArrowLeftRight, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { StatCard } from "@/components/pasallave/stat-card";
+
 import {
   STATUS_LABELS,
   STATUS_TONE,
@@ -39,28 +41,8 @@ type Exchange = {
   kiosk_id: string | null;
 };
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-[16px] border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        <span className="text-xs font-medium tracking-wide uppercase">{label}</span>
-      </div>
-      <p className="mt-3 text-2xl font-semibold text-foreground">{value}</p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-    </div>
-  );
-}
+
+
 
 function AdminDashboard() {
   const { data, isLoading } = useQuery({
@@ -131,16 +113,17 @@ function AdminDashboard() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={Store} label="Puntos" value={data.kiosks.length} />
-        <StatCard icon={UserRound} label="Anfitriones" value={data.hosts.length} />
-        <StatCard icon={KeyRound} label="Llaves" value={data.keys.length} />
-        <StatCard icon={ArrowLeftRight} label="Intercambios" value={data.exchanges.length} />
-        <StatCard icon={Clock} label="Activos" value={active.length} />
-        <StatCard icon={CheckCircle2} label="Completados" value={completed.length} />
+        <StatCard icon={Store} label="Puntos" value={data.kiosks.length} index={0} />
+        <StatCard icon={UserRound} label="Anfitriones" value={data.hosts.length} accent="info" index={1} />
+        <StatCard icon={KeyRound} label="Llaves" value={data.keys.length} index={2} />
+        <StatCard icon={ArrowLeftRight} label="Intercambios" value={data.exchanges.length} accent="info" index={3} />
+        <StatCard icon={Clock} label="Activos" value={active.length} accent="warning" index={4} />
+        <StatCard icon={CheckCircle2} label="Completados" value={completed.length} accent="success" index={5} />
       </div>
 
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Intercambios últimos 7 días</h2>
           <div className="mt-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -154,7 +137,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Estados de intercambio</h2>
           <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row">
             <div className="h-48 w-full sm:w-1/2">
@@ -188,7 +171,7 @@ function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Ocupación por punto</h2>
           <ul className="mt-4 space-y-4">
             {data.kiosks.map((k) => {
@@ -219,7 +202,7 @@ function AdminDashboard() {
           </ul>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Intercambios activos</h2>
           <ul className="mt-4 divide-y divide-border">
             {active.slice(0, 8).map((e) => (
