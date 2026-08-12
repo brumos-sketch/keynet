@@ -24,13 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import {
   KIOSK_CATEGORIES,
   TIME_SLOTS,
   WEEKDAYS,
   describeSchedule,
   generateKioskCode,
+  matchesQuery,
   type KioskSchedule,
 } from "@/lib/pasallave";
 
