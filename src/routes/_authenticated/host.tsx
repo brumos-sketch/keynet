@@ -217,27 +217,50 @@ function HostPanel() {
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Mis llaves</h1>
-            <p className="text-sm text-muted-foreground">
-              Llaves activas y sus puntos de intercambio.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground">Mis llaves</h1>
+              <p className="text-sm text-muted-foreground">
+                Llaves activas y sus puntos de intercambio.
+              </p>
+            </div>
+            <NewKeyWizard hostId={hostId ?? null} />
           </div>
 
           {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(data?.keys ?? []).map((k) => (
+            {(data?.keys ?? []).map((k) => {
+              const st = keyStatus(k.id);
+              const oneUseActive =
+                k.subscription_type === "one_use" &&
+                st.exchange &&
+                ["created", "waiting_deposit", "deposited"].includes(st.exchange.status)
+                  ? deadlineFor(st.exchange.created_at)
+                  : null;
+              return (
               <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-foreground">{k.name}</h2>
                     <p className="text-sm text-muted-foreground">{k.property_name ?? "—"}</p>
                   </div>
-                  <Pill tone="info">
-                    {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
-                  </Pill>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <Pill tone="info">
+                      {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
+                    </Pill>
+                    <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
+                    {k.locked && <Pill tone="danger">Bloqueada</Pill>}
+                  </div>
                 </div>
+                {oneUseActive && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {oneUseActive.getTime() > now.getTime()
+                      ? `Vence en ${formatCountdown(oneUseActive.getTime() - now.getTime())} (guardado ${ONE_USE_STORAGE_HOURS} h)`
+                      : "Guardado vencido: renová para recuperar la llave"}
+                  </p>
+                )}
+
                 <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                   <p>Punto: {kioskName(k.kiosk_id)}</p>
                   {k.deposit_code && (
