@@ -100,12 +100,41 @@ function AdminExchanges() {
           ? "completed"
           : null;
 
+  const rows = ((data?.exchanges ?? []) as ExchangeRow[]).filter(
+    (e) => statusFilter === "all" || e.status === statusFilter,
+  );
+
+  const timeline = (e: ExchangeRow) => [
+    { label: "Creado", at: e.created_at },
+    { label: "Depositada", at: e.deposited_at },
+    { label: "Retirada", at: e.picked_up_at },
+    { label: "Devuelta", at: e.returned_at },
+  ];
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
-        <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
+          <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
+        </div>
+        <div className="w-[200px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
 
       <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
         <table className="w-full min-w-[900px] text-sm">
