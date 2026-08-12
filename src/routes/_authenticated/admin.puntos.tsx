@@ -73,7 +73,7 @@ const blankForm = {
   schedule: emptySchedule as KioskSchedule,
 };
 
-const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
+const ACTIVE_STATUSES = ["deposited", "completed"];
 
 function AdminKiosks() {
   const qc = useQueryClient();
