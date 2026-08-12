@@ -30,7 +30,13 @@ export const adminCreateUser = createServerFn({ method: "POST" })
 
     const userId = created.user.id;
 
+    // Ensure the profile row exists even if the signup trigger did not create it.
+    await supabaseAdmin
+      .from("profiles")
+      .upsert({ id: userId, email: data.email, name: data.name }, { onConflict: "id" });
+
     // The signup trigger created a host row + host role by default. Adjust it.
+
     await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
     if (data.role !== "host") {
       await supabaseAdmin.from("hosts").delete().eq("user_id", userId);
