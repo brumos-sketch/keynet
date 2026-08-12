@@ -39,25 +39,29 @@ export const Route = createFileRoute("/_authenticated/admin/usuarios")({
 
 const ROLES: AppRole[] = ["pending", "admin", "associate", "host", "kiosk"];
 
-const ROLE_TONE: Record<AppRole, "neutral" | "info" | "success" | "warning" | "primary"> = {
-  pending: "warning",
-  admin: "primary",
-  associate: "info",
-  host: "success",
-  kiosk: "neutral",
+const ROLE_BADGE: Record<AppRole, string> = {
+  pending: "bg-amber-100 text-amber-800 border-amber-300",
+  admin: "bg-violet-100 text-violet-800 border-violet-300",
+  associate: "bg-sky-100 text-sky-800 border-sky-300",
+  host: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  kiosk: "bg-orange-100 text-orange-800 border-orange-300",
+};
+
+type EditingUser = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: AppRole;
+  kioskId: string | null;
 };
 
 function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState<{
-    id: string;
-    name: string | null;
-    email: string | null;
-    role: AppRole;
-    kioskId: string | null;
-  } | null>(null);
+  const [editing, setEditing] = useState<EditingUser | null>(null);
 
   const [form, setForm] = useState({
     email: "",
@@ -71,19 +75,25 @@ function AdminUsers() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      const [profiles, roles, kiosks] = await Promise.all([
+      const [profiles, roles, kiosks, hosts, associates] = await Promise.all([
         supabase
           .from("profiles")
           .select("id, name, email, kiosk_id, created_at")
           .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("kiosks").select("id, name"),
+        supabase.from("hosts").select("user_id, phone"),
+        supabase.from("associates").select("user_id, phone"),
       ]);
       const roleMap = new Map((roles.data ?? []).map((r) => [r.user_id, r.role as AppRole]));
+      const phoneMap = new Map<string, string | null>();
+      for (const h of hosts.data ?? []) if (h.user_id) phoneMap.set(h.user_id, h.phone);
+      for (const a of associates.data ?? []) if (a.user_id) phoneMap.set(a.user_id, a.phone);
       return {
         kiosks: kiosks.data ?? [],
         users: (profiles.data ?? []).map((p) => ({
           ...p,
+          phone: phoneMap.get(p.id) ?? null,
           role: (roleMap.get(p.id) ?? "pending") as AppRole,
         })),
       };
@@ -111,11 +121,21 @@ function AdminUsers() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const setRole = useMutation({
-    mutationFn: async (vars: { userId: string; role: AppRole; kioskId?: string | null }) =>
-      adminSetUserRole({ data: vars }),
+  const updateUser = useMutation({
+    mutationFn: async (vars: EditingUser) =>
+      adminUpdateUser({
+        data: {
+          userId: vars.id,
+          name: vars.name,
+          email: vars.email,
+          phone: vars.phone || null,
+          password: vars.password ? vars.password : null,
+          role: vars.role,
+          kioskId: vars.role === "kiosk" ? vars.kioskId : null,
+        },
+      }),
     onSuccess: () => {
-      toast.success("Rol actualizado");
+      toast.success("Usuario actualizado");
       setEditing(null);
       void qc.invalidateQueries({ queryKey: ["admin", "users"] });
     },
@@ -131,6 +151,7 @@ function AdminUsers() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
 
 
   const rows = (data?.users ?? []).filter((u) =>
