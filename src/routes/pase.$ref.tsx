@@ -18,7 +18,7 @@ export const Route = createFileRoute("/pase/$ref")({
       { property: "og:title", content: "Tu pase de abordar PASALLAVE" },
       {
         property: "og:description",
-        content: "Dirección del punto, horarios, posición del casillero y códigos de acceso.",
+        content: "Dirección del punto, horarios y códigos de acceso.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
