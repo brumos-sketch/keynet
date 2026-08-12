@@ -261,13 +261,20 @@ function HostPanel() {
                 Llaves activas y sus puntos de intercambio.
               </p>
             </div>
-            <NewKeyWizard hostId={hostId ?? null} />
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar por llave, reserva o código…"
+              />
+              <NewKeyWizard hostId={hostId ?? null} />
+            </div>
           </div>
 
           {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(data?.keys ?? []).map((k) => {
+            {keyRows.map((k) => {
               const st = keyStatus(k.id);
               const oneUseActive =
                 k.subscription_type === "one_use" &&
