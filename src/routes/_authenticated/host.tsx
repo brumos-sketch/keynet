@@ -66,6 +66,7 @@ function HostPanel() {
   const expireFn = useServerFn(expireOneUseExchanges);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [exchangeForm, setExchangeForm] = useState({
     checkIn: "",
     checkOut: "",
