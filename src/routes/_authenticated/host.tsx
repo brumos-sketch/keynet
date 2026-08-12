@@ -352,6 +352,47 @@ function HostPanel() {
                     </div>
                   )}
                 </div>
+
+                {st.exchange && (
+                  <div className="mt-4 rounded-xl border border-gray-100 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-500">Estadía</span>
+                      <CodeChip value={st.exchange.booking_ref} />
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-gray-500">
+                      <span>Código de retiro/devolución:</span>
+                      <CodeChip value={st.exchange.pickup_code ?? "—"} />
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {st.exchange.check_in || st.exchange.check_out
+                        ? `${st.exchange.check_in ? formatDate(st.exchange.check_in) : "—"} → ${st.exchange.check_out ? formatDate(st.exchange.check_out) : "—"}${st.exchange.pickup_time ? ` · retiro ${st.exchange.pickup_time}` : ""}`
+                        : "Faltan fechas: completá check-in, check-out y horario."}
+                    </p>
+                    {["created", "waiting_deposit", "deposited"].includes(st.exchange.status) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 rounded-xl"
+                        onClick={() => {
+                          setEditForm({
+                            checkIn: st.exchange?.check_in ?? "",
+                            checkOut: st.exchange?.check_out ?? "",
+                            pickupTime: st.exchange?.pickup_time ?? "",
+                            guestName: "",
+                          });
+                          setEditEx({
+                            id: st.exchange!.id,
+                            keyName: k.name,
+                            bookingRef: st.exchange!.booking_ref,
+                          });
+                        }}
+                      >
+                        Editar estadía
+                      </Button>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-4 flex justify-end">
                   <Dialog
                     open={openKey === k.id}
