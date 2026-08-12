@@ -2,8 +2,9 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser, adminSetUserRole } from "@/lib/admin.functions";
+import { adminCreateUser, adminSetUserRole, adminDeleteUser } from "@/lib/admin.functions";
 import { Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { ROLE_LABELS, matchesQuery, type AppRole } from "@/lib/pasallave";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/_authenticated/admin/usuarios")({
   head: () => ({
@@ -49,6 +51,14 @@ function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<{
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: AppRole;
+    kioskId: string | null;
+  } | null>(null);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -106,10 +116,22 @@ function AdminUsers() {
       adminSetUserRole({ data: vars }),
     onSuccess: () => {
       toast.success("Rol actualizado");
+      setEditing(null);
       void qc.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => adminDeleteUser({ data: { userId } }),
+    onSuccess: () => {
+      toast.success("Usuario eliminado");
+      setEditing(null);
+      void qc.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
   const rows = (data?.users ?? []).filter((u) =>
     matchesQuery([u.name, u.email, ROLE_LABELS[u.role as AppRole]], query),
@@ -231,7 +253,7 @@ function AdminUsers() {
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Alta</th>
               <th className="px-4 py-3 font-medium">Rol</th>
-              <th className="px-4 py-3 font-medium">Cambiar rol</th>
+              <th className="px-4 py-3 text-right font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -252,28 +274,23 @@ function AdminUsers() {
                 <td className="px-4 py-3">
                   <Pill tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
                 </td>
-                <td className="px-4 py-3">
-                  <Select
-                    value={u.role}
-                    onValueChange={(value) =>
-                      setRole.mutate({
-                        userId: u.id,
-                        role: value as AppRole,
+                <td className="px-4 py-3 text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Editar ${u.name ?? u.email ?? "usuario"}`}
+                    onClick={() =>
+                      setEditing({
+                        id: u.id,
+                        name: u.name,
+                        email: u.email,
+                        role: u.role,
                         kioskId: u.kiosk_id,
                       })
                     }
                   >
-                    <SelectTrigger className="h-9 w-[170px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {ROLE_LABELS[r]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Pencil className="size-4" />
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -287,6 +304,92 @@ function AdminUsers() {
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="rounded-[16px]">
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                <div className="font-medium text-foreground">{editing.name ?? "—"}</div>
+                {editing.email}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Rol</Label>
+                <Select
+                  value={editing.role}
+                  onValueChange={(value) =>
+                    setEditing({ ...editing, role: value as AppRole })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {ROLE_LABELS[r]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {editing.role === "kiosk" && (
+                <div className="space-y-1.5">
+                  <Label>Punto asignado</Label>
+                  <Select
+                    value={editing.kioskId ?? ""}
+                    onValueChange={(value) => setEditing({ ...editing, kioskId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Elegí un punto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(data?.kiosks ?? []).map((k) => (
+                        <SelectItem key={k.id} value={k.id}>
+                          {k.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2 sm:justify-between">
+            <Button
+              variant="destructive"
+              className="rounded-[10px]"
+              disabled={deleteUser.isPending}
+              onClick={() => {
+                if (!editing) return;
+                if (window.confirm(`¿Eliminar a ${editing.email ?? "este usuario"}?`)) {
+                  deleteUser.mutate(editing.id);
+                }
+              }}
+            >
+              Eliminar usuario
+            </Button>
+            <Button
+              className="rounded-[10px]"
+              disabled={setRole.isPending}
+              onClick={() =>
+                editing &&
+                setRole.mutate({
+                  userId: editing.id,
+                  role: editing.role,
+                  kioskId: editing.role === "kiosk" ? editing.kioskId : null,
+                })
+              }
+            >
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
