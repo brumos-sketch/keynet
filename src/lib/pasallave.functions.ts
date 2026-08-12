@@ -359,7 +359,7 @@ export const createAccessCode = createServerFn({ method: "POST" })
       valid_to: data.validTo ?? null,
       time_from: data.timeFrom ?? null,
       time_to: data.timeTo ?? null,
-      reusable: true,
+      reusable: data.reusable,
       scope: data.scope,
       status: "active",
     });
