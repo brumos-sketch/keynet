@@ -2,6 +2,8 @@
 @source "../src";
 @import "tw-animate-css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * PASALLAVE — design system based on pasallave.com
  * Light mode only.
@@ -127,6 +129,56 @@
   --sidebar-accent-foreground: #1a237e;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #2979ff;
+}
+
+
+.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card: #111c32;
+  --card-foreground: #e2e8f0;
+  --popover: #111c32;
+  --popover-foreground: #e2e8f0;
+
+  --primary: #4f8dff;
+  --primary-foreground: #0b1220;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+
+  --muted: #16233c;
+  --muted-foreground: #94a3b8;
+
+  --accent: #17264a;
+  --accent-foreground: #cfe0ff;
+
+  --border: #223049;
+  --input: #223049;
+  --ring: #4f8dff;
+
+  --sidebar: #111c32;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-accent: #17264a;
+  --sidebar-accent-foreground: #cfe0ff;
+  --sidebar-border: #223049;
+}
+
+/* Map legacy hardcoded surfaces to theme tokens in dark mode */
+.dark .bg-white {
+  background-color: var(--card);
+}
+.dark .bg-gray-50 {
+  background-color: var(--muted);
+}
+.dark .border-gray-100 {
+  border-color: var(--border);
+}
+.dark .text-gray-500 {
+  color: var(--muted-foreground);
+}
+.dark .text-navy,
+.dark .hover\:text-navy:hover {
+  color: #cfe0ff;
 }
 
 @layer base {
