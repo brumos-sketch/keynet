@@ -463,7 +463,7 @@ function HostPanel() {
                   </Select>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Se agregarán ${extraDays * 1500} al próximo resumen de facturación.
+                  Se agregarán ${extraDays * EXTRA_DAY_PRICE} al próximo resumen de facturación.
                 </p>
               </div>
               <DialogFooter>
