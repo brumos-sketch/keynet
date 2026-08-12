@@ -6,7 +6,6 @@ import type { Database } from "@/integrations/supabase/types";
 import {
   generateBookingRef,
   generateExchangeCode,
-  generateKioskCode,
   pickFreePosition,
 } from "@/lib/pasallave";
 
@@ -49,10 +48,6 @@ function codesMatch(a: string | null, b: string) {
 async function isAdmin(context: { supabase: TypedSupabase; userId: string }) {
   const { data } = await context.supabase.rpc("is_admin");
   return !!data;
-}
-
-async function assertAdmin(context: { supabase: TypedSupabase; userId: string }) {
-  if (!(await isAdmin(context))) throw new Error("Forbidden");
 }
 
 async function loadAdminClient() {
