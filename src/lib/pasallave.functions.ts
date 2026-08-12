@@ -515,7 +515,7 @@ export const validateCode = createServerFn({ method: "POST" })
           .from("key_exchanges")
           .select("*")
           .eq("key_id", key.id)
-          .eq("deposit_code", clean)
+          .or(codeSearchConditions("deposit_code", clean))
           .in("status", ["created", "waiting_deposit", "deposited", "picked_up"])
           .order("created_at", { ascending: false })
           .maybeSingle();
