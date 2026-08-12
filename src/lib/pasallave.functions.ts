@@ -429,6 +429,12 @@ export const validateCode = createServerFn({ method: "POST" })
     if (accessCodes && accessCodes.length > 0) {
       const ac = accessCodes[0]!;
       const key = (ac as unknown as { keys: { id: string; kiosk_id: string; host_id: string; subscription_type: string } }).keys;
+      logKeyId = key.id;
+      logRole = ac.role ?? "guest";
+      logPerson = ac.person_name ?? null;
+      await supabase.from("access_codes").update({ uses_count: (ac.uses_count ?? 0) + 1 }).eq("id", ac.id);
+      if (!ac.reusable && (ac.uses_count ?? 0) >= 1) throw new Error("Este código ya fue usado");
+
 
       // validity check
       if (ac.has_validity) {
