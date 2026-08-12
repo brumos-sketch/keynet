@@ -150,3 +150,85 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
+
+@utility glass-card {
+  background-color: color-mix(in oklab, var(--color-card) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+@utility gradient-text {
+  background-image: var(--gradient-primary);
+  background-clip: text;
+  color: transparent;
+}
+
+@utility gradient-primary {
+  background-image: var(--gradient-primary);
+}
+
+@keyframes pl-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pl-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 12px color-mix(in oklab, var(--primary) 0%, transparent);
+  }
+}
+
+@keyframes pl-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@utility animate-fade-in {
+  animation: pl-fade-in 0.35s ease-out both;
+}
+
+@utility animate-glow-pulse {
+  animation: pl-glow-pulse 2s ease-in-out infinite;
+}
+
+@utility animate-shake {
+  animation: pl-shake 0.4s ease-in-out;
+}
