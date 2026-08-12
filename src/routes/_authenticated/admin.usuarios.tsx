@@ -293,7 +293,7 @@ function AdminUsers() {
                   {new Intl.DateTimeFormat("es-AR").format(new Date(u.created_at))}
                 </td>
                 <td className="px-4 py-3">
-                  <Pill tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
+                  <Pill className={ROLE_BADGE[u.role]}>{ROLE_LABELS[u.role]}</Pill>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Button
@@ -303,13 +303,16 @@ function AdminUsers() {
                     onClick={() =>
                       setEditing({
                         id: u.id,
-                        name: u.name,
-                        email: u.email,
+                        name: u.name ?? "",
+                        email: u.email ?? "",
+                        phone: u.phone ?? "",
+                        password: "",
                         role: u.role,
                         kioskId: u.kiosk_id,
                       })
                     }
                   >
+
                     <Pencil className="size-4" />
                   </Button>
                 </td>
