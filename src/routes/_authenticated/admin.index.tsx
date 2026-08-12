@@ -39,28 +39,8 @@ type Exchange = {
   kiosk_id: string | null;
 };
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-[16px] border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-4 w-4" />
-        <span className="text-xs font-medium tracking-wide uppercase">{label}</span>
-      </div>
-      <p className="mt-3 text-2xl font-semibold text-foreground">{value}</p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-    </div>
-  );
-}
+
+
 
 function AdminDashboard() {
   const { data, isLoading } = useQuery({
