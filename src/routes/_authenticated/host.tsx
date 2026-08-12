@@ -238,6 +238,28 @@ function HostPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      if (!editEx) throw new Error("Elegí una estadía");
+      return updateExchangeFn({
+        data: {
+          exchangeId: editEx.id,
+          checkIn: editForm.checkIn || null,
+          checkOut: editForm.checkOut || null,
+          pickupTime: editForm.pickupTime || null,
+          guestName: editForm.guestName || null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Estadía actualizada");
+      setEditEx(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
   const renewMutation = useMutation({
     mutationFn: async () => {
       if (!renewId) throw new Error("Elegí un intercambio");
