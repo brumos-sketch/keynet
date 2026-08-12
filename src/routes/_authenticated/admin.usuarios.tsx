@@ -116,10 +116,22 @@ function AdminUsers() {
       adminSetUserRole({ data: vars }),
     onSuccess: () => {
       toast.success("Rol actualizado");
+      setEditing(null);
       void qc.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => adminDeleteUser({ data: { userId } }),
+    onSuccess: () => {
+      toast.success("Usuario eliminado");
+      setEditing(null);
+      void qc.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
 
   const rows = (data?.users ?? []).filter((u) =>
     matchesQuery([u.name, u.email, ROLE_LABELS[u.role as AppRole]], query),
