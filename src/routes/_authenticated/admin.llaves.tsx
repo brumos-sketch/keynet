@@ -222,7 +222,7 @@ function AdminKeys() {
         </Dialog>
       </div>
 
-      <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+      <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[860px] text-sm">
           <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
             <tr>

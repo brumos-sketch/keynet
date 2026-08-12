@@ -123,7 +123,7 @@ function AdminDashboard() {
 
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Intercambios últimos 7 días</h2>
           <div className="mt-4 h-56">
             <ResponsiveContainer width="100%" height="100%">
@@ -137,7 +137,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Estados de intercambio</h2>
           <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row">
             <div className="h-48 w-full sm:w-1/2">
@@ -171,7 +171,7 @@ function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Ocupación por punto</h2>
           <ul className="mt-4 space-y-4">
             {data.kiosks.map((k) => {
@@ -202,7 +202,7 @@ function AdminDashboard() {
           </ul>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-5">
+        <div className="glass-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Intercambios activos</h2>
           <ul className="mt-4 divide-y divide-border">
             {active.slice(0, 8).map((e) => (

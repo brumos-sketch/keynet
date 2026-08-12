@@ -143,19 +143,19 @@ function AdminPro() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-[16px] border border-border bg-card p-4">
+        <div className="glass-card p-4">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">Acuerdos activos</p>
           <p className="mt-2 text-2xl font-semibold text-foreground">
             {(data?.agreements ?? []).filter((a) => a.status === "active").length}
           </p>
         </div>
-        <div className="rounded-[16px] border border-border bg-card p-4">
+        <div className="glass-card p-4">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">Ingreso mensual Pro</p>
           <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(monthlyTotal)}</p>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+      <div className="overflow-x-auto glass-card">
         <table className="w-full min-w-[760px] text-sm">
           <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
             <tr>

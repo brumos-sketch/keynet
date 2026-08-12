@@ -417,7 +417,7 @@ function AdminKiosks() {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
           return (
-            <article key={k.id} className="rounded-[16px] border border-border bg-card p-5">
+            <article key={k.id} className="glass-card p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold text-foreground">{k.name}</h2>

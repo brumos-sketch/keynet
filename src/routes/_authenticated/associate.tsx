@@ -127,17 +127,17 @@ function AssociatePanel() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-[16px] border border-border bg-card p-5">
+            <div className="glass-card p-5">
               <p className="text-xs text-muted-foreground uppercase">Pendiente</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">
                 {formatMoney(totalPending)}
               </p>
             </div>
-            <div className="rounded-[16px] border border-border bg-card p-5">
+            <div className="glass-card p-5">
               <p className="text-xs text-muted-foreground uppercase">Pagado</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(totalPaid)}</p>
             </div>
-            <div className="rounded-[16px] border border-border bg-card p-5">
+            <div className="glass-card p-5">
               <p className="text-xs text-muted-foreground uppercase">Puntos</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">{allKiosks.length}</p>
             </div>
@@ -150,7 +150,7 @@ function AssociatePanel() {
               {kiosks.map((k) => {
                 const pct = k.positions ? Math.min(100, (k.used / k.positions) * 100) : 0;
                 return (
-                  <div key={k.id} className="rounded-[16px] border border-border bg-card p-5">
+                  <div key={k.id} className="glass-card p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-semibold text-foreground">{k.name}</h3>
@@ -185,7 +185,7 @@ function AssociatePanel() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Comisiones</h2>
-            <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+            <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
                   <tr>
@@ -231,7 +231,7 @@ function AssociatePanel() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Últimos intercambios</h2>
-            <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+            <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
                   <tr>
