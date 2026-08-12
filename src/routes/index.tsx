@@ -5,6 +5,7 @@ import { FeatureStep } from "@/components/pasallave/feature-step";
 import { PlanCard } from "@/components/pasallave/plan-card";
 import { PhoneMockup } from "@/components/pasallave/phone-mockup";
 import { StickerMockup } from "@/components/pasallave/sticker-mockup";
+import { listPlanPrices, type PlanPriceRow } from "@/lib/pricing.functions";
 
 const JSON_LD = {
   "@context": "https://schema.org",
