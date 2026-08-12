@@ -128,6 +128,11 @@ function AdminKeys() {
           <h1 className="text-2xl font-semibold text-foreground">Llaves</h1>
           <p className="text-sm text-muted-foreground">Inventario global de llaves gestionadas.</p>
         </div>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por llave, propiedad o código…"
+        />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-[10px]">Nueva llave</Button>
