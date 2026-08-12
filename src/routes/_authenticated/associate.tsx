@@ -260,10 +260,10 @@ function AssociatePanel() {
                       <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
                     </tr>
                   ))}
-                  {(overview?.exchanges ?? []).length === 0 && (
+                  {exchangeRows.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-4 py-6 text-muted-foreground">
-                        Sin intercambios.
+                        {query ? `Sin resultados para "${query}".` : "Sin intercambios."}
                       </td>
                     </tr>
                   )}
