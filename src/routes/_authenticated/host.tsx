@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
-import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
