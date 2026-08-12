@@ -109,9 +109,21 @@ function AdminExchanges() {
           ? "completed"
           : null;
 
-  const rows = ((data?.exchanges ?? []) as ExchangeRow[]).filter(
-    (e) => statusFilter === "all" || e.status === statusFilter,
-  );
+  const rows = ((data?.exchanges ?? []) as ExchangeRow[])
+    .filter((e) => statusFilter === "all" || e.status === statusFilter)
+    .filter((e) =>
+      matchesQuery(
+        [
+          e.booking_ref,
+          e.deposit_code,
+          e.pickup_code,
+          e.return_code,
+          keyName(e.key_id),
+          kioskName(e.kiosk_id),
+        ],
+        query,
+      ),
+    );
 
   const timeline = (e: ExchangeRow) => [
     { label: "Creado", at: e.created_at },
