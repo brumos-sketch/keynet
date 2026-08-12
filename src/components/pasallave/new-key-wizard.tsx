@@ -26,6 +26,8 @@ import {
   type SubscriptionType,
 } from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
+import { geocodeAddress } from "@/lib/geo.functions";
+import { formatDistance, haversineKm } from "@/lib/geo";
 
 const STEPS = ["Llave", "Punto", "Plan", "Confirmar"] as const;
 
@@ -38,6 +40,7 @@ const PLAN_DETAILS: Record<SubscriptionType, string> = {
 export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
+  const geocodeFn = useServerFn(geocodeAddress);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -102,33 +105,29 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
       setGeoState("idle");
       return;
     }
-    const controller = new AbortController();
+    let cancelled = false;
     setGeoState("loading");
     const timer = setTimeout(() => {
-      fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
-        { signal: controller.signal, headers: { Accept: "application/json" } },
-      )
-        .then((r) => r.json())
-        .then((results: Array<{ lat: string; lon: string }>) => {
-          const first = results?.[0];
-          if (!first) {
+      void geocodeFn({ data: { address } })
+        .then((result) => {
+          if (cancelled) return;
+          if (!result) {
             setCoords(null);
             setGeoState("none");
             return;
           }
-          setCoords({ lat: Number(first.lat), lng: Number(first.lon) });
+          setCoords({ lat: result.lat, lng: result.lng });
           setGeoState("idle");
         })
         .catch(() => {
-          if (!controller.signal.aborted) setGeoState("none");
+          if (!cancelled) setGeoState("none");
         });
     }, 700);
     return () => {
-      controller.abort();
+      cancelled = true;
       clearTimeout(timer);
     };
-  }, [address]);
+  }, [address, geocodeFn]);
 
   const nearest = useMemo(() => {
     if (!coords) return null;
@@ -222,7 +221,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                       </p>
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-foreground">{nearest.kiosk.name}</span>
-                        <Pill tone="info">{formatKm(nearest.km)}</Pill>
+                        <Pill tone="info">{formatDistance(nearest.km)}</Pill>
                       </div>
                       <p className="text-sm text-gray-500">{nearest.kiosk.address ?? "—"}</p>
                       <p className="text-xs text-gray-500">
@@ -363,19 +362,6 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   );
 }
 
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (v: number) => (v * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function formatKm(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
-}
 
 function Row({ label, value }: { label: string; value: string }) {
   return (

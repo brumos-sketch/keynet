@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -18,6 +18,11 @@ import {
 } from "@/components/ui/dialog";
 import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
+import { geocodeAddress } from "@/lib/geo.functions";
+import { distanceKm, formatDistance, type GeoPoint } from "@/lib/geo";
+import type { MapPointItem } from "@/components/pasallave/points-map";
+
+const PointsMap = lazy(() => import("@/components/pasallave/points-map"));
 
 const categoryLabel = (value: string) =>
   KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
@@ -55,16 +60,77 @@ function SearchPage() {
   const [waitlist, setWaitlist] = useState({ address: "", email: "", name: "", phone: "" });
   const [open, setOpen] = useState(false);
 
+  const geocodeFn = useServerFn(geocodeAddress);
+  const [origin, setOrigin] = useState<(GeoPoint & { label: string }) | null>(null);
+  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
+
+  useEffect(() => {
+    const address = query.trim();
+    if (address.length < 5) {
+      setOrigin(null);
+      setGeoState("idle");
+      return;
+    }
+    let cancelled = false;
+    setGeoState("loading");
+    const timer = setTimeout(() => {
+      void geocodeFn({ data: { address } })
+        .then((result) => {
+          if (cancelled) return;
+          if (!result) {
+            setOrigin(null);
+            setGeoState("none");
+            return;
+          }
+          setOrigin(result);
+          setGeoState("idle");
+        })
+        .catch(() => {
+          if (!cancelled) setGeoState("none");
+        });
+    }, 700);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, geocodeFn]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return kiosks;
-    return kiosks.filter(
+    const withDistance = kiosks.map((k) => ({
+      ...k,
+      distance:
+        origin && k.lat != null && k.lng != null
+          ? distanceKm(origin, { lat: k.lat, lng: k.lng })
+          : null,
+    }));
+    if (origin) {
+      return withDistance
+        .slice()
+        .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+    }
+    if (!q) return withDistance;
+    return withDistance.filter(
       (k) =>
         k.name.toLowerCase().includes(q) || (k.address ?? "").toLowerCase().includes(q),
     );
-  }, [kiosks, query]);
+  }, [kiosks, query, origin]);
 
   const current = filtered.find((k) => k.id === selected) ?? filtered[0] ?? null;
+
+  const mapPoints: MapPointItem[] = useMemo(
+    () =>
+      filtered
+        .filter((k) => k.lat != null && k.lng != null)
+        .map((k) => ({
+          id: k.id,
+          name: k.name,
+          address: k.address,
+          lat: k.lat as number,
+          lng: k.lng as number,
+        })),
+    [filtered],
+  );
 
   const join = useMutation({
     mutationFn: async () =>
@@ -84,12 +150,6 @@ function SearchPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const mapSrc =
-    current?.lat && current?.lng
-      ? `https://www.openstreetmap.org/export/embed.html?bbox=${current.lng - 0.005}%2C${
-          current.lat - 0.0035
-        }%2C${current.lng + 0.005}%2C${current.lat + 0.0035}&layer=mapnik&marker=${current.lat}%2C${current.lng}`
-      : null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -113,11 +173,21 @@ function SearchPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por barrio, dirección o nombre"
+            placeholder="Escribí una dirección, barrio o el nombre del punto"
             className="h-12 rounded-2xl border-gray-200 pl-11"
             aria-label="Buscar puntos"
           />
         </div>
+        <p className="-mt-3 text-xs text-gray-500">
+          {geoState === "loading"
+            ? "Buscando la dirección…"
+            : origin
+              ? `Ordenado por cercanía a ${origin.label}`
+              : geoState === "none"
+                ? "No encontramos esa dirección; mostramos coincidencias por nombre."
+                : "Escribí una dirección para ordenar los puntos por cercanía."}
+        </p>
+
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="space-y-3">
@@ -126,7 +196,14 @@ function SearchPage() {
                 <p className="text-sm text-gray-500">
                   Todavía no tenemos un punto en esa zona.
                 </p>
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog
+                  open={open}
+                  onOpenChange={(next) => {
+                    setOpen(next);
+                    if (next && !waitlist.address)
+                      setWaitlist((w) => ({ ...w, address: query.trim() }));
+                  }}
+                >
                   <DialogTrigger asChild>
                     <Button className="mt-4 rounded-2xl">Avisame cuando abran uno</Button>
                   </DialogTrigger>
@@ -211,6 +288,11 @@ function SearchPage() {
                     <Pill tone="neutral">
                       {k.custom_category ?? categoryLabel(k.category)}
                     </Pill>
+                    {k.distance != null && (
+                      <span className="font-bold text-electric">
+                        {formatDistance(k.distance)}
+                      </span>
+                    )}
                     <span>
                       {k.free_positions} de {k.positions} posiciones libres
                     </span>
@@ -221,14 +303,22 @@ function SearchPage() {
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card lg:sticky lg:top-8 lg:self-start">
-            {mapSrc ? (
+            {mapPoints.length > 0 || origin ? (
               <>
-                <iframe
-                  title={current?.name ?? "Mapa"}
-                  src={mapSrc}
-                  className="h-[420px] w-full border-0"
-                  loading="lazy"
-                />
+                <ClientOnly
+                  fallback={<div className="h-[420px] w-full animate-pulse bg-gray-100" />}
+                >
+                  <Suspense
+                    fallback={<div className="h-[420px] w-full animate-pulse bg-gray-100" />}
+                  >
+                    <PointsMap
+                      points={mapPoints}
+                      origin={origin}
+                      selectedId={current?.id ?? null}
+                      onSelect={setSelected}
+                    />
+                  </Suspense>
+                </ClientOnly>
                 <div className="flex items-center justify-between gap-3 p-4">
                   <div className="flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 text-electric" />
