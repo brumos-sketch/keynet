@@ -156,7 +156,7 @@ export const createKey = createServerFn({ method: "POST" })
       // Pro guest access code: one reusable access code that covers deposit and pickup
       const { error: acError } = await supabaseAdmin.from("access_codes").insert({
         key_id: key.id,
-        code: generateKioskCode().replace("PP-", "").slice(0, 6),
+        code: generateExchangeCode(),
         role: "guest",
         reusable: true,
         scope: "both",
