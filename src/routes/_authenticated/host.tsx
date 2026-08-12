@@ -42,7 +42,12 @@ import {
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
-import { createExchange, expireOneUseExchanges, renewExchange } from "@/lib/pasallave.functions";
+import {
+  createExchange,
+  expireOneUseExchanges,
+  renewExchange,
+  updateExchange,
+} from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
   head: () => ({
@@ -65,10 +70,20 @@ function HostPanel() {
   const createExchangeFn = useServerFn(createExchange);
   const renewFn = useServerFn(renewExchange);
   const expireFn = useServerFn(expireOneUseExchanges);
+  const updateExchangeFn = useServerFn(updateExchange);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [exchangeForm, setExchangeForm] = useState({
+    checkIn: "",
+    checkOut: "",
+    pickupTime: "",
+    guestName: "",
+  });
+  const [editEx, setEditEx] = useState<{ id: string; keyName: string; bookingRef: string } | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState({
     checkIn: "",
     checkOut: "",
     pickupTime: "",
@@ -223,6 +238,28 @@ function HostPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      if (!editEx) throw new Error("Elegí una estadía");
+      return updateExchangeFn({
+        data: {
+          exchangeId: editEx.id,
+          checkIn: editForm.checkIn || null,
+          checkOut: editForm.checkOut || null,
+          pickupTime: editForm.pickupTime || null,
+          guestName: editForm.guestName || null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Estadía actualizada");
+      setEditEx(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
   const renewMutation = useMutation({
     mutationFn: async () => {
       if (!renewId) throw new Error("Elegí un intercambio");
@@ -315,6 +352,47 @@ function HostPanel() {
                     </div>
                   )}
                 </div>
+
+                {st.exchange && (
+                  <div className="mt-4 rounded-xl border border-gray-100 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-500">Estadía</span>
+                      <CodeChip value={st.exchange.booking_ref} />
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-gray-500">
+                      <span>Código de retiro/devolución:</span>
+                      <CodeChip value={st.exchange.pickup_code ?? "—"} />
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {st.exchange.check_in || st.exchange.check_out
+                        ? `${st.exchange.check_in ? formatDate(st.exchange.check_in) : "—"} → ${st.exchange.check_out ? formatDate(st.exchange.check_out) : "—"}${st.exchange.pickup_time ? ` · retiro ${st.exchange.pickup_time}` : ""}`
+                        : "Faltan fechas: completá check-in, check-out y horario."}
+                    </p>
+                    {["created", "waiting_deposit", "deposited"].includes(st.exchange.status) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 rounded-xl"
+                        onClick={() => {
+                          setEditForm({
+                            checkIn: st.exchange?.check_in ?? "",
+                            checkOut: st.exchange?.check_out ?? "",
+                            pickupTime: st.exchange?.pickup_time ?? "",
+                            guestName: "",
+                          });
+                          setEditEx({
+                            id: st.exchange!.id,
+                            keyName: k.name,
+                            bookingRef: st.exchange!.booking_ref,
+                          });
+                        }}
+                      >
+                        Editar estadía
+                      </Button>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-4 flex justify-end">
                   <Dialog
                     open={openKey === k.id}
@@ -325,7 +403,8 @@ function HostPanel() {
                   >
                     <DialogTrigger asChild>
                       <Button size="sm" className="rounded-xl">
-                        Crear intercambio
+                        Nueva estadía
+
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="rounded-2xl sm:max-w-[480px]">
@@ -569,7 +648,61 @@ function HostPanel() {
               )}
             </DialogContent>
           </Dialog>
+
+          <Dialog open={!!editEx} onOpenChange={(open) => !open && setEditEx(null)}>
+            <DialogContent className="rounded-2xl sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Editar estadía · {editEx?.keyName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="e-checkin">Check-in</Label>
+                    <Input
+                      id="e-checkin"
+                      type="date"
+                      value={editForm.checkIn}
+                      onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="e-checkout">Check-out</Label>
+                    <Input
+                      id="e-checkout"
+                      type="date"
+                      value={editForm.checkOut}
+                      onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-pickup">Horario de retiro</Label>
+                  <Input
+                    id="e-pickup"
+                    type="time"
+                    value={editForm.pickupTime}
+                    onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-guest">Nombre del huésped</Label>
+                  <Input
+                    id="e-guest"
+                    maxLength={80}
+                    value={editForm.guestName}
+                    onChange={(e) => setEditForm({ ...editForm, guestName: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button disabled={editMutation.isPending} onClick={() => editMutation.mutate()}>
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </main>
+
       </div>
     </RoleGuard>
   );

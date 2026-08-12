@@ -80,11 +80,12 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Llave dada de alta");
+    onSuccess: (result) => {
+      toast.success(`Llave dada de alta · estadía ${result.bookingRef}`);
       setOpen(false);
       reset();
       void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+      void qc.invalidateQueries({ queryKey: ["admin", "exchanges"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -323,8 +324,10 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                 }
               />
               <p className="text-xs text-gray-500">
-                Al confirmar generamos los códigos correspondientes al plan elegido.
+                Al confirmar generamos los códigos de la llave y una estadía lista para depositar;
+                después podés completar fechas y horario desde el panel.
               </p>
+
             </div>
           )}
         </div>

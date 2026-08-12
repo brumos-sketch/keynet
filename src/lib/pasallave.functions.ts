@@ -156,24 +156,26 @@ export const createKey = createServerFn({ method: "POST" })
       .single();
     if (keyError || !key) throw new Error(keyError?.message ?? "No se pudo crear la llave");
 
-    // For monthly create a "free" exchange with a bidirectional pickup/return code
-    if (data.subscriptionType === "monthly") {
-      const bidiCode = generateExchangeCode();
-      const { error: exError } = await supabaseAdmin.from("key_exchanges").insert({
+    // Every plan starts with an exchange ready to be deposited.
+    const bidiCode = generateExchangeCode();
+    const bookingRef = generateBookingRef();
+    const { data: exchange, error: exError } = await supabaseAdmin
+      .from("key_exchanges")
+      .insert({
         key_id: key.id,
         kiosk_id: data.kioskId,
-        booking_ref: generateBookingRef(),
+        booking_ref: bookingRef,
         locker_position: 0,
         deposit_code: depositCode,
         pickup_code: bidiCode,
         return_code: bidiCode,
-        status: "created",
+        status: "waiting_deposit",
         check_in: null,
         check_out: null,
-      });
-      if (exError) throw exError;
-    }
-
+      })
+      .select("id")
+      .single();
+    if (exError || !exchange) throw new Error(exError?.message ?? "No se pudo crear el intercambio");
 
     if (data.subscriptionType === "pro") {
       // Pro guest access code: one reusable access code that covers deposit and pickup
@@ -188,8 +190,62 @@ export const createKey = createServerFn({ method: "POST" })
       if (acError) throw acError;
     }
 
-    return { keyId: key.id };
+    return { keyId: key.id, exchangeId: exchange.id, bookingRef };
   });
+
+// ---------- exchange edit (host / admin) ----------
+
+const updateExchangeSchema = z.object({
+  exchangeId: z.string().uuid(),
+  checkIn: z.string().optional().nullable(),
+  checkOut: z.string().optional().nullable(),
+  pickupTime: z.string().optional().nullable(),
+  guestName: z.string().trim().max(80).optional().nullable(),
+});
+
+const EDITABLE_STATUSES = ["created", "waiting_deposit", "deposited"];
+
+export const updateExchange = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => updateExchangeSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: exchange } = await supabase
+      .from("key_exchanges")
+      .select("*, keys!inner(host_id)")
+      .eq("id", data.exchangeId)
+      .maybeSingle();
+    if (!exchange) throw new Error("Intercambio no encontrado");
+    const key = (exchange as unknown as { keys: { host_id: string } }).keys;
+
+    const admin = await isAdmin(context);
+    const { data: myHost } = await supabase.rpc("my_host_id");
+    if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para este intercambio");
+
+    if (!EDITABLE_STATUSES.includes(exchange.status)) {
+      throw new Error("La estadía ya no se puede editar");
+    }
+
+    const { error } = await supabase
+      .from("key_exchanges")
+      .update({
+        check_in: data.checkIn || null,
+        check_out: data.checkOut || null,
+        pickup_time: data.pickupTime || null,
+      })
+      .eq("id", data.exchangeId);
+    if (error) throw error;
+
+    await supabase.from("access_log").insert({
+      key_id: exchange.key_id,
+      action: "exchange_updated",
+      role: "host",
+      person_name: data.guestName ?? null,
+    });
+
+    return { ok: true };
+  });
+
 
 // ---------- exchange creation (host) ----------
 

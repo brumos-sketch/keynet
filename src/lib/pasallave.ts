@@ -274,4 +274,6 @@ export const ACTION_LABELS: Record<string, string> = {
   picked_up: "Retiro",
   completed: "Devolución",
   exchange_created: "Intercambio creado",
+  exchange_updated: "Estadía editada",
+
 };
