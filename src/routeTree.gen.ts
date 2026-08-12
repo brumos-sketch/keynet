@@ -15,6 +15,7 @@ import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
+import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
 import { Route as PaseRefRouteImport } from './routes/pase.$ref'
@@ -54,6 +55,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedAssociateRoute = AuthenticatedAssociateRouteImport.update({
   id: '/associate',
   path: '/associate',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/associate': typeof AuthenticatedAssociateRoute
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/pase/$ref': typeof PaseRefRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/associate': typeof AuthenticatedAssociateRoute
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/pase/$ref': typeof PaseRefRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
+  '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/pase/$ref': typeof PaseRefRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin'
     | '/associate'
+    | '/checkout'
     | '/host'
     | '/kiosk'
     | '/pase/$ref'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/login'
     | '/associate'
+    | '/checkout'
     | '/host'
     | '/kiosk'
     | '/pase/$ref'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/admin'
     | '/_authenticated/associate'
+    | '/_authenticated/checkout'
     | '/_authenticated/host'
     | '/_authenticated/kiosk'
     | '/pase/$ref'
@@ -280,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/associate'
       fullPath: '/associate'
       preLoaderRoute: typeof AuthenticatedAssociateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/checkout': {
+      id: '/_authenticated/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/host': {
@@ -390,6 +409,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
 }
@@ -397,6 +417,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
+  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
 }
