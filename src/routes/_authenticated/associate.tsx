@@ -74,8 +74,12 @@ function AssociatePanel() {
     .filter((c) => c.status === "paid")
     .reduce((sum, c) => sum + (c.total ?? 0), 0);
 
-  const kiosks = overview?.kiosks ?? [];
-  const kioskName = (id: string | null) => kiosks.find((k) => k.id === id)?.name ?? "—";
+  const allKiosks = overview?.kiosks ?? [];
+  const kioskName = (id: string | null) => allKiosks.find((k) => k.id === id)?.name ?? "—";
+  const kiosks = allKiosks.filter((k) => matchesQuery([k.name, k.address], query));
+  const exchangeRows = (overview?.exchanges ?? []).filter((e) =>
+    matchesQuery([e.booking_ref, e.keyName, kioskName(e.kiosk_id)], query),
+  );
 
   return (
     <RoleGuard allow="associate">
