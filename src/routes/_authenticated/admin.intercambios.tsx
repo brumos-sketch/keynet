@@ -1,10 +1,44 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { STATUS_LABELS, STATUS_TONE, formatDate, type ExchangeStatus } from "@/lib/pasallave";
+import { cn } from "@/lib/utils";
+
+type ExchangeRow = {
+  id: string;
+  key_id: string | null;
+  kiosk_id: string | null;
+  booking_ref: string;
+  locker_position: number;
+  deposit_code: string;
+  pickup_code: string | null;
+  return_code: string | null;
+  pickup_time: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  status: string;
+  created_at: string;
+  deposited_at: string | null;
+  picked_up_at: string | null;
+  returned_at: string | null;
+};
 
 export const Route = createFileRoute("/_authenticated/admin/intercambios")({
   head: () => ({
