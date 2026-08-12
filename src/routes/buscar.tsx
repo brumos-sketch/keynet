@@ -271,6 +271,11 @@ function SearchPage() {
                     <Pill tone="neutral">
                       {k.custom_category ?? categoryLabel(k.category)}
                     </Pill>
+                    {k.distance != null && (
+                      <span className="font-bold text-electric">
+                        {formatDistance(k.distance)}
+                      </span>
+                    )}
                     <span>
                       {k.free_positions} de {k.positions} posiciones libres
                     </span>
