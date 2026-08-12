@@ -704,7 +704,7 @@ export type PublicKiosk = {
   custom_category: string | null;
   positions: number;
   is_24h: boolean;
-  schedule: unknown;
+  schedule: Record<string, { open: string; close: string } | null> | null;
   lat: number | null;
   lng: number | null;
   free_positions: number;
@@ -733,7 +733,7 @@ export type BoardingPass = {
   kiosk_name: string | null;
   kiosk_address: string | null;
   kiosk_is_24h: boolean | null;
-  kiosk_schedule: unknown;
+  kiosk_schedule: Record<string, { open: string; close: string } | null> | null;
   kiosk_lat: number | null;
   kiosk_lng: number | null;
 };
