@@ -324,8 +324,10 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                 }
               />
               <p className="text-xs text-gray-500">
-                Al confirmar generamos los códigos correspondientes al plan elegido.
+                Al confirmar generamos los códigos de la llave y una estadía lista para depositar;
+                después podés completar fechas y horario desde el panel.
               </p>
+
             </div>
           )}
         </div>
