@@ -6,6 +6,10 @@ import { PlanCard } from "@/components/pasallave/plan-card";
 import { PhoneMockup } from "@/components/pasallave/phone-mockup";
 import { StickerMockup } from "@/components/pasallave/sticker-mockup";
 import { listPlanPrices, type PlanPriceRow } from "@/lib/pricing.functions";
+import ogImageAsset from "@/assets/og-pasallave.png.asset.json";
+
+const SITE_ORIGIN = "https://keynet.lovable.app";
+const OG_IMAGE_URL = `${SITE_ORIGIN}${ogImageAsset.url}`;
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -32,9 +36,17 @@ export const Route = createFileRoute("/")({
           "Red de puntos asociados en Argentina para que tus huéspedes retiren la llave cuando llegan.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: `${SITE_ORIGIN}/` },
+      { property: "og:image", content: OG_IMAGE_URL },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:alt", content: "Logo de PASALLAVE — intercambio de llaves en puntos asociados" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: OG_IMAGE_URL },
+      { name: "twitter:image:alt", content: "Logo de PASALLAVE — intercambio de llaves en puntos asociados" },
     ],
-    links: [{ rel: "canonical", href: "https://pasallave.lovable.app/" }],
+    links: [{ rel: "canonical", href: `${SITE_ORIGIN}/` }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSON_LD) }],
   }),
   loader: async () => {
