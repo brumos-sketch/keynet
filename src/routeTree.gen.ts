@@ -13,13 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PointRouteImport } from './routes/point'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
-import { Route as AuthenticatedPointRouteImport } from './routes/_authenticated/point'
 import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
@@ -47,6 +47,11 @@ const BuscarRoute = BuscarRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PointRoute = PointRouteImport.update({
+  id: '/point',
+  path: '/point',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -77,11 +82,6 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   id: '/host',
   path: '/host',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPointRoute = AuthenticatedPointRouteImport.update({
-  id: '/point',
-  path: '/point',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const PaseRefRoute = PaseRefRouteImport.update({
@@ -140,13 +140,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/point': typeof PointRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -161,12 +161,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/point': typeof PointRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -183,13 +183,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/point': typeof PointRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
-  '/_authenticated/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -206,13 +206,13 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/login'
+    | '/point'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -227,12 +227,12 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/login'
+    | '/point'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -248,13 +248,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/buscar'
     | '/login'
+    | '/point'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
     | '/_authenticated/host'
-    | '/_authenticated/point'
     | '/pase/$ref'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
@@ -271,6 +271,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   BuscarRoute: typeof BuscarRoute
   LoginRoute: typeof LoginRoute
+  PointRoute: typeof PointRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PaseRefRoute: typeof PaseRefRoute
@@ -304,6 +305,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/point': {
+      id: '/point'
+      path: '/point'
+      fullPath: '/point'
+      preLoaderRoute: typeof PointRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -346,13 +354,6 @@ declare module '@tanstack/react-router' {
       path: '/host'
       fullPath: '/host'
       preLoaderRoute: typeof AuthenticatedHostRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/point': {
-      id: '/_authenticated/point'
-      path: '/point'
-      fullPath: '/point'
-      preLoaderRoute: typeof AuthenticatedPointRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/pase/$ref': {
@@ -451,7 +452,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
-  AuthenticatedPointRoute: typeof AuthenticatedPointRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -459,7 +459,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
-  AuthenticatedPointRoute: AuthenticatedPointRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -470,6 +469,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   BuscarRoute: BuscarRoute,
   LoginRoute: LoginRoute,
+  PointRoute: PointRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PaseRefRoute: PaseRefRoute,

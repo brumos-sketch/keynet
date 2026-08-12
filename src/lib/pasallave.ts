@@ -136,9 +136,11 @@ export function generateBookingRef(): string {
 }
 
 /** Código de punto: PP-XXXXXX */
+/** Código numérico de 6 dígitos para ingresar al panel del punto. */
 export function generateKioskCode(): string {
-  return `PP-${pick(LETTERS + DIGITS, 6)}`;
+  return pick(DIGITS, 6);
 }
+
 
 /** Posición aleatoria entre las libres del punto. */
 export function pickFreePosition(totalPositions: number, taken: number[]): number {
