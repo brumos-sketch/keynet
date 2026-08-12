@@ -119,3 +119,24 @@ export const adminSetUserRole = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+const deleteUserSchema = z.object({ userId: z.string().uuid() });
+
+export const adminDeleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => deleteUserSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("is_admin");
+    if (!isAdmin) throw new Error("Forbidden");
+    if (data.userId === context.userId) throw new Error("No podés eliminar tu propia cuenta");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("associates").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("hosts").delete().eq("user_id", data.userId);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+
+    return { ok: true };
+  });
