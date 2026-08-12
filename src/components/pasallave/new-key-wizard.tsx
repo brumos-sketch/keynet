@@ -265,9 +265,11 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                   </div>
                   <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
                   <p className="text-xs text-gray-500">
-                    {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)}
+                    {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
+                    {k.free_positions} posiciones libres de {k.positions}
                   </p>
                 </button>
+
               ))}
               {(kiosks ?? []).length === 0 && (
                 <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
