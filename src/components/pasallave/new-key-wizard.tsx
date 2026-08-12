@@ -51,10 +51,12 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
     queryKey: ["host", "kiosks"],
     enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("kiosks").select("*").order("name");
+      const { data, error } = await supabase.rpc("search_kiosks_public");
+      if (error) throw error;
       return data ?? [];
     },
   });
+
 
   const reset = () => {
     setStep(0);
