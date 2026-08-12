@@ -136,11 +136,8 @@ export const createKey = createServerFn({ method: "POST" })
     if (!host) throw new Error("Anfitrión no encontrado");
     if (!kiosk) throw new Error("Punto no encontrado");
 
-    // Insert key
-    let depositCode: string | null = null;
-    if (data.subscriptionType !== "one_use") {
-      depositCode = generateExchangeCode(); // fixed deposit code for monthly/pro
-    }
+    // Insert key — every key gets a fixed, unique deposit code (host side)
+    const depositCode = generateExchangeCode();
     const { data: key, error: keyError } = await supabaseAdmin
       .from("keys")
       .insert({
@@ -155,23 +152,24 @@ export const createKey = createServerFn({ method: "POST" })
       .single();
     if (keyError || !key) throw new Error(keyError?.message ?? "No se pudo crear la llave");
 
-    // For monthly create a "free" exchange with a bidirectional return code
+    // For monthly create a "free" exchange with a bidirectional pickup/return code
     if (data.subscriptionType === "monthly") {
-      const returnCode = generateExchangeCode();
+      const bidiCode = generateExchangeCode();
       const { error: exError } = await supabaseAdmin.from("key_exchanges").insert({
         key_id: key.id,
         kiosk_id: data.kioskId,
         booking_ref: generateBookingRef(),
         locker_position: 0,
-        deposit_code: depositCode!,
-        pickup_code: returnCode,
-        return_code: returnCode,
+        deposit_code: depositCode,
+        pickup_code: bidiCode,
+        return_code: bidiCode,
         status: "created",
         check_in: null,
         check_out: null,
       });
       if (exError) throw exError;
     }
+
 
     if (data.subscriptionType === "pro") {
       // Pro guest access code: one reusable access code that covers deposit and pickup
@@ -217,32 +215,16 @@ export const createExchange = createServerFn({ method: "POST" })
     const position = await reservePosition(supabase, key.kiosk_id!);
     const bookingRef = generateBookingRef();
 
-    let depositCode: string;
-    let pickupCode: string;
-    let returnCode: string | null = null;
-
-    if (key.subscription_type === "monthly") {
-      // Monthly uses the fixed deposit code and a bidirectional return code
-      depositCode = key.deposit_code!;
-      returnCode = generateExchangeCode();
-      pickupCode = returnCode;
-    } else if (key.subscription_type === "pro") {
-      // Pro uses an access code for both deposit and pickup
-      const { data: codes } = await supabase
-        .from("access_codes")
-        .select("code")
-        .eq("key_id", key.id)
-        .eq("status", "active")
-        .eq("scope", "both")
-        .limit(1);
-      if (!codes || codes.length === 0) throw new Error("No hay código de acceso Pro activo para esta llave");
-      depositCode = codes[0]!.code;
-      pickupCode = codes[0]!.code;
-    } else {
-      // one_use
+    // Fixed deposit code per key (all plans). Backfill if the key predates this rule.
+    let depositCode = key.deposit_code;
+    if (!depositCode) {
       depositCode = generateExchangeCode();
-      pickupCode = generateExchangeCode();
+      await supabase.from("keys").update({ deposit_code: depositCode }).eq("id", key.id);
     }
+
+    // Single bidirectional code: the guest uses it to pick up AND to return.
+    const bidiCode = generateExchangeCode();
+
 
     const { data: exchange, error } = await supabase
       .from("key_exchanges")
@@ -252,8 +234,8 @@ export const createExchange = createServerFn({ method: "POST" })
         booking_ref: bookingRef,
         locker_position: position,
         deposit_code: depositCode,
-        pickup_code: pickupCode,
-        return_code: returnCode,
+        pickup_code: bidiCode,
+        return_code: bidiCode,
         pickup_time: data.pickupTime ?? null,
         check_in: data.checkIn ?? null,
         check_out: data.checkOut ?? null,
@@ -541,7 +523,7 @@ export const validateCode = createServerFn({ method: "POST" })
       throw new Error("El intercambio ya fue completado");
     }
 
-    // 2. Fixed deposit codes (monthly keys)
+    // 2. Fixed deposit code of the key (host side, all plans)
     const { data: keys } = await supabase
       .from("keys")
       .select("*")
@@ -550,53 +532,54 @@ export const validateCode = createServerFn({ method: "POST" })
     if (keys && keys.length > 0) {
       const key = keys[0]!;
       logKeyId = key.id;
-      if (key.subscription_type === "monthly") {
-        // Find or create the monthly free exchange
-        const { data: existing } = await supabase
-          .from("key_exchanges")
-          .select("*")
-          .eq("key_id", key.id)
-          .or(codeSearchConditions("deposit_code", clean))
-          .in("status", ["created", "waiting_deposit", "deposited", "picked_up"])
-          .order("created_at", { ascending: false })
-          .maybeSingle();
-        if (existing) {
-          if (existing.status === "waiting_deposit" || existing.status === "created") {
-            await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", existing.id);
-            return { action: "deposited", position: existing.locker_position, bookingRef: existing.booking_ref };
-          }
-          if (existing.status === "deposited") {
-            await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", existing.id);
-            return { action: "picked_up", position: existing.locker_position, bookingRef: existing.booking_ref };
-          }
-          if (existing.status === "picked_up") {
-            await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", existing.id);
-            return { action: "completed", position: existing.locker_position, bookingRef: existing.booking_ref };
-          }
+
+      const { data: openList } = await supabase
+        .from("key_exchanges")
+        .select("*")
+        .eq("key_id", key.id)
+        .in("status", ["created", "waiting_deposit", "deposited", "picked_up"])
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const existing = openList?.[0] ?? null;
+
+      if (existing) {
+        if (existing.status === "waiting_deposit" || existing.status === "created") {
+          await supabase
+            .from("key_exchanges")
+            .update({ status: "deposited", deposited_at: now })
+            .eq("id", existing.id);
+          return { action: "deposited", position: existing.locker_position, bookingRef: existing.booking_ref };
         }
-        // create free monthly exchange
-        const position = await reservePosition(supabase, myKioskId);
-        const returnCode = generateExchangeCode();
-        const { data: created } = await supabase
-          .from("key_exchanges")
-          .insert({
-            key_id: key.id,
-            kiosk_id: myKioskId,
-            booking_ref: generateBookingRef(),
-            locker_position: position,
-            deposit_code: clean,
-            pickup_code: returnCode,
-            return_code: returnCode,
-            status: "deposited",
-            deposited_at: now,
-          })
-          .select("*")
-          .single();
-        return { action: "deposited", position, bookingRef: created?.booking_ref ?? null };
+        if (existing.status === "deposited") throw new Error("Esta llave ya está depositada en el punto");
+        throw new Error("La llave está en poder del huésped");
       }
+
+      if (key.subscription_type === "one_use") {
+        throw new Error("No hay una estadía esperando depósito para esta llave");
+      }
+
+      // monthly / pro: open a new cycle on deposit
+      const position = await reservePosition(supabase, myKioskId);
+      const bidiCode = generateExchangeCode();
+      const { data: created } = await supabase
+        .from("key_exchanges")
+        .insert({
+          key_id: key.id,
+          kiosk_id: myKioskId,
+          booking_ref: generateBookingRef(),
+          locker_position: position,
+          deposit_code: key.deposit_code!,
+          pickup_code: bidiCode,
+          return_code: bidiCode,
+          status: "deposited",
+          deposited_at: now,
+        })
+        .select("*")
+        .single();
+      return { action: "deposited", position, bookingRef: created?.booking_ref ?? null };
     }
 
-    // 3. Exchange codes (one_use deposit/pickup, monthly return_code)
+    // 3. Guest bidirectional code of a stay (pickup + return)
     const { data: exchanges } = await supabase
       .from("key_exchanges")
       .select("*, keys!inner(subscription_type)")
@@ -605,38 +588,35 @@ export const validateCode = createServerFn({ method: "POST" })
         `${codeSearchConditions("deposit_code", clean)},` +
           `${codeSearchConditions("pickup_code", clean)},` +
           `${codeSearchConditions("return_code", clean)}`,
-      );
+      )
+      .order("created_at", { ascending: false });
     if (exchanges && exchanges.length > 0) {
       const ex = exchanges[0]!;
-      const key = (ex as unknown as { keys: { subscription_type: string } }).keys;
       logKeyId = ex.key_id;
 
-
-      const returnCodeMatch =
-        ex.return_code ?? (key.subscription_type !== "one_use" ? ex.pickup_code : null);
-
-      if (codesMatch(ex.deposit_code, clean)) {
-        if (ex.status !== "waiting_deposit" && ex.status !== "created") throw new Error("Esta llave ya fue depositada o el intercambio terminó");
-        await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", ex.id);
-        return { action: "deposited", position: ex.locker_position, bookingRef: ex.booking_ref };
-      }
-      // For monthly/pro the same code can return and then pick up; try return first when picked_up.
-      if (codesMatch(returnCodeMatch, clean)) {
+      const isGuestCode = codesMatch(ex.pickup_code, clean) || codesMatch(ex.return_code, clean);
+      if (isGuestCode) {
+        if (ex.status === "deposited") {
+          await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", ex.id);
+          return { action: "picked_up", position: ex.locker_position, bookingRef: ex.booking_ref };
+        }
         if (ex.status === "picked_up") {
           await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", ex.id);
           return { action: "completed", position: ex.locker_position, bookingRef: ex.booking_ref };
         }
-        if (ex.status !== "deposited") throw new Error("No hay llave retirada para devolver");
+        if (ex.status === "waiting_deposit" || ex.status === "created")
+          throw new Error("La llave todavía no fue depositada en el punto");
+        throw new Error("Este código ya no está vigente");
       }
-      if (codesMatch(ex.pickup_code, clean)) {
-        if (ex.status !== "deposited") throw new Error("No hay llave depositada para retirar");
-        await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", ex.id);
-        return { action: "picked_up", position: ex.locker_position, bookingRef: ex.booking_ref };
-      }
-      if (codesMatch(returnCodeMatch, clean)) {
-        throw new Error("No hay llave retirada para devolver");
+
+      if (codesMatch(ex.deposit_code, clean)) {
+        if (ex.status !== "waiting_deposit" && ex.status !== "created")
+          throw new Error("Esta llave ya fue depositada o el intercambio terminó");
+        await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", ex.id);
+        return { action: "deposited", position: ex.locker_position, bookingRef: ex.booking_ref };
       }
     }
+
 
       throw new Error("Código no encontrado o no válido");
     };
