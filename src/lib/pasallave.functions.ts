@@ -528,6 +528,7 @@ export const validateCode = createServerFn({ method: "POST" })
       .eq("kiosk_id", myKioskId);
     if (keys && keys.length > 0) {
       const key = keys[0]!;
+      logKeyId = key.id;
       if (key.subscription_type === "monthly") {
         // Find or create the monthly free exchange
         const { data: existing } = await supabase
