@@ -80,11 +80,12 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Llave dada de alta");
+    onSuccess: (result) => {
+      toast.success(`Llave dada de alta · estadía ${result.bookingRef}`);
       setOpen(false);
       reset();
       void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+      void qc.invalidateQueries({ queryKey: ["admin", "exchanges"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
