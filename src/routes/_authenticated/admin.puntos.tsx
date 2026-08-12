@@ -190,19 +190,20 @@ function AdminKiosks() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Puntos asociados</h1>
-          <p className="text-sm text-muted-foreground">Kioscos, cafés y comercios de la red.</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-foreground">Puntos</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-[10px]">Nuevo punto</Button>
+            <Button className="rounded-[10px]" onClick={openNew}>
+              <Plus className="h-4 w-4" />
+              Nuevo
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto rounded-[16px] sm:max-w-[560px]">
             <DialogHeader>
-              <DialogTitle>Nuevo punto</DialogTitle>
+              <DialogTitle>{editingId ? "Editar punto" : "Nuevo punto"}</DialogTitle>
             </DialogHeader>
+
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
