@@ -569,17 +569,17 @@ export const validateCode = createServerFn({ method: "POST" })
       const ex = exchanges[0]!;
       const key = (ex as unknown as { keys: { subscription_type: string } }).keys;
 
-      if (ex.deposit_code === clean) {
+      if (codesMatch(ex.deposit_code, clean)) {
         if (ex.status !== "waiting_deposit" && ex.status !== "created") throw new Error("Esta llave ya fue depositada o el intercambio terminó");
         await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", ex.id);
         return { action: "deposited", position: ex.locker_position, bookingRef: ex.booking_ref };
       }
-      if (ex.pickup_code === clean) {
+      if (codesMatch(ex.pickup_code, clean)) {
         if (ex.status !== "deposited") throw new Error("No hay llave depositada para retirar");
         await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", ex.id);
         return { action: "picked_up", position: ex.locker_position, bookingRef: ex.booking_ref };
       }
-      if (ex.return_code === clean) {
+      if (codesMatch(ex.return_code, clean)) {
         if (ex.status !== "picked_up") throw new Error("No hay llave retirada para devolver");
         await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", ex.id);
         return { action: "completed", position: ex.locker_position, bookingRef: ex.booking_ref };
