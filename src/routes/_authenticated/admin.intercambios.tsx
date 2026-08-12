@@ -297,6 +297,52 @@ function AdminExchanges() {
                 <Info label="Devolución" value={detail.return_code ?? "—"} />
               </div>
 
+              {["created", "waiting_deposit", "deposited"].includes(detail.status) && (
+                <div className="space-y-3 rounded-xl border border-gray-100 p-3">
+                  <p className="text-xs tracking-wide text-gray-500 uppercase">Editar estadía</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="a-checkin">Check-in</Label>
+                      <Input
+                        id="a-checkin"
+                        type="date"
+                        value={editForm.checkIn}
+                        onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="a-checkout">Check-out</Label>
+                      <Input
+                        id="a-checkout"
+                        type="date"
+                        value={editForm.checkOut}
+                        onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="a-pickup">Retiro</Label>
+                      <Input
+                        id="a-pickup"
+                        type="time"
+                        value={editForm.pickupTime}
+                        onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      disabled={editMutation.isPending}
+                      onClick={() => editMutation.mutate()}
+                    >
+                      Guardar cambios
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+
+
               <div>
                 <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
                   Línea de tiempo
