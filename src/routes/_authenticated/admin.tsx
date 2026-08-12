@@ -20,12 +20,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/admin/usuarios", label: "Usuarios", icon: Users },
-  { to: "/admin/anfitriones", label: "Anfitriones", icon: UserRound },
-  { to: "/admin/llaves", label: "Llaves", icon: KeyRound },
-  { to: "/admin/intercambios", label: "Intercambios", icon: ArrowLeftRight },
-  { to: "/admin/puntos", label: "Puntos", icon: Store },
-  { to: "/admin/facturacion", label: "Facturación", icon: Receipt },
+  { to: "/admin/usuarios", label: "Usuarios", icon: Users, exact: false },
+  { to: "/admin/anfitriones", label: "Anfitriones", icon: UserRound, exact: false },
+  { to: "/admin/llaves", label: "Llaves", icon: KeyRound, exact: false },
+  { to: "/admin/intercambios", label: "Intercambios", icon: ArrowLeftRight, exact: false },
+  { to: "/admin/puntos", label: "Puntos", icon: Store, exact: false },
+  { to: "/admin/facturacion", label: "Facturación", icon: Receipt, exact: false },
 ] as const;
 
 function AdminLayout() {
