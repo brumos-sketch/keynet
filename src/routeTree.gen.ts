@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
+import { Route as AuthenticatedAdminIntercambiosRouteImport } from './routes/_authenticated/admin.intercambios'
 import { Route as AuthenticatedAdminLlavesRouteImport } from './routes/_authenticated/admin.llaves'
 import { Route as AuthenticatedAdminPuntosRouteImport } from './routes/_authenticated/admin.puntos'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
@@ -49,6 +50,12 @@ const AuthenticatedAdminAnfitrionesRoute =
     path: '/anfitriones',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminIntercambiosRoute =
+  AuthenticatedAdminIntercambiosRouteImport.update({
+    id: '/intercambios',
+    path: '/intercambios',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminLlavesRoute =
   AuthenticatedAdminLlavesRouteImport.update({
     id: '/llaves',
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/_authenticated/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/_authenticated/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin'
     | '/admin/anfitriones'
+    | '/admin/intercambios'
     | '/admin/llaves'
     | '/admin/puntos'
     | '/admin/usuarios'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin/anfitriones'
+    | '/admin/intercambios'
     | '/admin/llaves'
     | '/admin/puntos'
     | '/admin/usuarios'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/admin'
     | '/_authenticated/admin/anfitriones'
+    | '/_authenticated/admin/intercambios'
     | '/_authenticated/admin/llaves'
     | '/_authenticated/admin/puntos'
     | '/_authenticated/admin/usuarios'
@@ -182,6 +195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAnfitrionesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/intercambios': {
+      id: '/_authenticated/admin/intercambios'
+      path: '/intercambios'
+      fullPath: '/admin/intercambios'
+      preLoaderRoute: typeof AuthenticatedAdminIntercambiosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/llaves': {
       id: '/_authenticated/admin/llaves'
       path: '/llaves'
@@ -208,6 +228,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnfitrionesRoute: typeof AuthenticatedAdminAnfitrionesRoute
+  AuthenticatedAdminIntercambiosRoute: typeof AuthenticatedAdminIntercambiosRoute
   AuthenticatedAdminLlavesRoute: typeof AuthenticatedAdminLlavesRoute
   AuthenticatedAdminPuntosRoute: typeof AuthenticatedAdminPuntosRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
@@ -216,6 +237,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnfitrionesRoute: AuthenticatedAdminAnfitrionesRoute,
+  AuthenticatedAdminIntercambiosRoute: AuthenticatedAdminIntercambiosRoute,
   AuthenticatedAdminLlavesRoute: AuthenticatedAdminLlavesRoute,
   AuthenticatedAdminPuntosRoute: AuthenticatedAdminPuntosRoute,
   AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,

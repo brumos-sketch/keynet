@@ -37,10 +37,13 @@ function AdminExchanges() {
 
   const setStatus = useMutation({
     mutationFn: async (vars: { id: string; status: string }) => {
-      const patch: Record<string, unknown> = { status: vars.status };
-      if (vars.status === "deposited") patch.deposited_at = new Date().toISOString();
-      if (vars.status === "picked_up") patch.picked_up_at = new Date().toISOString();
-      if (vars.status === "completed") patch.returned_at = new Date().toISOString();
+      const now = new Date().toISOString();
+      const patch = {
+        status: vars.status,
+        ...(vars.status === "deposited" ? { deposited_at: now } : {}),
+        ...(vars.status === "picked_up" ? { picked_up_at: now } : {}),
+        ...(vars.status === "completed" ? { returned_at: now } : {}),
+      };
       const { error } = await supabase.from("key_exchanges").update(patch).eq("id", vars.id);
       if (error) throw error;
     },
