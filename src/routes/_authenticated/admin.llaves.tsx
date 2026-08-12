@@ -244,7 +244,7 @@ function AdminKeys() {
                 </td>
               </tr>
             )}
-            {(data?.keys ?? []).map((k) => (
+            {rows.map((k) => (
               <tr key={k.id}>
                 <td className="px-4 py-3">
                   <p className="text-foreground">{k.name}</p>
