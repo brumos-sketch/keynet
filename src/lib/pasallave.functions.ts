@@ -622,6 +622,30 @@ export const validateCode = createServerFn({ method: "POST" })
       role: logRole,
       person_name: logPerson,
     });
+
+    // Notify the host about the movement
+    if (logKeyId) {
+      const supabaseAdmin = await loadAdminClient();
+      const { data: keyRow } = await supabaseAdmin
+        .from("keys")
+        .select("host_id, name")
+        .eq("id", logKeyId)
+        .maybeSingle();
+      if (keyRow?.host_id) {
+        const messages: Record<string, string> = {
+          deposited: `Se depositó la llave "${keyRow.name}" en el punto.`,
+          picked_up: `Se retiró la llave "${keyRow.name}" del punto.`,
+          completed: `Se devolvió la llave "${keyRow.name}" al punto.`,
+        };
+        await supabaseAdmin.from("notifications").insert({
+          host_id: keyRow.host_id,
+          type: result.action,
+          message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,
+          booking_ref: result.bookingRef,
+        });
+      }
+    }
+
     return result;
   });
 
