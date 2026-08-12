@@ -506,25 +506,22 @@ function HostPanel() {
                     <CodeChip value={selectedExchange.booking_ref} />
                   </div>
                   <div className="rounded-[12px] border border-border p-4">
-                    <p className="text-xs text-muted-foreground uppercase">Depósito</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                      Depósito (fijo de la llave)
+                    </p>
                     <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
                       {selectedExchange.deposit_code}
                     </p>
                   </div>
                   <div className="rounded-[12px] border border-border p-4">
-                    <p className="text-xs text-muted-foreground uppercase">Retiro</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                      Código del huésped (retiro y devolución)
+                    </p>
                     <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
                       {selectedExchange.pickup_code}
                     </p>
                   </div>
-                  {selectedExchange.return_code && (
-                    <div className="rounded-[12px] border border-border p-4">
-                      <p className="text-xs text-muted-foreground uppercase">Devolución</p>
-                      <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
-                        {selectedExchange.return_code}
-                      </p>
-                    </div>
-                  )}
+
                   <p className="text-sm text-muted-foreground">
                     Estado: {STATUS_LABELS[selectedExchange.status as ExchangeStatus]}
                   </p>
