@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
+import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
 import { Route as AuthenticatedAdminIntercambiosRouteImport } from './routes/_authenticated/admin.intercambios'
 import { Route as AuthenticatedAdminLlavesRouteImport } from './routes/_authenticated/admin.llaves'
 import { Route as AuthenticatedAdminPuntosRouteImport } from './routes/_authenticated/admin.puntos'
@@ -50,6 +51,12 @@ const AuthenticatedAdminAnfitrionesRoute =
     path: '/anfitriones',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFacturacionRoute =
+  AuthenticatedAdminFacturacionRouteImport.update({
+    id: '/facturacion',
+    path: '/facturacion',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminIntercambiosRoute =
   AuthenticatedAdminIntercambiosRouteImport.update({
     id: '/intercambios',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
@@ -103,6 +112,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
+  '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/_authenticated/admin/llaves': typeof AuthenticatedAdminLlavesRoute
   '/_authenticated/admin/puntos': typeof AuthenticatedAdminPuntosRoute
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin'
     | '/admin/anfitriones'
+    | '/admin/facturacion'
     | '/admin/intercambios'
     | '/admin/llaves'
     | '/admin/puntos'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin/anfitriones'
+    | '/admin/facturacion'
     | '/admin/intercambios'
     | '/admin/llaves'
     | '/admin/puntos'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/admin'
     | '/_authenticated/admin/anfitriones'
+    | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/intercambios'
     | '/_authenticated/admin/llaves'
     | '/_authenticated/admin/puntos'
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAnfitrionesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/facturacion': {
+      id: '/_authenticated/admin/facturacion'
+      path: '/facturacion'
+      fullPath: '/admin/facturacion'
+      preLoaderRoute: typeof AuthenticatedAdminFacturacionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/intercambios': {
       id: '/_authenticated/admin/intercambios'
       path: '/intercambios'
@@ -228,6 +248,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnfitrionesRoute: typeof AuthenticatedAdminAnfitrionesRoute
+  AuthenticatedAdminFacturacionRoute: typeof AuthenticatedAdminFacturacionRoute
   AuthenticatedAdminIntercambiosRoute: typeof AuthenticatedAdminIntercambiosRoute
   AuthenticatedAdminLlavesRoute: typeof AuthenticatedAdminLlavesRoute
   AuthenticatedAdminPuntosRoute: typeof AuthenticatedAdminPuntosRoute
@@ -237,6 +258,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnfitrionesRoute: AuthenticatedAdminAnfitrionesRoute,
+  AuthenticatedAdminFacturacionRoute: AuthenticatedAdminFacturacionRoute,
   AuthenticatedAdminIntercambiosRoute: AuthenticatedAdminIntercambiosRoute,
   AuthenticatedAdminLlavesRoute: AuthenticatedAdminLlavesRoute,
   AuthenticatedAdminPuntosRoute: AuthenticatedAdminPuntosRoute,
