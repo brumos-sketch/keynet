@@ -98,7 +98,12 @@ export function ProAccessCodes({ keyId, keyName }: { keyId: string; keyName: str
 
   const toggleMutation = useMutation({
     mutationFn: async (vars: { codeId: string; status: string }) =>
-      toggleFn({ data: { codeId: vars.codeId, active: vars.status !== "active" } }),
+      toggleFn({
+        data: {
+          codeId: vars.codeId,
+          status: vars.status === "active" ? ("inactive" as const) : ("active" as const),
+        },
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["host", "access-codes", keyId] });
     },
