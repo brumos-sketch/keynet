@@ -196,7 +196,14 @@ function SearchPage() {
                 <p className="text-sm text-gray-500">
                   Todavía no tenemos un punto en esa zona.
                 </p>
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog
+                  open={open}
+                  onOpenChange={(next) => {
+                    setOpen(next);
+                    if (next && !waitlist.address)
+                      setWaitlist((w) => ({ ...w, address: query.trim() }));
+                  }}
+                >
                   <DialogTrigger asChild>
                     <Button className="mt-4 rounded-2xl">Avisame cuando abran uno</Button>
                   </DialogTrigger>
