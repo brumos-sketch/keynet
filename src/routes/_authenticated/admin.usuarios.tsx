@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser, adminSetUserRole, adminDeleteUser } from "@/lib/admin.functions";
+import { adminCreateUser, adminUpdateUser, adminDeleteUser } from "@/lib/admin.functions";
 import { Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { ROLE_LABELS, matchesQuery, type AppRole } from "@/lib/pasallave";
 import { Button } from "@/components/ui/button";
