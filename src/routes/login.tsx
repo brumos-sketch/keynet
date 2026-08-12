@@ -29,7 +29,19 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.3z" />
+      <path fill="#FBBC05" d="M10.4 28.7a14.6 14.6 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-3.7-13.6-9.1l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
 function LoginPage() {
+
   const navigate = useNavigate();
   const { session, role, loading, refresh, signOut } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -99,24 +111,35 @@ function LoginPage() {
   return (
     <main className="hero-gradient flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-[420px]">
-        <div className="mb-6 text-center">
-          <BrandLogo className="justify-center" />
-          <p className="mt-2 text-sm text-gray-500">
-            Intercambio de llaves en puntos asociados
-          </p>
-        </div>
-
         <div className="rounded-[2.5rem] border border-gray-100 bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-bold text-navy">
+          <BrandLogo />
+          <h1 className="mt-6 text-2xl font-bold text-navy">
             {mode === "login" ? "Ingresar" : "Crear cuenta"}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
             {mode === "login"
-              ? "Usá tu email y contraseña."
+              ? "Con tu cuenta de Google o tu email."
               : "Al registrarte accedés como anfitrión."}
           </p>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-6 h-12 w-full gap-2 rounded-2xl border-gray-200 font-semibold text-navy hover:bg-gray-50"
+            onClick={handleGoogle}
+            disabled={busy}
+          >
+            <GoogleIcon />
+            Continuar con Google
+          </Button>
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">o</span>
+            <span className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="text-navy">Nombre</Label>
@@ -177,22 +200,6 @@ function LoginPage() {
             </Button>
           </form>
 
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-400">o</span>
-            <span className="h-px flex-1 bg-gray-200" />
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 w-full rounded-2xl border-gray-200 font-semibold text-navy hover:bg-gray-50"
-            onClick={handleGoogle}
-            disabled={busy}
-          >
-            Continuar con Google
-          </Button>
-
           <p className="mt-5 text-center text-sm text-gray-500">
             {mode === "login" ? "¿No tenés cuenta? " : "¿Ya tenés cuenta? "}
             <button
@@ -204,6 +211,7 @@ function LoginPage() {
             </button>
           </p>
         </div>
+
       </div>
     </main>
   );
