@@ -113,6 +113,21 @@ function AdminKiosks() {
   });
 
 
+  const regenerate = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("kiosks")
+        .update({ access_code: generateKioskCode() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Código de acceso regenerado");
+      void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const create = useMutation({
     mutationFn: async () => {
       const payload = {
