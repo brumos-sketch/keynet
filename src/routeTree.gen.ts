@@ -19,7 +19,6 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
-import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
 import { Route as AuthenticatedPointRouteImport } from './routes/_authenticated/point'
 import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -78,11 +77,6 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   id: '/host',
   path: '/host',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
-  id: '/kiosk',
-  path: '/kiosk',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPointRoute = AuthenticatedPointRouteImport.update({
@@ -152,7 +146,6 @@ export interface FileRoutesByFullPath {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/kiosk': typeof AuthenticatedKioskRoute
   '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
@@ -173,7 +166,6 @@ export interface FileRoutesByTo {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/kiosk': typeof AuthenticatedKioskRoute
   '/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
@@ -197,7 +189,6 @@ export interface FileRoutesById {
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
-  '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/point': typeof AuthenticatedPointRoute
   '/pase/$ref': typeof PaseRefRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
@@ -221,7 +212,6 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/kiosk'
     | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
@@ -242,7 +232,6 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/kiosk'
     | '/point'
     | '/pase/$ref'
     | '/admin/anfitriones'
@@ -265,7 +254,6 @@ export interface FileRouteTypes {
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
     | '/_authenticated/host'
-    | '/_authenticated/kiosk'
     | '/_authenticated/point'
     | '/pase/$ref'
     | '/_authenticated/admin/anfitriones'
@@ -358,13 +346,6 @@ declare module '@tanstack/react-router' {
       path: '/host'
       fullPath: '/host'
       preLoaderRoute: typeof AuthenticatedHostRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/kiosk': {
-      id: '/_authenticated/kiosk'
-      path: '/kiosk'
-      fullPath: '/kiosk'
-      preLoaderRoute: typeof AuthenticatedKioskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/point': {
@@ -470,7 +451,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
-  AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
   AuthenticatedPointRoute: typeof AuthenticatedPointRoute
 }
 
@@ -479,7 +459,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
-  AuthenticatedKioskRoute: AuthenticatedKioskRoute,
   AuthenticatedPointRoute: AuthenticatedPointRoute,
 }
 
