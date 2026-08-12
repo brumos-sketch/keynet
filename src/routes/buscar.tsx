@@ -150,12 +150,6 @@ function SearchPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const mapSrc =
-    current?.lat && current?.lng
-      ? `https://www.openstreetmap.org/export/embed.html?bbox=${current.lng - 0.005}%2C${
-          current.lat - 0.0035
-        }%2C${current.lng + 0.005}%2C${current.lat + 0.0035}&layer=mapnik&marker=${current.lat}%2C${current.lng}`
-      : null;
 
   return (
     <div className="min-h-screen bg-white">
