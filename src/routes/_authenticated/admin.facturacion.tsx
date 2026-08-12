@@ -86,12 +86,12 @@ function AdminBilling() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
-          <p className="text-sm text-muted-foreground">Cobros y comisiones (pagos simulados).</p>
+          <h1 className="text-2xl font-bold text-navy">Facturación</h1>
+          <p className="text-sm text-gray-500">Cobros y comisiones (pagos simulados).</p>
         </div>
         <div className="flex items-end gap-2">
           <div className="space-y-1.5">
-            <label htmlFor="period" className="text-xs text-muted-foreground">
+            <label htmlFor="period" className="text-xs text-gray-500">
               Período
             </label>
             <Input
@@ -103,7 +103,7 @@ function AdminBilling() {
             />
           </div>
           <Button
-            className="rounded-[10px]"
+            className="rounded-xl"
             onClick={() => generate.mutate()}
             disabled={generate.isPending}
           >
@@ -114,24 +114,24 @@ function AdminBilling() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="glass-card p-4">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+          <p className="text-xs tracking-wide text-gray-500 uppercase">
             Por cobrar a anfitriones
           </p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(pendingHosts)}</p>
+          <p className="mt-2 text-2xl font-bold text-navy">{formatMoney(pendingHosts)}</p>
         </div>
         <div className="glass-card p-4">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+          <p className="text-xs tracking-wide text-gray-500 uppercase">
             Por pagar a puntos
           </p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(pendingPoints)}</p>
+          <p className="mt-2 text-2xl font-bold text-navy">{formatMoney(pendingPoints)}</p>
         </div>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">Cobros a anfitriones</h2>
+        <h2 className="text-sm font-bold text-navy">Cobros a anfitriones</h2>
         <div className="overflow-x-auto glass-card">
           <table className="w-full min-w-[780px] text-sm">
-            <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+            <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
               <tr>
                 <th className="px-4 py-3 font-medium">Anfitrión</th>
                 <th className="px-4 py-3 font-medium">Período</th>
@@ -146,7 +146,7 @@ function AdminBilling() {
             <tbody className="divide-y divide-border">
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-6 text-gray-500">
                     Cargando…
                   </td>
                 </tr>
@@ -154,12 +154,12 @@ function AdminBilling() {
               {(data?.billing ?? []).map((b) => (
                 <tr key={b.id}>
                   <td className="px-4 py-3 text-foreground">{hostName(b.host_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{b.period ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-gray-500">{b.period ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {b.plan ? (PLAN_LABELS[b.plan as SubscriptionType] ?? b.plan) : "—"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{b.keys_count ?? 0}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-gray-500">{b.keys_count ?? 0}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {b.extra_days} día(s) · {formatMoney(b.extra_amount)}
                   </td>
                   <td className="px-4 py-3 font-medium text-foreground">
@@ -189,10 +189,10 @@ function AdminBilling() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">Comisiones a puntos</h2>
+        <h2 className="text-sm font-bold text-navy">Comisiones a puntos</h2>
         <div className="overflow-x-auto glass-card">
           <table className="w-full min-w-[720px] text-sm">
-            <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+            <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
               <tr>
                 <th className="px-4 py-3 font-medium">Punto</th>
                 <th className="px-4 py-3 font-medium">Período</th>
@@ -207,11 +207,11 @@ function AdminBilling() {
               {(data?.commissions ?? []).map((c) => (
                 <tr key={c.id}>
                   <td className="px-4 py-3 text-foreground">{kioskName(c.kiosk_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.period ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-gray-500">{c.period ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {formatMoney(c.plans_revenue)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.commission_percent ?? 0}%</td>
+                  <td className="px-4 py-3 text-gray-500">{c.commission_percent ?? 0}%</td>
                   <td className="px-4 py-3 font-medium text-foreground">{formatMoney(c.total)}</td>
                   <td className="px-4 py-3">
                     <Pill tone={c.status === "paid" ? "success" : "warning"}>

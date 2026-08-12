@@ -187,11 +187,11 @@ function PointPanel() {
   return (
     <RoleGuard allow="kiosk">
       <div className="min-h-screen bg-background">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
+        <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
           <Brand />
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">{name}</span>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()}>
+            <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
           </div>
@@ -202,14 +202,14 @@ function PointPanel() {
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Store className="size-5 text-primary" />
-                  <h1 className="text-xl font-semibold text-foreground">{kiosk?.name ?? "Mi punto"}</h1>
+                  <Store className="size-5 text-electric" />
+                  <h1 className="text-xl font-bold text-navy">{kiosk?.name ?? "Mi punto"}</h1>
                 </div>
-                <p className="flex items-start gap-2 text-sm text-muted-foreground">
+                <p className="flex items-start gap-2 text-sm text-gray-500">
                   <MapPin className="mt-0.5 size-4 shrink-0" />
                   {kiosk?.address ?? "—"}
                 </p>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <p className="flex items-center gap-2 text-sm text-gray-500">
                   <Clock className="size-4 shrink-0" />
                   {describeSchedule(kiosk?.is_24h ?? false, (kiosk?.schedule as KioskSchedule | null) ?? null)}
                 </p>
@@ -219,19 +219,19 @@ function PointPanel() {
                   {openState.open ? "Abierto" : "Cerrado"}
                 </Pill>
                 {closed && openState.nextOpen ? (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-gray-500">
                     Abre en {formatCountdown(openState.nextOpen.getTime() - now.getTime())}
                   </span>
                 ) : null}
                 {openState.open && openState.closesAt ? (
-                  <span className="text-xs text-muted-foreground">Cierra {openState.closesAt}</span>
+                  <span className="text-xs text-gray-500">Cierra {openState.closesAt}</span>
                 ) : null}
               </div>
             </div>
 
-            <div className="mt-4 rounded-[12px] bg-secondary p-4">
+            <div className="mt-4 rounded-xl bg-gray-50 p-4">
               <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Ocupación del punto</span>
+                <span className="text-gray-500">Ocupación del punto</span>
                 <span className="font-medium text-foreground tabular-nums">
                   {active.length} / {positions} posiciones
                 </span>
@@ -252,17 +252,17 @@ function PointPanel() {
               {screen.kind === "keypad" && (
                 <div className="animate-fade-in">
                   <div className="mb-4">
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                      <KeyRound className="size-5 text-primary" />
+                    <h2 className="flex items-center gap-2 text-lg font-bold text-navy">
+                      <KeyRound className="size-5 text-electric" />
                       Validar código
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       Ingresá el código de depósito, retiro o devolución.
                     </p>
                   </div>
 
                   {closed && (
-                    <div className="mb-4 rounded-[12px] border border-border bg-secondary p-3 text-sm text-muted-foreground">
+                    <div className="mb-4 rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm text-gray-500">
                       El punto está fuera de horario. Las validaciones se habilitan cuando vuelve a
                       abrir
                       {openState.nextOpen
@@ -286,11 +286,11 @@ function PointPanel() {
                         <div
                           key={i}
                           className={cn(
-                            "code-chip flex h-16 items-center justify-center rounded-[12px] border text-3xl font-semibold sm:h-20 sm:text-4xl",
+                            "code-chip flex h-16 items-center justify-center rounded-xl border text-3xl font-semibold sm:h-20 sm:text-4xl",
                             char
-                              ? "border-primary/30 bg-primary/5 text-foreground"
-                              : "border-border bg-secondary text-muted-foreground",
-                            isCursor && !closed && "border-primary shadow-glow",
+                              ? "border-electric/30 bg-electric/5 text-foreground"
+                              : "border-gray-100 bg-gray-50 text-gray-500",
+                            isCursor && !closed && "border-electric shadow-glow",
                             i === 2 && "mr-1",
                           )}
                         >
@@ -305,7 +305,7 @@ function PointPanel() {
                       <Button
                         key={d}
                         variant="outline"
-                        className="h-16 text-2xl font-medium"
+                        className="h-16 rounded-2xl text-2xl font-semibold"
                         disabled={closed}
                         onClick={() => append(d)}
                         type="button"
@@ -315,7 +315,7 @@ function PointPanel() {
                     ))}
                     <Button
                       variant="outline"
-                      className="h-16 gap-2 text-sm font-medium"
+                      className="h-16 gap-2 rounded-2xl text-sm font-semibold"
                       onClick={clear}
                       disabled={closed}
                       type="button"
@@ -324,7 +324,7 @@ function PointPanel() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-16 text-2xl font-medium"
+                      className="h-16 rounded-2xl text-2xl font-semibold"
                       onClick={() => append("0")}
                       disabled={closed}
                       type="button"
@@ -333,7 +333,7 @@ function PointPanel() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-16 gap-2 text-sm font-medium"
+                      className="h-16 gap-2 rounded-2xl text-sm font-semibold"
                       onClick={backspace}
                       disabled={closed}
                       type="button"
@@ -344,7 +344,7 @@ function PointPanel() {
                   </div>
 
                   <Button
-                    className="mt-4 h-14 w-full rounded-[10px] text-lg font-semibold"
+                    className="mt-4 h-14 w-full rounded-2xl text-lg font-bold shadow-blue"
                     disabled={mutation.isPending || closed || digits.length < 6}
                     onClick={() => mutation.mutate()}
                   >
@@ -362,10 +362,10 @@ function PointPanel() {
                   <span className="flex size-20 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                     <AlertTriangle className="size-10" />
                   </span>
-                  <h2 className="text-2xl font-semibold text-destructive">Código inválido</h2>
-                  <p className="max-w-sm text-sm text-muted-foreground">{screen.message}</p>
+                  <h2 className="text-2xl font-bold text-destructive">Código inválido</h2>
+                  <p className="max-w-sm text-sm text-gray-500">{screen.message}</p>
                   <Button
-                    className="mt-2 h-14 w-full max-w-xs rounded-[10px] text-lg font-semibold"
+                    className="mt-2 h-14 w-full max-w-xs rounded-2xl text-lg font-bold shadow-blue"
                     onClick={backToKeypad}
                   >
                     Reintentar
@@ -378,20 +378,20 @@ function PointPanel() {
                   <span className="animate-glow-pulse flex size-20 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
                     <Clock className="size-10" />
                   </span>
-                  <h2 className="text-2xl font-semibold text-foreground">Todavía no disponible</h2>
+                  <h2 className="text-2xl font-bold text-navy">Todavía no disponible</h2>
                   {screen.availableAt ? (
-                    <p className="code-chip text-4xl font-semibold text-foreground">
+                    <p className="code-chip text-4xl font-bold text-navy">
                       {screen.availableAt}
                     </p>
                   ) : null}
-                  <p className="max-w-sm text-sm text-muted-foreground">
+                  <p className="max-w-sm text-sm text-gray-500">
                     {screen.availableAt
                       ? `El retiro se habilita a las ${screen.availableAt}.`
                       : screen.message}
                   </p>
                   <Button
                     variant="outline"
-                    className="mt-2 h-14 w-full max-w-xs rounded-[10px] text-lg font-semibold"
+                    className="mt-2 h-14 w-full max-w-xs rounded-2xl text-lg font-bold"
                     onClick={backToKeypad}
                   >
                     <ArrowLeft className="size-5" />
@@ -404,8 +404,8 @@ function PointPanel() {
             <section className="space-y-6">
               <div className="glass-card p-5">
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">Casilleros</h3>
-                  <span className="text-xs text-muted-foreground">
+                  <h3 className="text-sm font-bold text-navy">Casilleros</h3>
+                  <span className="text-xs text-gray-500">
                     {positions - occupiedPositions.size} libres
                   </span>
                 </div>
@@ -417,9 +417,9 @@ function PointPanel() {
                         <div
                           key={n}
                           className={cn(
-                            "flex aspect-square flex-col items-center justify-center rounded-[10px] border text-sm font-medium",
+                            "flex aspect-square flex-col items-center justify-center rounded-xl border text-sm font-medium",
                             occupied
-                              ? "border-border bg-secondary text-muted-foreground"
+                              ? "border-gray-100 bg-gray-50 text-gray-500"
                               : "border-success/30 bg-success/10 text-success",
                           )}
                         >
@@ -430,14 +430,14 @@ function PointPanel() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     El punto no tiene casilleros configurados.
                   </p>
                 )}
               </div>
 
               <div className="glass-card p-5">
-                <h3 className="mb-2 text-sm font-semibold text-foreground">Acciones posibles</h3>
+                <h3 className="mb-2 text-sm font-bold text-navy">Acciones posibles</h3>
                 <div className="flex flex-wrap gap-2">
                   {(["deposited", "picked_up", "completed"] as const).map((s) => {
                     const meta = ACTION_META[s]!;
@@ -473,7 +473,7 @@ function ResultScreen({
       ? "bg-success/10 text-success"
       : meta?.tone === "info"
         ? "bg-info/10 text-info"
-        : "bg-primary/10 text-primary";
+        : "bg-electric/10 text-electric";
 
   return (
     <div className="animate-fade-in flex min-h-[28rem] flex-col items-center justify-center gap-4 text-center">
@@ -483,25 +483,25 @@ function ResultScreen({
       <h2 className="text-3xl font-bold tracking-tight text-foreground">
         {meta?.title ?? "CÓDIGO VÁLIDO"}
       </h2>
-      <p className="max-w-sm text-sm text-muted-foreground">{meta?.subtitle}</p>
+      <p className="max-w-sm text-sm text-gray-500">{meta?.subtitle}</p>
 
       {screen.position && screen.position > 0 ? (
-        <div className="mt-2 w-full max-w-xs rounded-[16px] border border-primary/25 bg-primary/5 p-6">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <div className="mt-2 w-full max-w-xs rounded-2xl border-2 border-electric/20 bg-electric/5 p-6">
+          <p className="text-xs font-bold tracking-wide text-gray-500 uppercase">
             Casillero
           </p>
-          <p className="code-chip mt-1 text-6xl font-bold text-primary">{screen.position}</p>
+          <p className="code-chip mt-1 text-6xl font-bold text-electric">{screen.position}</p>
         </div>
       ) : null}
 
       {screen.bookingRef ? (
-        <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+        <p className="mt-1 flex items-center gap-2 text-sm text-gray-500">
           Reserva <CodeChip value={screen.bookingRef} />
         </p>
       ) : null}
 
       <Button
-        className="mt-3 h-14 w-full max-w-xs rounded-[10px] text-lg font-semibold"
+        className="mt-3 h-14 w-full max-w-xs rounded-2xl text-lg font-bold shadow-blue"
         onClick={onConfirm}
       >
         Confirmar acción

@@ -239,15 +239,15 @@ function HostPanel() {
   return (
     <RoleGuard allow="host">
       <div className="min-h-screen bg-background">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5">
+        <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
           <Brand />
           <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-muted-foreground sm:inline">{name}</span>
+            <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
             <NotificationBell />
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
               <Link to="/checkout">Pagos</Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()}>
+            <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
           </div>
@@ -256,8 +256,8 @@ function HostPanel() {
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">Mis llaves</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-2xl font-bold text-navy">Mis llaves</h1>
+              <p className="text-sm text-gray-500">
                 Llaves activas y sus puntos de intercambio.
               </p>
             </div>
@@ -271,7 +271,7 @@ function HostPanel() {
             </div>
           </div>
 
-          {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
+          {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
           <div className="grid gap-4 md:grid-cols-2">
             {keyRows.map((k) => {
@@ -286,8 +286,8 @@ function HostPanel() {
               <div key={k.id} className="glass-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-semibold text-foreground">{k.name}</h2>
-                    <p className="text-sm text-muted-foreground">{k.property_name ?? "—"}</p>
+                    <h2 className="font-bold text-navy">{k.name}</h2>
+                    <p className="text-sm text-gray-500">{k.property_name ?? "—"}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
                     <Pill tone="info">
@@ -298,14 +298,14 @@ function HostPanel() {
                   </div>
                 </div>
                 {oneUseActive && (
-                  <p className="mt-3 text-xs text-muted-foreground">
+                  <p className="mt-3 text-xs text-gray-500">
                     {oneUseActive.getTime() > now.getTime()
                       ? `Vence en ${formatCountdown(oneUseActive.getTime() - now.getTime())} (guardado ${ONE_USE_STORAGE_HOURS} h)`
                       : "Guardado vencido: renová para recuperar la llave"}
                   </p>
                 )}
 
-                <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <div className="mt-4 space-y-2 text-sm text-gray-500">
                   <p>Punto: {kioskName(k.kiosk_id)}</p>
                   {k.deposit_code && (
                     <div className="flex items-center gap-2">
@@ -323,11 +323,11 @@ function HostPanel() {
                     }}
                   >
                     <DialogTrigger asChild>
-                      <Button size="sm" className="rounded-[10px]">
+                      <Button size="sm" className="rounded-xl">
                         Crear intercambio
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="rounded-[16px] sm:max-w-[480px]">
+                    <DialogContent className="rounded-2xl sm:max-w-[480px]">
                       <DialogHeader>
                         <DialogTitle>Nuevo intercambio · {k.name}</DialogTitle>
                       </DialogHeader>
@@ -373,7 +373,6 @@ function HostPanel() {
                       </div>
                       <DialogFooter>
                         <Button
-                          className="rounded-[10px]"
                           disabled={createMutation.isPending}
                           onClick={() => createMutation.mutate()}
                         >
@@ -396,18 +395,18 @@ function HostPanel() {
                 )}
 
                 {logKeyId === k.id && (
-                  <ul className="mt-4 space-y-1.5 rounded-[12px] border border-border p-3">
+                  <ul className="mt-4 space-y-1.5 rounded-xl border border-gray-100 p-3">
                     {(accessLog ?? []).map((l) => (
                       <li key={l.id} className="flex items-center justify-between gap-2 text-xs">
                         <span className="text-foreground">
                           {ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—"}
                           {l.person_name ? ` · ${l.person_name}` : ""}
                         </span>
-                        <span className="text-muted-foreground">{formatDate(l.timestamp)}</span>
+                        <span className="text-gray-500">{formatDate(l.timestamp)}</span>
                       </li>
                     ))}
                     {(accessLog ?? []).length === 0 && (
-                      <li className="text-xs text-muted-foreground">Sin movimientos.</li>
+                      <li className="text-xs text-gray-500">Sin movimientos.</li>
                     )}
                   </ul>
                 )}
@@ -415,17 +414,17 @@ function HostPanel() {
               );
             })}
             {!isLoading && keyRows.length === 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
               </p>
             )}
           </div>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">Intercambios</h2>
+            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Intercambios</h2>
             <div className="overflow-x-auto glass-card">
               <table className="w-full min-w-[640px] text-sm">
-                <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+                <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 font-medium">Reserva</th>
                     <th className="px-4 py-3 font-medium">Punto</th>
@@ -445,14 +444,14 @@ function HostPanel() {
                             to="/pase/$ref"
                             params={{ ref: e.booking_ref }}
                             target="_blank"
-                            className="text-xs text-primary underline"
+                            className="text-xs text-electric underline"
                           >
                             Pase
                           </Link>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
+                      <td className="px-4 py-3 text-gray-500">
                         {PLAN_LABELS[e.keys.subscription_type as SubscriptionType] ?? e.keys.subscription_type}
                       </td>
                       <td className="px-4 py-3">
@@ -460,7 +459,7 @@ function HostPanel() {
                           {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
                         </Pill>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
+                      <td className="px-4 py-3 text-gray-500">{formatDate(e.created_at)}</td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <Button
                           variant="ghost"
@@ -483,7 +482,7 @@ function HostPanel() {
                   ))}
                   {exchangeRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-muted-foreground">
+                      <td colSpan={6} className="px-4 py-6 text-gray-500">
                         {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
                       </td>
                     </tr>
@@ -495,7 +494,7 @@ function HostPanel() {
 
           {/* Renew dialog */}
           <Dialog open={!!renewId} onOpenChange={() => setRenewId(null)}>
-            <DialogContent className="rounded-[16px] sm:max-w-[400px]">
+            <DialogContent className="rounded-2xl sm:max-w-[400px]">
               <DialogHeader>
                 <DialogTitle>Renovar intercambio</DialogTitle>
               </DialogHeader>
@@ -518,13 +517,12 @@ function HostPanel() {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Se agregarán ${extraDays * EXTRA_DAY_PRICE} al próximo resumen de facturación.
                 </p>
               </div>
               <DialogFooter>
                 <Button
-                  className="rounded-[10px]"
                   disabled={renewMutation.isPending}
                   onClick={() => renewMutation.mutate()}
                 >
@@ -536,26 +534,26 @@ function HostPanel() {
 
           {/* Codes dialog */}
           <Dialog open={!!selectedExchange} onOpenChange={() => setSelectedExchange(null)}>
-            <DialogContent className="rounded-[16px] sm:max-w-[440px]">
+            <DialogContent className="rounded-2xl sm:max-w-[440px]">
               <DialogHeader>
                 <DialogTitle>Códigos de la reserva</DialogTitle>
               </DialogHeader>
               {selectedExchange && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Reserva:</span>
+                    <span className="text-sm text-gray-500">Reserva:</span>
                     <CodeChip value={selectedExchange.booking_ref} />
                   </div>
-                  <div className="rounded-[12px] border border-border p-4">
-                    <p className="text-xs text-muted-foreground uppercase">
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <p className="text-xs text-gray-500 uppercase">
                       Depósito (fijo de la llave)
                     </p>
                     <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
                       {selectedExchange.deposit_code}
                     </p>
                   </div>
-                  <div className="rounded-[12px] border border-border p-4">
-                    <p className="text-xs text-muted-foreground uppercase">
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <p className="text-xs text-gray-500 uppercase">
                       Código del huésped (retiro y devolución)
                     </p>
                     <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
@@ -563,7 +561,7 @@ function HostPanel() {
                     </p>
                   </div>
 
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-500">
                     Estado: {STATUS_LABELS[selectedExchange.status as ExchangeStatus]}
                   </p>
                 </div>

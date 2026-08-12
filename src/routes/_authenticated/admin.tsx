@@ -37,8 +37,8 @@ function AdminLayout() {
   return (
     <RoleGuard allow="admin">
       <div className="flex min-h-screen bg-background">
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
-          <div className="flex h-16 items-center border-b border-border px-5">
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-100 bg-white md:flex">
+          <div className="flex h-16 items-center border-b border-gray-100 px-5">
             <Brand />
           </div>
           <nav className="flex-1 space-y-1 p-3">
@@ -49,10 +49,10 @@ function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "flex items-center gap-3 rounded-[10px] px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors",
                     active
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      ? "bg-electric/10 text-electric"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-navy",
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -61,14 +61,14 @@ function AdminLayout() {
               );
             })}
           </nav>
-          <div className="border-t border-border p-3">
+          <div className="border-t border-gray-100 p-3">
             <div className="px-2 pb-2">
               <p className="truncate text-sm font-medium text-foreground">{name ?? "Admin"}</p>
-              <p className="truncate text-xs text-muted-foreground">{email}</p>
+              <p className="truncate text-xs text-gray-500">{email}</p>
             </div>
             <button
               onClick={() => void signOut()}
-              className="flex w-full items-center gap-2 rounded-[10px] px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />
               Salir
@@ -77,7 +77,7 @@ function AdminLayout() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-16 items-center justify-between gap-3 border-b border-border bg-card px-5">
+          <header className="flex h-16 items-center justify-between gap-3 border-b border-gray-100 bg-white px-5">
             <div className="flex items-center gap-3 md:hidden">
               <Brand className="text-base" />
             </div>
@@ -86,20 +86,20 @@ function AdminLayout() {
               <Pill tone="primary">ADMINISTRADOR</Pill>
               <button
                 onClick={() => void signOut()}
-                className="text-sm text-muted-foreground hover:text-foreground md:hidden"
+                className="text-sm text-gray-500 hover:text-navy md:hidden"
               >
                 Salir
               </button>
             </div>
           </header>
 
-          <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
+          <nav className="flex gap-1 overflow-x-auto border-b border-gray-100 bg-white px-3 py-2 md:hidden">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                className="rounded-[10px] px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground hover:bg-secondary"
-                activeProps={{ className: "bg-accent text-accent-foreground" }}
+                className="rounded-xl px-3 py-1.5 text-sm whitespace-nowrap font-semibold text-gray-500 hover:bg-gray-50 hover:text-navy"
+                activeProps={{ className: "bg-electric/10 text-electric" }}
                 activeOptions={{ exact: item.exact }}
               >
                 {item.label}

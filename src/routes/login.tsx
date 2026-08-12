@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLE_HOME, type AppRole } from "@/lib/pasallave";
-import { Brand } from "@/components/pasallave/ui-bits";
+import { BrandLogo } from "@/components/pasallave/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,29 +97,29 @@ function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <main className="hero-gradient flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-[420px]">
         <div className="mb-6 text-center">
-          <Brand className="text-2xl" />
-          <p className="mt-2 text-sm text-muted-foreground">
+          <BrandLogo className="justify-center" />
+          <p className="mt-2 text-sm text-gray-500">
             Intercambio de llaves en puntos asociados
           </p>
         </div>
 
-        <div className="rounded-[16px] border border-border bg-card p-6 shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
-          <h1 className="text-xl font-semibold text-foreground">
+        <div className="rounded-[2.5rem] border border-gray-100 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-bold text-navy">
             {mode === "login" ? "Ingresar" : "Crear cuenta"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-gray-500">
             {mode === "login"
               ? "Usá tu email y contraseña."
               : "Al registrarte accedés como anfitrión."}
           </p>
 
-          <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div className="space-y-1.5">
-                <Label htmlFor="name">Nombre</Label>
+                <Label htmlFor="name" className="text-navy">Nombre</Label>
                 <Input
                   id="name"
                   value={name}
@@ -127,11 +127,12 @@ function LoginPage() {
                   placeholder="Tu nombre"
                   required
                   maxLength={80}
+                  className="rounded-xl border-gray-200"
                 />
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-navy">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -140,10 +141,11 @@ function LoginPage() {
                 placeholder="tu@email.com"
                 required
                 maxLength={255}
+                className="rounded-xl border-gray-200"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password" className="text-navy">Contraseña</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -154,44 +156,48 @@ function LoginPage() {
                   required
                   minLength={6}
                   maxLength={72}
-                  className="pr-10"
+                  className="rounded-xl border-gray-200 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-gray-400 transition-colors hover:text-navy"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full rounded-[10px]" disabled={busy}>
+            <Button
+              type="submit"
+              className="h-12 w-full rounded-2xl bg-electric text-base font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+              disabled={busy}
+            >
               {mode === "login" ? "Ingresar" : "Registrarme"}
             </Button>
           </form>
 
           <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">o</span>
-            <span className="h-px flex-1 bg-border" />
+            <span className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">o</span>
+            <span className="h-px flex-1 bg-gray-200" />
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="w-full rounded-[10px]"
+            className="h-12 w-full rounded-2xl border-gray-200 font-semibold text-navy hover:bg-gray-50"
             onClick={handleGoogle}
             disabled={busy}
           >
             Continuar con Google
           </Button>
 
-          <p className="mt-5 text-center text-sm text-muted-foreground">
+          <p className="mt-5 text-center text-sm text-gray-500">
             {mode === "login" ? "¿No tenés cuenta? " : "¿Ya tenés cuenta? "}
             <button
               type="button"
-              className="font-medium text-primary hover:underline"
+              className="font-bold text-electric hover:underline"
               onClick={() => setMode(mode === "login" ? "signup" : "login")}
             >
               {mode === "login" ? "Registrate" : "Ingresá"}

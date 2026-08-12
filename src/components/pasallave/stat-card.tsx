@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 
 const accentClasses: Record<string, string> = {
-  primary: "bg-primary/10 text-primary",
+  primary: "bg-electric/10 text-electric",
   success: "bg-success/10 text-success",
   warning: "bg-warning/15 text-warning-foreground",
-  info: "bg-info/10 text-info",
+  info: "bg-electric/10 text-electric",
   danger: "bg-destructive/10 text-destructive",
-  neutral: "bg-secondary text-muted-foreground",
+  neutral: "bg-gray-50 text-gray-500",
 };
 
 export function StatCard({
@@ -36,7 +36,7 @@ export function StatCard({
     >
       <span
         className={cn(
-          "inline-flex size-9 items-center justify-center rounded-[10px]",
+          "inline-flex size-9 items-center justify-center rounded-xl",
           accentClasses[accent],
         )}
       >
@@ -45,10 +45,10 @@ export function StatCard({
       <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
         {value}
       </p>
-      <p className="mt-0.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      <p className="mt-0.5 text-xs font-medium tracking-wide text-gray-500 uppercase">
         {label}
       </p>
-      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-gray-500">{hint}</p> : null}
     </div>
   );
 }
