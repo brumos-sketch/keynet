@@ -1,40 +1,53 @@
-# PASALLAVE — Estado actual y continuación
+# PASALLAVE — Fase 2 (módulos 9-13)
 
-## Respuesta a la pregunta: ¿ya están listos todos los puntos del orden de construcción?
+## Qué ya existe hoy
 
-No. Hoy está funcionando la **Fase 1 (módulos 1-8 del orden de construcción)**: base de datos, autenticación por roles y el panel de administrador con sus CRUDs principales. Los módulos 9-20 aún no están implementados.
+Verificado en el código: `src/lib/pasallave.functions.ts` ya expone `createKey`, `createExchange`, `renewExchange`, `createAccessCode`, `toggleAccessCode`, `validateCode` y `expireOneUseExchanges`. El teclado numérico del punto (`kiosk.tsx`), el panel del anfitrión con estadías y renovación (`host.tsx`) y el panel del asociado con comisiones (`associate.tsx`) están construidos.
 
-## Qué está listo (Fase 1)
+Lo que falta para cerrar la Fase 2 es la parte visible de la gestión Pro, el comportamiento fuera de horario en el punto, y el detalle de intercambio en el admin.
 
-1. **Supabase + tablas + auth + RLS** — 13 tablas, roles separados en `user_roles`, funciones de seguridad por rol, trigger `handle_new_user`, datos demo.
-2. **Login + registro + redirección por rol** — `/login` con email/password/Google, registro como host automático, redirección a `/admin`, `/associate`, `/host` o `/kiosk`.
-3. **Layout admin + sidebar** — navegación desktop y móvil.
-4. **Usuarios** — tabla, cambio de rol por fila, creación manual.
-5. **Anfitriones** — alta y baja; edición pendiente.
-6. **Puntos** — alta con categorías, horarios, comisión, asociado, código PP; edición, foto y panel de posiciones pendientes.
-7. **Llaves** — alta con plan, bloqueo/desbloqueo, eliminación; auto-generación de intercambio libre y `access_code` Pro pendiente.
-8. **Intercambios** — tabla con estados y avance manual; detalle con timeline y códigos por plan pendiente.
+## Módulo 9 — Interfaz del punto (completar)
 
-## Qué falta (módulos 9-20)
+- Cabecera con nombre del punto, código PP y estado abierto/cerrado según `is_24h` + `schedule`.
+- Fuera de horario: el teclado queda deshabilitado con cuenta regresiva hasta la próxima apertura y mensaje claro.
+- Registro de cada validación en `access_log` (acción, rol, nombre) para que quede trazado.
+- Panel lateral con los casilleros ocupados del punto y su referencia de reserva.
 
-9. **Interfaz del punto** — teclado numérico XXX-XXX, validación de códigos en orden correcto (Pro → depósito fijo → pickup bidireccional → un uso), countdown fuera de horario.
-10. **Lógica de planes** — un uso 48h + extra $1.500/día, mensual auto-renovable, Pro con access codes fijos/rotativos y validez.
-11. **Panel anfitrión completo** — agregar propiedad en 4 pasos, configurar estadía, manejo de expired, renovación con pago simulado.
-12. **Gestión Pro** — access codes por rol, registro de accesos, bloqueo remoto.
-13. **Panel asociado completo** — stats reales, historial de comisiones, ocupación por punto.
-14. **Dashboard admin** — listo en Fase 1.
-15. **Facturación completa** — acuerdos Pro, generación automática de períodos.
-16. **Boarding pass** — `/pass/[bookingRef]` público, multi-idioma (es/en/pt), sin posición ni teléfono.
-17. **Buscador de puntos + waitlist** — geolocalización, dirección, mapa con OpenStreetMap, formulario de lista de espera.
-18. **MercadoPago** — flujo de compra real.
-19. **Notificaciones + vencimientos** — alerts, cálculo de overdue, cron/jobs.
-20. **SEO + seguridad** — metadatos, hardening, revisión final.
+## Módulo 10 — Lógica de planes (completar)
 
-## Propuesta para continuar
+- Aviso de vencimiento en el panel anfitrión para "Pasa Una": tiempo restante de las 48 horas y cargo por día extra ($1.500).
+- Ejecutar `expire_one_use_exchanges()` al cargar el panel del anfitrión y del admin, para que los vencidos se vean sin esperar un job.
+- Mensual: marcar la llave como renovable y mostrar el próximo período de cobro.
 
-Dividir lo que falta en dos entregas manejables:
+## Módulo 11 — Panel anfitrión (completar)
 
-- **Fase 2**: módulos 9-13 (interfaz del punto, lógica de planes, panel anfitrión completo, gestión Pro, panel asociado completo).
-- **Fase 3**: módulos 15-20 (facturación completa, boarding pass, buscador, MercadoPago, notificaciones, SEO/seguridad). El módulo 14 (dashboard admin) ya está.
+- Alta de propiedad en 4 pasos: datos de la llave → elegir punto (lista con horario y dirección) → elegir plan → confirmación con el código de depósito fijo.
+- Estado de cada llave con badge de plan y bloqueo, y acceso directo a crear estadía.
 
-Antes de empezar, conviene decidir: ¿se avanza con la Fase 2 completa o se prioriza algún módulo específico? También confirmar que MercadoPago sigue postergado a la Fase 3 y que el buscador usará OpenStreetMap/Nominatim sin API key.
+## Módulo 12 — Gestión Pro (nuevo)
+
+- Sección "Accesos Pro" en el panel del anfitrión, visible solo para llaves con plan Pro.
+- Alta de códigos de acceso por rol (huésped, limpieza, mantenimiento, otro) con nombre, validez opcional por fechas y franja horaria, y reutilizable sí/no.
+- Listado con estado activo/bloqueado y botón de bloqueo remoto inmediato.
+- Historial de accesos leído desde `access_log`, con fecha, rol y persona.
+
+## Módulo 13 — Panel asociado (completar)
+
+- Ocupación por punto: casilleros usados sobre el total, con barra de progreso.
+- Filtro de comisiones por período y total acumulado del año.
+
+## Admin
+
+- Vista de detalle de intercambio: línea de tiempo (creado → depositada → retirada → completado) y los códigos que correspondan al plan, con la posición del casillero visible solo para admin y punto.
+
+## Detalles técnicos
+
+- Nuevas funciones de servidor en `pasallave.functions.ts`: `logAccess` (escritura en `access_log` desde el punto), `listAccessLog` y `kioskOccupancy`; todas con `requireSupabaseAuth` y verificación de rol.
+- El cálculo de apertura/cierre reutiliza `describeSchedule` y agrega un helper `isOpenNow(schedule, is24h)` en `src/lib/pasallave.ts`.
+- Sin cambios de esquema: `access_codes`, `access_log` y `key_exchanges` ya tienen las columnas necesarias.
+- Pagos siguen simulados; MercadoPago queda para la Fase 3.
+- Cada vista nueva con su propio título y descripción.
+
+## Fuera de alcance de esta fase
+
+Módulos 15-20: facturación completa, boarding pass, buscador de puntos con OpenStreetMap, MercadoPago, notificaciones y revisión final de SEO/seguridad.
