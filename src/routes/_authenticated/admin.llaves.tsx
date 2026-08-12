@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
 import { PLAN_LABELS, formatDate, type SubscriptionType } from "@/lib/pasallave";
+import { createKey } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/llaves")({
   head: () => ({
@@ -38,6 +40,7 @@ const PLANS: SubscriptionType[] = ["one_use", "monthly", "pro"];
 
 function AdminKeys() {
   const qc = useQueryClient();
+  const createKeyFn = useServerFn(createKey);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -62,21 +65,21 @@ function AdminKeys() {
   const hostName = (id: string | null) => data?.hosts.find((h) => h.id === id)?.name ?? "—";
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
 
-  const create = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("keys").insert({
-        name: form.name.trim(),
-        property_name: form.propertyName.trim() || null,
-        host_id: form.hostId || null,
-        kiosk_id: form.kioskId || null,
-        subscription_type: form.subscriptionType,
-        status: "active",
-      });
-      if (error) throw error;
-    },
+  const createMutation = useMutation({
+    mutationFn: async () =>
+      createKeyFn({
+        data: {
+          name: form.name.trim(),
+          propertyName: form.propertyName.trim() || null,
+          hostId: form.hostId,
+          kioskId: form.kioskId,
+          subscriptionType: form.subscriptionType,
+        },
+      }),
     onSuccess: () => {
       toast.success("Llave creada");
       setOpen(false);
+      setForm({ name: "", propertyName: "", hostId: "", kioskId: "", subscriptionType: "monthly" });
       void qc.invalidateQueries({ queryKey: ["admin", "keys"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -171,9 +174,7 @@ function AdminKeys() {
                 <Label>Plan</Label>
                 <Select
                   value={form.subscriptionType}
-                  onValueChange={(v) =>
-                    setForm({ ...form, subscriptionType: v as SubscriptionType })
-                  }
+                  onValueChange={(v) => setForm({ ...form, subscriptionType: v as SubscriptionType })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -191,8 +192,8 @@ function AdminKeys() {
             <DialogFooter>
               <Button
                 className="rounded-[10px]"
-                disabled={create.isPending || !form.name.trim()}
-                onClick={() => create.mutate()}
+                disabled={createMutation.isPending || !form.name.trim() || !form.hostId || !form.kioskId}
+                onClick={() => createMutation.mutate()}
               >
                 Crear
               </Button>
