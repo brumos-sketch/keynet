@@ -36,6 +36,17 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "https://pasallave.lovable.app/" }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSON_LD) }],
   }),
+  loader: async () => {
+    try {
+      return { plans: await listPlanPrices() };
+    } catch {
+      return { plans: [] as PlanPriceRow[] };
+    }
+  },
+  errorComponent: () => (
+    <div className="p-10 text-center text-navy">No pudimos cargar la página. Recargá.</div>
+  ),
+  notFoundComponent: () => <div className="p-10 text-center text-navy">Página no encontrada.</div>,
   component: Landing,
 });
 
