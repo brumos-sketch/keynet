@@ -1,4 +1,22 @@
 export type AppRole = "pending" | "admin" | "associate" | "host" | "kiosk";
+
+/** Minúsculas, sin acentos ni separadores: "ABC-123" -> "abc123" */
+export function normalize(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s\-_./]/g, "");
+}
+
+/** true si alguno de los campos contiene el término buscado (normalizado). */
+export function matchesQuery(fields: Array<unknown>, query: string): boolean {
+  const q = normalize(query);
+  if (!q) return true;
+  return fields.some((f) => normalize(f).includes(q));
+}
+
 export type SubscriptionType = "one_use" | "monthly" | "pro";
 export type ExchangeStatus =
   | "created"

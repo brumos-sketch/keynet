@@ -17,8 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
-import { STATUS_LABELS, STATUS_TONE, formatDate, type ExchangeStatus } from "@/lib/pasallave";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import {
+  STATUS_LABELS,
+  STATUS_TONE,
+  formatDate,
+  matchesQuery,
+  type ExchangeStatus,
+} from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
 
 type ExchangeRow = {
@@ -53,6 +59,7 @@ export const Route = createFileRoute("/_authenticated/admin/intercambios")({
 function AdminExchanges() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
+  const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<ExchangeRow | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -102,9 +109,21 @@ function AdminExchanges() {
           ? "completed"
           : null;
 
-  const rows = ((data?.exchanges ?? []) as ExchangeRow[]).filter(
-    (e) => statusFilter === "all" || e.status === statusFilter,
-  );
+  const rows = ((data?.exchanges ?? []) as ExchangeRow[])
+    .filter((e) => statusFilter === "all" || e.status === statusFilter)
+    .filter((e) =>
+      matchesQuery(
+        [
+          e.booking_ref,
+          e.deposit_code,
+          e.pickup_code,
+          e.return_code,
+          keyName(e.key_id),
+          kioskName(e.kiosk_id),
+        ],
+        query,
+      ),
+    );
 
   const timeline = (e: ExchangeRow) => [
     { label: "Creado", at: e.created_at },
@@ -120,20 +139,27 @@ function AdminExchanges() {
           <h1 className="text-2xl font-semibold text-foreground">Intercambios</h1>
           <p className="text-sm text-muted-foreground">Depósitos, retiros y devoluciones.</p>
         </div>
-        <div className="w-[200px]">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <SearchField
+            value={query}
+            onChange={setQuery}
+            placeholder="Buscar por reserva, código o llave…"
+          />
+          <div className="w-[200px]">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -203,7 +229,7 @@ function AdminExchanges() {
             {!isLoading && rows.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-6 text-muted-foreground">
-                  Sin intercambios para este filtro.
+                  {query ? `Sin resultados para "${query}".` : "Sin intercambios para este filtro."}
                 </td>
               </tr>
             )}

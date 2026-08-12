@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
-import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ import {
   STATUS_LABELS,
   STATUS_TONE,
   formatDate,
+  matchesQuery,
   formatMoney,
   type ExchangeStatus,
   type SubscriptionType,
@@ -42,6 +43,7 @@ function AssociatePanel() {
   const { name, signOut } = useAuth();
   const overviewFn = useServerFn(associateOverview);
   const [period, setPeriod] = useState("all");
+  const [query, setQuery] = useState("");
 
   const { data: overview, isLoading } = useQuery({
     queryKey: ["associate", "overview"],
@@ -72,8 +74,12 @@ function AssociatePanel() {
     .filter((c) => c.status === "paid")
     .reduce((sum, c) => sum + (c.total ?? 0), 0);
 
-  const kiosks = overview?.kiosks ?? [];
-  const kioskName = (id: string | null) => kiosks.find((k) => k.id === id)?.name ?? "—";
+  const allKiosks = overview?.kiosks ?? [];
+  const kioskName = (id: string | null) => allKiosks.find((k) => k.id === id)?.name ?? "—";
+  const kiosks = allKiosks.filter((k) => matchesQuery([k.name, k.address], query));
+  const exchangeRows = (overview?.exchanges ?? []).filter((e) =>
+    matchesQuery([e.booking_ref, e.keyName, kioskName(e.kiosk_id)], query),
+  );
 
   return (
     <RoleGuard allow="associate">
@@ -96,20 +102,27 @@ function AssociatePanel() {
                 Tus puntos, ocupación y comisiones.
               </p>
             </div>
-            <div className="w-[180px]">
-              <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los períodos</SelectItem>
-                  {periods.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar punto o reserva…"
+              />
+              <div className="w-[180px]">
+                <Select value={period} onValueChange={setPeriod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los períodos</SelectItem>
+                    {periods.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -126,7 +139,7 @@ function AssociatePanel() {
             </div>
             <div className="rounded-[16px] border border-border bg-card p-5">
               <p className="text-xs text-muted-foreground uppercase">Puntos</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{kiosks.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{allKiosks.length}</p>
             </div>
           </div>
 
@@ -230,7 +243,7 @@ function AssociatePanel() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {(overview?.exchanges ?? []).map((e) => (
+                  {exchangeRows.map((e) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3">
                         <CodeChip value={e.booking_ref} />
@@ -247,10 +260,10 @@ function AssociatePanel() {
                       <td className="px-4 py-3 text-muted-foreground">{formatDate(e.created_at)}</td>
                     </tr>
                   ))}
-                  {(overview?.exchanges ?? []).length === 0 && (
+                  {exchangeRows.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-4 py-6 text-muted-foreground">
-                        Sin intercambios.
+                        {query ? `Sin resultados para "${query}".` : "Sin intercambios."}
                       </td>
                     </tr>
                   )}

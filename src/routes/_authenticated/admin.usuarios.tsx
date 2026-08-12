@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { adminCreateUser, adminSetUserRole } from "@/lib/admin.functions";
-import { Pill } from "@/components/pasallave/ui-bits";
-import { ROLE_LABELS, type AppRole } from "@/lib/pasallave";
+import { Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { ROLE_LABELS, matchesQuery, type AppRole } from "@/lib/pasallave";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,7 @@ const ROLE_TONE: Record<AppRole, "neutral" | "info" | "success" | "warning" | "p
 function AdminUsers() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -110,6 +111,10 @@ function AdminUsers() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const rows = (data?.users ?? []).filter((u) =>
+    matchesQuery([u.name, u.email, ROLE_LABELS[u.role as AppRole]], query),
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -117,6 +122,8 @@ function AdminUsers() {
           <h1 className="text-2xl font-semibold text-foreground">Usuarios</h1>
           <p className="text-sm text-muted-foreground">Aprobá cuentas y asigná roles.</p>
         </div>
+
+        <SearchField value={query} onChange={setQuery} placeholder="Buscar por nombre o email…" />
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -235,7 +242,7 @@ function AdminUsers() {
                 </td>
               </tr>
             )}
-            {(data?.users ?? []).map((u) => (
+            {rows.map((u) => (
               <tr key={u.id}>
                 <td className="px-4 py-3 text-foreground">{u.name ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
@@ -270,6 +277,13 @@ function AdminUsers() {
                 </td>
               </tr>
             ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-muted-foreground">
+                  {query ? `Sin resultados para "${query}".` : "Todavía no hay usuarios."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

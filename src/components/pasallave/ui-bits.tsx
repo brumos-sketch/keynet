@@ -1,3 +1,4 @@
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const toneClasses: Record<string, string> = {
@@ -52,3 +53,41 @@ export function Brand({ className }: { className?: string }) {
     </span>
   );
 }
+
+export function SearchField({
+  value,
+  onChange,
+  placeholder = "Buscar…",
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("relative w-full sm:max-w-sm", className)}>
+      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        maxLength={120}
+        className="h-10 w-full rounded-[10px] border border-border bg-card pr-9 pl-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="Limpiar búsqueda"
+          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+

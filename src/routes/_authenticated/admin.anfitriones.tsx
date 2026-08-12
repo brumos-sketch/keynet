@@ -14,7 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatDate } from "@/lib/pasallave";
+import { SearchField } from "@/components/pasallave/ui-bits";
+import { formatDate, matchesQuery } from "@/lib/pasallave";
 
 export const Route = createFileRoute("/_authenticated/admin/anfitriones")({
   head: () => ({
@@ -30,6 +31,8 @@ function AdminHosts() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [query, setQuery] = useState("");
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "hosts"],
@@ -72,6 +75,8 @@ function AdminHosts() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const rows = (data?.hosts ?? []).filter((h) => matchesQuery([h.name, h.email, h.phone], query));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -79,6 +84,7 @@ function AdminHosts() {
           <h1 className="text-2xl font-semibold text-foreground">Anfitriones</h1>
           <p className="text-sm text-muted-foreground">Clientes que publican propiedades.</p>
         </div>
+        <SearchField value={query} onChange={setQuery} placeholder="Buscar anfitrión…" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-[10px]">Nuevo anfitrión</Button>
@@ -150,7 +156,7 @@ function AdminHosts() {
                 </td>
               </tr>
             )}
-            {(data?.hosts ?? []).map((h) => (
+            {rows.map((h) => (
               <tr key={h.id}>
                 <td className="px-4 py-3 text-foreground">{h.name}</td>
                 <td className="px-4 py-3 text-muted-foreground">{h.email}</td>
@@ -171,6 +177,13 @@ function AdminHosts() {
                 </td>
               </tr>
             ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-muted-foreground">
+                  {query ? `Sin resultados para "${query}".` : "Todavía no hay anfitriones."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
-import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
@@ -37,6 +37,7 @@ import {
   STATUS_TONE,
   formatCountdown,
   formatDate,
+  matchesQuery,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
@@ -65,6 +66,7 @@ function HostPanel() {
   const expireFn = useServerFn(expireOneUseExchanges);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [exchangeForm, setExchangeForm] = useState({
     checkIn: "",
     checkOut: "",
@@ -153,6 +155,36 @@ function HostPanel() {
 
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
 
+  const keyRows = (data?.keys ?? []).filter((k) =>
+    matchesQuery(
+      [
+        k.name,
+        k.property_name,
+        k.deposit_code,
+        kioskName(k.kiosk_id),
+        ...(data?.exchanges ?? [])
+          .filter((e) => e.key_id === k.id)
+          .flatMap((e) => [e.booking_ref, e.pickup_code, e.return_code]),
+      ],
+      query,
+    ),
+  );
+
+  const exchangeRows = (data?.exchanges ?? []).filter((e) =>
+    matchesQuery(
+      [
+        e.booking_ref,
+        e.deposit_code,
+        e.pickup_code,
+        e.return_code,
+        kioskName(e.kiosk_id),
+        data?.keys.find((k) => k.id === e.key_id)?.name,
+      ],
+      query,
+    ),
+  );
+
+
   const keyStatus = (keyId: string) => {
     const list = (data?.exchanges ?? []).filter((e) => e.key_id === keyId);
     const active = list.find((e) =>
@@ -229,13 +261,20 @@ function HostPanel() {
                 Llaves activas y sus puntos de intercambio.
               </p>
             </div>
-            <NewKeyWizard hostId={hostId ?? null} />
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar por llave, reserva o código…"
+              />
+              <NewKeyWizard hostId={hostId ?? null} />
+            </div>
           </div>
 
           {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(data?.keys ?? []).map((k) => {
+            {keyRows.map((k) => {
               const st = keyStatus(k.id);
               const oneUseActive =
                 k.subscription_type === "one_use" &&
@@ -375,8 +414,10 @@ function HostPanel() {
               </div>
               );
             })}
-            {!isLoading && (data?.keys.length ?? 0) === 0 && (
-              <p className="text-sm text-muted-foreground">Todavía no tenés llaves cargadas.</p>
+            {!isLoading && keyRows.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
+              </p>
             )}
           </div>
 
@@ -395,7 +436,7 @@ function HostPanel() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {(data?.exchanges ?? []).map((e) => (
+                  {exchangeRows.map((e) => (
                     <tr key={e.id}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -440,10 +481,10 @@ function HostPanel() {
                       </td>
                     </tr>
                   ))}
-                  {(data?.exchanges.length ?? 0) === 0 && (
+                  {exchangeRows.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-4 py-6 text-muted-foreground">
-                        Sin intercambios todavía.
+                        {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
                       </td>
                     </tr>
                   )}

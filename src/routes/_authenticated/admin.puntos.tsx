@@ -24,13 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import {
   KIOSK_CATEGORIES,
   TIME_SLOTS,
   WEEKDAYS,
   describeSchedule,
   generateKioskCode,
+  matchesQuery,
   type KioskSchedule,
 } from "@/lib/pasallave";
 
@@ -79,6 +80,7 @@ function AdminKiosks() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(blankForm);
+  const [query, setQuery] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "kiosks"],
@@ -190,10 +192,22 @@ function AdminKiosks() {
     }));
   };
 
+  const kioskRows = (data?.kiosks ?? []).filter((k) =>
+    matchesQuery(
+      [k.name, k.address, k.access_code, k.contact_name, k.contact_phone, k.custom_category],
+      query,
+    ),
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Puntos</h1>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por nombre, dirección o código…"
+        />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-[10px]" onClick={openNew}>
@@ -399,7 +413,7 @@ function AdminKiosks() {
 
       <div className="space-y-5">
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
-        {(data?.kiosks ?? []).map((k) => {
+        {kioskRows.map((k) => {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
           return (
@@ -501,6 +515,11 @@ function AdminKiosks() {
             </article>
           );
         })}
+        {!isLoading && kioskRows.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            {query ? `Sin resultados para "${query}".` : "Todavía no hay puntos."}
+          </p>
+        )}
       </div>
 
     </div>

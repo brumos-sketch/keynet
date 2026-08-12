@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill } from "@/components/pasallave/ui-bits";
-import { PLAN_LABELS, formatDate, type SubscriptionType } from "@/lib/pasallave";
+import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { PLAN_LABELS, formatDate, matchesQuery, type SubscriptionType } from "@/lib/pasallave";
 import { createKey } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/llaves")({
@@ -42,6 +42,7 @@ function AdminKeys() {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
@@ -64,6 +65,20 @@ function AdminKeys() {
 
   const hostName = (id: string | null) => data?.hosts.find((h) => h.id === id)?.name ?? "—";
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+
+  const rows = (data?.keys ?? []).filter((k) =>
+    matchesQuery(
+      [
+        k.name,
+        k.property_name,
+        k.deposit_code,
+        hostName(k.host_id),
+        kioskName(k.kiosk_id),
+        PLAN_LABELS[k.subscription_type as SubscriptionType],
+      ],
+      query,
+    ),
+  );
 
   const createMutation = useMutation({
     mutationFn: async () =>
@@ -113,6 +128,11 @@ function AdminKeys() {
           <h1 className="text-2xl font-semibold text-foreground">Llaves</h1>
           <p className="text-sm text-muted-foreground">Inventario global de llaves gestionadas.</p>
         </div>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por llave, propiedad o código…"
+        />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="rounded-[10px]">Nueva llave</Button>
@@ -224,7 +244,7 @@ function AdminKeys() {
                 </td>
               </tr>
             )}
-            {(data?.keys ?? []).map((k) => (
+            {rows.map((k) => (
               <tr key={k.id}>
                 <td className="px-4 py-3">
                   <p className="text-foreground">{k.name}</p>
@@ -265,6 +285,13 @@ function AdminKeys() {
                 </td>
               </tr>
             ))}
+            {!isLoading && rows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                  {query ? `Sin resultados para "${query}".` : "Todavía no hay llaves."}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
