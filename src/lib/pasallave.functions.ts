@@ -405,7 +405,7 @@ export const validateCode = createServerFn({ method: "POST" })
     const { data: accessCodes } = await supabase
       .from("access_codes")
       .select("*, keys!inner(id, kiosk_id, host_id, subscription_type)")
-      .eq("code", clean)
+      .or(codeSearchConditions("code", clean))
       .eq("status", "active")
       .eq("keys.kiosk_id", myKioskId);
     if (accessCodes && accessCodes.length > 0) {
