@@ -229,8 +229,9 @@ export const createExchange = createServerFn({ method: "POST" })
       person_name: data.guestName ?? null,
     });
 
-    return { exchangeId: exchange.id, bookingRef };
+    return { exchangeId: exchange.id, bookingRef } as { exchangeId: string; bookingRef: string };
   });
+
 
 // ---------- renew an expired one-use exchange ----------
 
