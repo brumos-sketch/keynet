@@ -1,0 +1,198 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Pill } from "@/components/pasallave/ui-bits";
+import { PLAN_LABELS, formatMoney, type SubscriptionType } from "@/lib/pasallave";
+
+export const Route = createFileRoute("/_authenticated/admin/facturacion")({
+  head: () => ({
+    meta: [
+      { title: "Facturación — PASALLAVE Admin" },
+      { name: "description", content: "Cobros a anfitriones y comisiones a puntos asociados." },
+    ],
+  }),
+  component: AdminBilling,
+});
+
+function AdminBilling() {
+  const qc = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "billing"],
+    queryFn: async () => {
+      const [billing, commissions, hosts, kiosks] = await Promise.all([
+        supabase.from("billing").select("*").order("created_at", { ascending: false }),
+        supabase.from("point_commissions").select("*").order("created_at", { ascending: false }),
+        supabase.from("hosts").select("id, name"),
+        supabase.from("kiosks").select("id, name"),
+      ]);
+      return {
+        billing: billing.data ?? [],
+        commissions: commissions.data ?? [],
+        hosts: hosts.data ?? [],
+        kiosks: kiosks.data ?? [],
+      };
+    },
+  });
+
+  const markPaid = useMutation({
+    mutationFn: async (vars: { table: "billing" | "point_commissions"; id: string }) => {
+      const patch = { status: "paid", paid_at: new Date().toISOString() };
+      const { error } =
+        vars.table === "billing"
+          ? await supabase.from("billing").update(patch).eq("id", vars.id)
+          : await supabase.from("point_commissions").update(patch).eq("id", vars.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Marcado como pagado");
+      void qc.invalidateQueries({ queryKey: ["admin", "billing"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const hostName = (id: string | null) => data?.hosts.find((h) => h.id === id)?.name ?? "—";
+  const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+
+  const pendingHosts = (data?.billing ?? [])
+    .filter((b) => b.status !== "paid")
+    .reduce((sum, b) => sum + (b.amount ?? 0) + (b.extra_amount ?? 0), 0);
+  const pendingPoints = (data?.commissions ?? [])
+    .filter((c) => c.status !== "paid")
+    .reduce((sum, c) => sum + (c.total ?? 0), 0);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">Facturación</h1>
+        <p className="text-sm text-muted-foreground">Cobros y comisiones (pagos simulados).</p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-[16px] border border-border bg-card p-4">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            Por cobrar a anfitriones
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(pendingHosts)}</p>
+        </div>
+        <div className="rounded-[16px] border border-border bg-card p-4">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            Por pagar a puntos
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-foreground">{formatMoney(pendingPoints)}</p>
+        </div>
+      </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground">Cobros a anfitriones</h2>
+        <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+          <table className="w-full min-w-[780px] text-sm">
+            <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+              <tr>
+                <th className="px-4 py-3 font-medium">Anfitrión</th>
+                <th className="px-4 py-3 font-medium">Período</th>
+                <th className="px-4 py-3 font-medium">Plan</th>
+                <th className="px-4 py-3 font-medium">Llaves</th>
+                <th className="px-4 py-3 font-medium">Extras</th>
+                <th className="px-4 py-3 font-medium">Total</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {isLoading && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-6 text-muted-foreground">
+                    Cargando…
+                  </td>
+                </tr>
+              )}
+              {(data?.billing ?? []).map((b) => (
+                <tr key={b.id}>
+                  <td className="px-4 py-3 text-foreground">{hostName(b.host_id)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{b.period ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {b.plan ? (PLAN_LABELS[b.plan as SubscriptionType] ?? b.plan) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{b.keys_count ?? 0}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {b.extra_days} día(s) · {formatMoney(b.extra_amount)}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    {formatMoney((b.amount ?? 0) + (b.extra_amount ?? 0))}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Pill tone={b.status === "paid" ? "success" : "warning"}>
+                      {b.status === "paid" ? "Pagado" : "Pendiente"}
+                    </Pill>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {b.status !== "paid" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => markPaid.mutate({ table: "billing", id: b.id })}
+                      >
+                        Marcar pagado
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground">Comisiones a puntos</h2>
+        <div className="overflow-x-auto rounded-[16px] border border-border bg-card">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead className="border-b border-border text-left text-xs tracking-wide text-muted-foreground uppercase">
+              <tr>
+                <th className="px-4 py-3 font-medium">Punto</th>
+                <th className="px-4 py-3 font-medium">Período</th>
+                <th className="px-4 py-3 font-medium">Facturado</th>
+                <th className="px-4 py-3 font-medium">Comisión</th>
+                <th className="px-4 py-3 font-medium">Total</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {(data?.commissions ?? []).map((c) => (
+                <tr key={c.id}>
+                  <td className="px-4 py-3 text-foreground">{kioskName(c.kiosk_id)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.period ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatMoney(c.plans_revenue)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.commission_percent ?? 0}%</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{formatMoney(c.total)}</td>
+                  <td className="px-4 py-3">
+                    <Pill tone={c.status === "paid" ? "success" : "warning"}>
+                      {c.status === "paid" ? "Pagado" : "Pendiente"}
+                    </Pill>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {c.status !== "paid" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => markPaid.mutate({ table: "point_commissions", id: c.id })}
+                      >
+                        Marcar pagado
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
