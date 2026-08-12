@@ -403,7 +403,8 @@ function HostPanel() {
                   >
                     <DialogTrigger asChild>
                       <Button size="sm" className="rounded-xl">
-                        Crear intercambio
+                        Nueva estadía
+
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="rounded-2xl sm:max-w-[480px]">
