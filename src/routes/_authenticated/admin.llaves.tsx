@@ -66,6 +66,20 @@ function AdminKeys() {
   const hostName = (id: string | null) => data?.hosts.find((h) => h.id === id)?.name ?? "—";
   const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
 
+  const rows = (data?.keys ?? []).filter((k) =>
+    matchesQuery(
+      [
+        k.name,
+        k.property_name,
+        k.deposit_code,
+        hostName(k.host_id),
+        kioskName(k.kiosk_id),
+        PLAN_LABELS[k.subscription_type as SubscriptionType],
+      ],
+      query,
+    ),
+  );
+
   const createMutation = useMutation({
     mutationFn: async () =>
       createKeyFn({
