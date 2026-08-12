@@ -223,11 +223,12 @@ export const createExchange = createServerFn({ method: "POST" })
 
     await supabase.from("access_log").insert({
       key_id: key.id,
-      exchange_id: exchange.id,
+      exchange_id: exchange.id as never,
       action: "exchange_created",
       role: "host",
       person_name: data.guestName ?? null,
-    });
+    } as never);
+
 
     return { exchangeId: exchange.id, bookingRef } as { exchangeId: string; bookingRef: string };
   });
