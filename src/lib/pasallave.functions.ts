@@ -560,7 +560,11 @@ export const validateCode = createServerFn({ method: "POST" })
       .from("key_exchanges")
       .select("*, keys!inner(subscription_type)")
       .eq("kiosk_id", myKioskId)
-      .or(`deposit_code.eq.${clean},pickup_code.eq.${clean},return_code.eq.${clean}`);
+      .or(
+        `${codeSearchConditions("deposit_code", clean)},` +
+          `${codeSearchConditions("pickup_code", clean)},` +
+          `${codeSearchConditions("return_code", clean)}`,
+      );
     if (exchanges && exchanges.length > 0) {
       const ex = exchanges[0]!;
       const key = (ex as unknown as { keys: { subscription_type: string } }).keys;
