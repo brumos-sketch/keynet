@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ import {
 } from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Propiedad", "Punto", "Plan", "Confirmar"] as const;
+const STEPS = ["Llave", "Punto", "Plan", "Confirmar"] as const;
 
 const PLAN_DETAILS: Record<SubscriptionType, string> = {
   one_use: "Una estadía. La llave se guarda hasta 48 h; después se puede renovar por días extra.",
@@ -75,7 +75,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
       });
     },
     onSuccess: () => {
-      toast.success("Propiedad dada de alta");
+      toast.success("Llave dada de alta");
       setOpen(false);
       reset();
       void qc.invalidateQueries({ queryKey: ["host", "overview"] });
@@ -84,8 +84,57 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   });
 
   const chosenKiosk = (kiosks ?? []).find((k) => k.id === form.kioskId);
+
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
+  const address = form.propertyName.trim();
+
+  useEffect(() => {
+    if (address.length < 5) {
+      setCoords(null);
+      setGeoState("idle");
+      return;
+    }
+    const controller = new AbortController();
+    setGeoState("loading");
+    const timer = setTimeout(() => {
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
+        { signal: controller.signal, headers: { Accept: "application/json" } },
+      )
+        .then((r) => r.json())
+        .then((results: Array<{ lat: string; lon: string }>) => {
+          const first = results?.[0];
+          if (!first) {
+            setCoords(null);
+            setGeoState("none");
+            return;
+          }
+          setCoords({ lat: Number(first.lat), lng: Number(first.lon) });
+          setGeoState("idle");
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setGeoState("none");
+        });
+    }, 700);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [address]);
+
+  const nearest = useMemo(() => {
+    if (!coords) return null;
+    let best: { kiosk: (typeof kiosks)[number]; km: number } | null = null;
+    for (const k of kiosks ?? []) {
+      if (k.lat == null || k.lng == null) continue;
+      const km = haversineKm(coords.lat, coords.lng, k.lat, k.lng);
+      if (!best || km < best.km) best = { kiosk: k, km };
+    }
+    return best;
+  }, [coords, kiosks]);
   const canContinue =
-    (step === 0 && form.name.trim().length > 1) ||
+    (step === 0 && form.name.trim().length >= 2) ||
     (step === 1 && !!form.kioskId) ||
     step === 2 ||
     step === 3;
@@ -99,11 +148,11 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="rounded-[10px]">Nueva propiedad</Button>
+        <Button className="rounded-[10px]">Nueva llave</Button>
       </DialogTrigger>
       <DialogContent className="rounded-[16px] sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>Alta de propiedad</DialogTitle>
+          <DialogTitle>Alta de llave</DialogTitle>
         </DialogHeader>
 
         <ol className="flex items-center gap-2 text-xs">
@@ -140,7 +189,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="w-prop">Propiedad / dirección</Label>
+                <Label htmlFor="w-prop">Dirección (opcional)</Label>
                 <Input
                   id="w-prop"
                   maxLength={120}
@@ -149,6 +198,44 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
                   onChange={(e) => setForm({ ...form, propertyName: e.target.value })}
                 />
               </div>
+              {address.length >= 5 && (
+                <div className="rounded-[12px] border border-border p-3">
+                  {geoState === "loading" && (
+                    <p className="text-sm text-muted-foreground">Buscando el punto más cercano…</p>
+                  )}
+                  {geoState !== "loading" && !nearest && (
+                    <p className="text-sm text-muted-foreground">
+                      No pudimos ubicar esa dirección. Podés elegir el punto en el paso siguiente.
+                    </p>
+                  )}
+                  {geoState !== "loading" && nearest && (
+                    <>
+                      <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                        Punto más cercano
+                      </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground">{nearest.kiosk.name}</span>
+                        <Pill tone="info">{formatKm(nearest.km)}</Pill>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{nearest.kiosk.address ?? "—"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {describeSchedule(
+                          nearest.kiosk.is_24h,
+                          (nearest.kiosk.schedule as KioskSchedule | null) ?? null,
+                        )}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 rounded-[10px]"
+                        onClick={() => setForm({ ...form, kioskId: nearest.kiosk.id })}
+                      >
+                        {form.kioskId === nearest.kiosk.id ? "Punto elegido" : "Elegir este punto"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -215,7 +302,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
           {step === 3 && (
             <div className="space-y-3 rounded-[12px] border border-border p-4 text-sm">
               <Row label="Llave" value={form.name} />
-              <Row label="Propiedad" value={form.propertyName || "—"} />
+              <Row label="Dirección" value={form.propertyName || "—"} />
               <Row label="Punto" value={chosenKiosk?.name ?? "—"} />
               <Row label="Dirección" value={chosenKiosk?.address ?? "—"} />
               <Row label="Plan" value={PLAN_LABELS[form.plan]} />
@@ -263,6 +350,20 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
       </DialogContent>
     </Dialog>
   );
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatKm(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
