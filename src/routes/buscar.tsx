@@ -16,8 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CATEGORY_LABELS, kioskOpenState } from "@/lib/pasallave";
-import { joinWaitlist, listPublicKiosks } from "@/lib/pasallave.functions";
+import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
+import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
+
+const categoryLabel = (value: string) =>
+  KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
 
 export const Route = createFileRoute("/buscar")({
   loader: () => listPublicKiosks(),
@@ -45,7 +48,7 @@ export const Route = createFileRoute("/buscar")({
 });
 
 function SearchPage() {
-  const { kiosks } = Route.useLoaderData();
+  const { kiosks } = Route.useLoaderData() as { kiosks: PublicKiosk[] };
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(kiosks[0]?.id ?? null);
   const waitlistFn = useServerFn(joinWaitlist);
@@ -179,7 +182,7 @@ function SearchPage() {
             )}
 
             {filtered.map((k) => {
-              const state = kioskOpenState(k.is_24h, k.schedule);
+              const state = kioskOpenState(k.is_24h, k.schedule as KioskSchedule | null);
               const active = current?.id === k.id;
               return (
                 <button
@@ -200,7 +203,7 @@ function SearchPage() {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <Pill tone="neutral">
-                      {k.custom_category ?? CATEGORY_LABELS[k.category] ?? k.category}
+                      {k.custom_category ?? categoryLabel(k.category)}
                     </Pill>
                     <span>
                       {k.free_positions} de {k.positions} posiciones libres
