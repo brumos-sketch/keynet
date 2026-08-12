@@ -150,6 +150,16 @@ export function formatDate(value: string | null | undefined): string {
   }).format(new Date(value));
 }
 
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function describeSchedule(is24h: boolean, schedule: KioskSchedule | null): string {
   if (is24h) return "Abierto 24 horas";
   if (!schedule) return "Sin horario cargado";
