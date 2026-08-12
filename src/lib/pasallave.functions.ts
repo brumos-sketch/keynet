@@ -41,6 +41,11 @@ function codeSearchConditions(field: string, code: string) {
   return `${field}.eq.${clean},${field}.eq.${hyp}`;
 }
 
+function codesMatch(a: string | null, b: string) {
+  if (!a) return false;
+  return normalizeCode(a) === normalizeCode(b);
+}
+
 async function isAdmin(context: { supabase: TypedSupabase; userId: string }) {
   const { data } = await context.supabase.rpc("is_admin");
   return !!data;
