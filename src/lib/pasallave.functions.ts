@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -9,18 +10,12 @@ import {
   pickFreePosition,
 } from "@/lib/pasallave";
 
-type SupabaseClient = Awaited<ReturnType<typeof import("@/integrations/supabase/auth-middleware")["requireSupabaseAuth"]["middleware"]["handler"]>>["context"]["supabase"];
+type TypedSupabase = SupabaseClient<Database>;
 
 // ---------- helpers ----------
 
 function nowIso() {
   return new Date().toISOString();
-}
-
-function oneMonthFromNow() {
-  const d = new Date();
-  d.setMonth(d.getMonth() + 1);
-  return d.toISOString();
 }
 
 function in48Hours() {
@@ -33,18 +28,34 @@ function normalizeCode(value: string) {
   return value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
 }
 
-async function isAdmin(context: { supabase: SupabaseClient; userId: string }) {
+async function isAdmin(context: { supabase: TypedSupabase; userId: string }) {
   const { data } = await context.supabase.rpc("is_admin");
   return !!data;
 }
 
-async function assertAdmin(context: { supabase: SupabaseClient; userId: string }) {
+async function assertAdmin(context: { supabase: TypedSupabase; userId: string }) {
   if (!(await isAdmin(context))) throw new Error("Forbidden");
 }
 
 async function loadAdminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
+}
+
+async function reservePosition(supabase: TypedSupabase, kioskId: string) {
+  const { data: kiosk } = await supabase.from("kiosks").select("positions").eq("id", kioskId).maybeSingle();
+  if (!kiosk) throw new Error("Punto no encontrado");
+  const { data: taken } = await supabase
+    .from("key_exchanges")
+    .select("locker_position")
+    .eq("kiosk_id", kioskId)
+    .in("status", ["created", "waiting_deposit", "deposited", "picked_up"]);
+  const position = pickFreePosition(
+    kiosk.positions,
+    (taken ?? []).map((x: { locker_position: number | null }) => x.locker_position ?? 0).filter(Boolean),
+  );
+  if (position === 0) throw new Error("No hay posiciones libres");
+  return position;
 }
 
 // ---------- expire old one-use exchanges ----------
@@ -102,13 +113,14 @@ export const createKey = createServerFn({ method: "POST" })
       .single();
     if (keyError || !key) throw new Error(keyError?.message ?? "No se pudo crear la llave");
 
-    // For monthly/pro create a "free" exchange and a bidirectional monthly code
+    // For monthly create a "free" exchange with a bidirectional return code
     if (data.subscriptionType === "monthly") {
       const returnCode = generateExchangeCode();
       const { error: exError } = await supabaseAdmin.from("key_exchanges").insert({
         key_id: key.id,
         kiosk_id: data.kioskId,
         booking_ref: generateBookingRef(),
+        locker_position: 0,
         deposit_code: depositCode!,
         pickup_code: returnCode,
         return_code: returnCode,
@@ -160,21 +172,7 @@ export const createExchange = createServerFn({ method: "POST" })
     const { data: myHost } = await supabase.rpc("my_host_id");
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
 
-    // Load kiosk to find a free position
-    const { data: kiosk } = await supabase.from("kiosks").select("positions").eq("id", key.kiosk_id).maybeSingle();
-    if (!kiosk) throw new Error("Punto no encontrado");
-
-    const { data: taken } = await supabase
-      .from("key_exchanges")
-      .select("locker_position")
-      .eq("kiosk_id", key.kiosk_id)
-      .in("status", ["created", "waiting_deposit", "deposited", "picked_up"]);
-    const position = pickFreePosition(
-      kiosk.positions,
-      (taken ?? []).map((x) => x.locker_position ?? 0).filter(Boolean),
-    );
-    if (position === 0) throw new Error("No hay posiciones libres en el punto");
-
+    const position = await reservePosition(supabase, key.kiosk_id!);
     const bookingRef = generateBookingRef();
 
     let depositCode: string;
@@ -204,8 +202,6 @@ export const createExchange = createServerFn({ method: "POST" })
       pickupCode = generateExchangeCode();
     }
 
-    const expiresAt = key.subscription_type === "one_use" ? in48Hours() : null;
-
     const { data: exchange, error } = await supabase
       .from("key_exchanges")
       .insert({
@@ -225,7 +221,6 @@ export const createExchange = createServerFn({ method: "POST" })
       .single();
     if (error || !exchange) throw new Error(error?.message ?? "No se pudo crear el intercambio");
 
-    // Insert access log for one-use and pro
     await supabase.from("access_log").insert({
       key_id: key.id,
       exchange_id: exchange.id,
@@ -234,7 +229,7 @@ export const createExchange = createServerFn({ method: "POST" })
       person_name: data.guestName ?? null,
     });
 
-    return { exchangeId: exchange.id, bookingRef, expiresAt };
+    return { exchangeId: exchange.id, bookingRef };
   });
 
 // ---------- renew an expired one-use exchange ----------
@@ -419,7 +414,7 @@ export const validateCode = createServerFn({ method: "POST" })
       const active = activeExchanges?.[0];
 
       if (ac.scope === "deposit") {
-        if (active && active.status === "waiting_deposit") {
+        if (active && (active.status === "waiting_deposit" || active.status === "created")) {
           await supabase
             .from("key_exchanges")
             .update({ status: "deposited", deposited_at: now })
@@ -485,7 +480,7 @@ export const validateCode = createServerFn({ method: "POST" })
       throw new Error("El intercambio ya fue completado");
     }
 
-    // 2. Fixed deposit codes (monthly/pro keys)
+    // 2. Fixed deposit codes (monthly keys)
     const { data: keys } = await supabase
       .from("keys")
       .select("*")
@@ -537,7 +532,6 @@ export const validateCode = createServerFn({ method: "POST" })
           .single();
         return { action: "deposited", position, bookingRef: created?.booking_ref ?? null };
       }
-      // pro fixed deposit code should have an access code; fall through
     }
 
     // 3. Exchange codes (one_use deposit/pickup, monthly return_code)
@@ -569,19 +563,3 @@ export const validateCode = createServerFn({ method: "POST" })
 
     throw new Error("Código no encontrado o no válido");
   });
-
-async function reservePosition(supabase: SupabaseClient, kioskId: string) {
-  const { data: kiosk } = await supabase.from("kiosks").select("positions").eq("id", kioskId).maybeSingle();
-  if (!kiosk) throw new Error("Punto no encontrado");
-  const { data: taken } = await supabase
-    .from("key_exchanges")
-    .select("locker_position")
-    .eq("kiosk_id", kioskId)
-    .in("status", ["created", "waiting_deposit", "deposited", "picked_up"]);
-  const position = pickFreePosition(
-    kiosk.positions,
-    (taken ?? []).map((x) => x.locker_position ?? 0).filter(Boolean),
-  );
-  if (position === 0) throw new Error("No hay posiciones libres");
-  return position;
-}
