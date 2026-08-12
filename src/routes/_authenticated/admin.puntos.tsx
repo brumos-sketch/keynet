@@ -456,8 +456,14 @@ function AdminKiosks() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-[8px] bg-electric/5 px-2.5 py-1 text-sm font-medium text-electric">
-                    {taken.length}/{k.positions}
+                  <span
+                    className={cn(
+                      "rounded-[8px] px-2.5 py-1 text-sm font-medium",
+                      tone.chip,
+                      tone.text,
+                    )}
+                  >
+                    {taken.length}/{k.positions} · {percent}%
                   </span>
                   <Button
                     variant="ghost"
@@ -470,6 +476,29 @@ function AdminKiosks() {
                   </Button>
                 </div>
               </div>
+
+              <div className="mt-4">
+                <div
+                  className="h-2 w-full overflow-hidden rounded-full bg-gray-100"
+                  role="progressbar"
+                  aria-valuenow={percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Ocupación de ${k.name}`}
+                >
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-500", tone.bar)}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 flex items-center justify-between text-xs">
+                  <span className={cn("font-semibold", tone.text)}>{tone.label}</span>
+                  <span className="text-gray-500">
+                    {Math.max(k.positions - taken.length, 0)} libres de {k.positions} posiciones
+                  </span>
+                </div>
+              </div>
+
 
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm">
                 <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
