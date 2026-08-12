@@ -98,7 +98,7 @@ function AdminLayout() {
                 to={item.to}
                 className="rounded-[10px] px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground hover:bg-secondary"
                 activeProps={{ className: "bg-accent text-accent-foreground" }}
-                activeOptions={{ exact: item.exact ?? false }}
+                activeOptions={{ exact: item.exact }}
               >
                 {item.label}
               </Link>
