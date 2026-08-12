@@ -196,7 +196,7 @@ function AdminExchanges() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{keyName(e.key_id)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{kioskName(e.kiosk_id)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.locker_position}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{e.locker_position > 0 ? e.locker_position : "—"}</td>
                   <td className="px-4 py-3">
                     <CodeChip value={e.deposit_code} />
                   </td>
@@ -247,7 +247,7 @@ function AdminExchanges() {
               <div className="grid grid-cols-2 gap-3">
                 <Info label="Llave" value={keyName(detail.key_id)} />
                 <Info label="Punto" value={kioskName(detail.kiosk_id)} />
-                <Info label="Posición" value={String(detail.locker_position)} />
+                <Info label="Posición" value={detail.locker_position > 0 ? String(detail.locker_position) : "Sin asignar"} />
                 <Info
                   label="Estado"
                   value={STATUS_LABELS[detail.status as ExchangeStatus] ?? detail.status}

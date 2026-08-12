@@ -145,11 +145,12 @@ function PointPanel() {
 
   const occupiedPositions = useMemo(() => {
     const set = new Set<number>();
-    active.forEach((e) => {
-      if (e.locker_position) set.add(e.locker_position);
+    (exchanges ?? []).forEach((e) => {
+      if (["deposited", "completed"].includes(e.status) && e.locker_position) set.add(e.locker_position);
     });
     return set;
-  }, [active]);
+  }, [exchanges]);
+
 
   return (
     <RoleGuard allow="kiosk">
