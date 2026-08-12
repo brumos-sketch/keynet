@@ -46,33 +46,58 @@ const emptySchedule: KioskSchedule = Object.fromEntries(
   WEEKDAYS.map((d) => [d.key, { open: "09:00", close: "20:00" }]),
 );
 
+const DAY_LETTERS: Record<string, string> = {
+  mon: "L",
+  tue: "M",
+  wed: "X",
+  thu: "J",
+  fri: "V",
+  sat: "S",
+  sun: "D",
+};
+
+const blankForm = {
+  name: "",
+  address: "",
+  category: "kiosco",
+  customCategory: "",
+  positions: 10,
+  commission: 20,
+  contactName: "",
+  contactPhone: "",
+  associateId: "",
+  is24h: false,
+  schedule: emptySchedule as KioskSchedule,
+};
+
+const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
+
 function AdminKiosks() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    category: "kiosco",
-    customCategory: "",
-    positions: 10,
-    commission: 20,
-    contactName: "",
-    contactPhone: "",
-    associateId: "",
-    is24h: false,
-    schedule: emptySchedule as KioskSchedule,
-  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(blankForm);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "kiosks"],
     queryFn: async () => {
-      const [kiosks, associates] = await Promise.all([
+      const [kiosks, associates, exchanges] = await Promise.all([
         supabase.from("kiosks").select("*").order("created_at", { ascending: false }),
         supabase.from("associates").select("id, name"),
+        supabase
+          .from("key_exchanges")
+          .select("kiosk_id, locker_position, status")
+          .in("status", ACTIVE_STATUSES),
       ]);
-      return { kiosks: kiosks.data ?? [], associates: associates.data ?? [] };
+      const occupancy: Record<string, number[]> = {};
+      for (const e of exchanges.data ?? []) {
+        if (!e.kiosk_id) continue;
+        (occupancy[e.kiosk_id] ??= []).push(e.locker_position);
+      }
+      return { kiosks: kiosks.data ?? [], associates: associates.data ?? [], occupancy };
     },
   });
+
 
   const create = useMutation({
     mutationFn: async () => {
