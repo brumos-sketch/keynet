@@ -80,11 +80,20 @@ const FEATURES = [
   },
 ];
 
-const PLANS = [
+const PLAN_META: Record<
+  string,
+  { name: string; variant: "default" | "recommended" | "outline" }
+> = {
+  one_use: { name: "pasa una", variant: "default" },
+  monthly: { name: "pasa mes", variant: "recommended" },
+  pro: { name: "pasa pro", variant: "outline" },
+};
+
+const FALLBACK_PLANS = [
   {
     name: "pasa una",
     subtitle: "Uso ocasional",
-    price: "$X",
+    price: "Consultar",
     priceLabel: "/ intercambio",
     features: ["1 intercambio de llave", "Soporte vía App", "Notificaciones en tiempo real"],
     cta: "Empezar ahora",
@@ -93,7 +102,7 @@ const PLANS = [
   {
     name: "pasa mes",
     subtitle: "Anfitriones recurrentes",
-    price: "$X",
+    price: "Consultar",
     priceLabel: "/ mes",
     features: ["Intercambios ilimitados (1 llave)", "Soporte prioritario", "Historial de accesos completo"],
     cta: "Elegir plan",
@@ -110,7 +119,25 @@ const PLANS = [
   },
 ];
 
+const money = (n: number) =>
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+
 function Landing() {
+  const { plans } = Route.useLoaderData();
+  const PLANS = plans.length
+    ? plans
+        .filter((p) => p.plan in PLAN_META)
+        .map((p) => ({
+          name: PLAN_META[p.plan]!.name,
+          variant: PLAN_META[p.plan]!.variant,
+          subtitle: p.subtitle ?? "",
+          price: p.amount === null ? "Consultar" : money(p.amount),
+          priceLabel: p.price_label ?? "",
+          features: p.features ?? [],
+          cta: p.cta ?? "Empezar ahora",
+        }))
+    : FALLBACK_PLANS;
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <MarketingNav />
