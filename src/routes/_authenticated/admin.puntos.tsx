@@ -75,6 +75,16 @@ const blankForm = {
 
 const ACTIVE_STATUSES = ["deposited", "completed"];
 
+function occupancyTone(percent: number) {
+  if (percent >= 90)
+    return { bar: "bg-destructive", text: "text-destructive", chip: "bg-destructive/10", label: "Crítico" };
+  if (percent >= 75)
+    return { bar: "bg-orange-500", text: "text-orange-600", chip: "bg-orange-500/10", label: "Casi lleno" };
+  if (percent >= 50)
+    return { bar: "bg-amber-400", text: "text-amber-600", chip: "bg-amber-400/15", label: "Moderado" };
+  return { bar: "bg-success", text: "text-success", chip: "bg-success/10", label: "Disponible" };
+}
+
 function AdminKiosks() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -425,6 +435,9 @@ function AdminKiosks() {
         {kioskRows.map((k) => {
           const taken = data?.occupancy[k.id] ?? [];
           const schedule = (k.schedule as KioskSchedule) ?? null;
+          const percent =
+            k.positions > 0 ? Math.min(100, Math.round((taken.length / k.positions) * 100)) : 0;
+          const tone = occupancyTone(percent);
           return (
             <article key={k.id} className="glass-card p-5">
               <div className="flex items-start justify-between gap-3">
@@ -443,8 +456,14 @@ function AdminKiosks() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-[8px] bg-electric/5 px-2.5 py-1 text-sm font-medium text-electric">
-                    {taken.length}/{k.positions}
+                  <span
+                    className={cn(
+                      "rounded-[8px] px-2.5 py-1 text-sm font-medium",
+                      tone.chip,
+                      tone.text,
+                    )}
+                  >
+                    {taken.length}/{k.positions} · {percent}%
                   </span>
                   <Button
                     variant="ghost"
@@ -457,6 +476,29 @@ function AdminKiosks() {
                   </Button>
                 </div>
               </div>
+
+              <div className="mt-4">
+                <div
+                  className="h-2 w-full overflow-hidden rounded-full bg-gray-100"
+                  role="progressbar"
+                  aria-valuenow={percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Ocupación de ${k.name}`}
+                >
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-500", tone.bar)}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 flex items-center justify-between text-xs">
+                  <span className={cn("font-semibold", tone.text)}>{tone.label}</span>
+                  <span className="text-gray-500">
+                    {Math.max(k.positions - taken.length, 0)} libres de {k.positions} posiciones
+                  </span>
+                </div>
+              </div>
+
 
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm">
                 <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
