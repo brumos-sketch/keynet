@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
 import { Route as AuthenticatedAdminIntercambiosRouteImport } from './routes/_authenticated/admin.intercambios'
 import { Route as AuthenticatedAdminLlavesRouteImport } from './routes/_authenticated/admin.llaves'
+import { Route as AuthenticatedAdminProRouteImport } from './routes/_authenticated/admin.pro'
 import { Route as AuthenticatedAdminPuntosRouteImport } from './routes/_authenticated/admin.puntos'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
 
@@ -87,6 +88,11 @@ const AuthenticatedAdminLlavesRoute =
     path: '/llaves',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminProRoute = AuthenticatedAdminProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminPuntosRoute =
   AuthenticatedAdminPuntosRouteImport.update({
     id: '/puntos',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
   '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
   '/_authenticated/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/_authenticated/admin/pro': typeof AuthenticatedAdminProRoute
   '/_authenticated/admin/puntos': typeof AuthenticatedAdminPuntosRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/admin/facturacion'
     | '/admin/intercambios'
     | '/admin/llaves'
+    | '/admin/pro'
     | '/admin/puntos'
     | '/admin/usuarios'
     | '/admin/'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin/facturacion'
     | '/admin/intercambios'
     | '/admin/llaves'
+    | '/admin/pro'
     | '/admin/puntos'
     | '/admin/usuarios'
     | '/admin'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/facturacion'
     | '/_authenticated/admin/intercambios'
     | '/_authenticated/admin/llaves'
+    | '/_authenticated/admin/pro'
     | '/_authenticated/admin/puntos'
     | '/_authenticated/admin/usuarios'
     | '/_authenticated/admin/'
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLlavesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/pro': {
+      id: '/_authenticated/admin/pro'
+      path: '/pro'
+      fullPath: '/admin/pro'
+      preLoaderRoute: typeof AuthenticatedAdminProRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/puntos': {
       id: '/_authenticated/admin/puntos'
       path: '/puntos'
@@ -308,6 +327,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminFacturacionRoute: typeof AuthenticatedAdminFacturacionRoute
   AuthenticatedAdminIntercambiosRoute: typeof AuthenticatedAdminIntercambiosRoute
   AuthenticatedAdminLlavesRoute: typeof AuthenticatedAdminLlavesRoute
+  AuthenticatedAdminProRoute: typeof AuthenticatedAdminProRoute
   AuthenticatedAdminPuntosRoute: typeof AuthenticatedAdminPuntosRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -318,6 +338,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminFacturacionRoute: AuthenticatedAdminFacturacionRoute,
   AuthenticatedAdminIntercambiosRoute: AuthenticatedAdminIntercambiosRoute,
   AuthenticatedAdminLlavesRoute: AuthenticatedAdminLlavesRoute,
+  AuthenticatedAdminProRoute: AuthenticatedAdminProRoute,
   AuthenticatedAdminPuntosRoute: AuthenticatedAdminPuntosRoute,
   AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -351,13 +372,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
