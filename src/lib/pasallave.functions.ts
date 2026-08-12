@@ -462,11 +462,12 @@ export const validateCode = createServerFn({ method: "POST" })
 
       if (ac.scope === "deposit") {
         if (active && (active.status === "waiting_deposit" || active.status === "created")) {
+          const position = await reservePosition(supabase, myKioskId);
           await supabase
             .from("key_exchanges")
-            .update({ status: "deposited", deposited_at: now })
+            .update({ status: "deposited", deposited_at: now, locker_position: position })
             .eq("id", active.id);
-          return { action: "deposited", position: active.locker_position, bookingRef: active.booking_ref };
+          return { action: "deposited", position, bookingRef: active.booking_ref };
         }
         // No active exchange: create a free one
         const position = await reservePosition(supabase, myKioskId);
@@ -489,7 +490,10 @@ export const validateCode = createServerFn({ method: "POST" })
 
       if (ac.scope === "pickup") {
         if (!active || active.status !== "deposited") throw new Error("No hay llave depositada para retirar con este código");
-        await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", active.id);
+        await supabase
+          .from("key_exchanges")
+          .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
+          .eq("id", active.id);
         return { action: "picked_up", position: active.locker_position, bookingRef: active.booking_ref };
       }
 
@@ -513,18 +517,30 @@ export const validateCode = createServerFn({ method: "POST" })
         return { action: "deposited", position, bookingRef: created?.booking_ref ?? null };
       }
       if (active.status === "waiting_deposit" || active.status === "created") {
-        await supabase.from("key_exchanges").update({ status: "deposited", deposited_at: now }).eq("id", active.id);
-        return { action: "deposited", position: active.locker_position, bookingRef: active.booking_ref };
+        const position = await reservePosition(supabase, myKioskId);
+        await supabase
+          .from("key_exchanges")
+          .update({ status: "deposited", deposited_at: now, locker_position: position })
+          .eq("id", active.id);
+        return { action: "deposited", position, bookingRef: active.booking_ref };
       }
       if (active.status === "deposited") {
-        await supabase.from("key_exchanges").update({ status: "picked_up", picked_up_at: now }).eq("id", active.id);
+        await supabase
+          .from("key_exchanges")
+          .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
+          .eq("id", active.id);
         return { action: "picked_up", position: active.locker_position, bookingRef: active.booking_ref };
       }
       if (active.status === "picked_up") {
-        await supabase.from("key_exchanges").update({ status: "completed", returned_at: now }).eq("id", active.id);
-        return { action: "completed", position: active.locker_position, bookingRef: active.booking_ref };
+        const position = await reservePosition(supabase, myKioskId);
+        await supabase
+          .from("key_exchanges")
+          .update({ status: "completed", returned_at: now, locker_position: position })
+          .eq("id", active.id);
+        return { action: "completed", position, bookingRef: active.booking_ref };
       }
       throw new Error("El intercambio ya fue completado");
+
     }
 
     // 2. Fixed deposit code of the key (host side, all plans)
