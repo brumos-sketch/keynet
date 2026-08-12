@@ -106,6 +106,16 @@ function Fallback({ message }: { message: string }) {
   );
 }
 
+const DAY_LETTERS: Record<string, string> = {
+  mon: "L",
+  tue: "M",
+  wed: "X",
+  thu: "J",
+  fri: "V",
+  sat: "S",
+  sun: "D",
+};
+
 function BoardingPassPage() {
   const { pass } = Route.useLoaderData();
   const [lang, setLang] = useState<Lang>("es");
@@ -113,14 +123,14 @@ function BoardingPassPage() {
 
   if (!pass) return <Fallback message="No encontramos ese pase. Revisá el código de reserva." />;
 
-  const mapSrc =
+  const mapUrl =
     pass.kiosk_lat && pass.kiosk_lng
-      ? `https://www.openstreetmap.org/export/embed.html?bbox=${pass.kiosk_lng - 0.004}%2C${
-          pass.kiosk_lat - 0.003
-        }%2C${pass.kiosk_lng + 0.004}%2C${pass.kiosk_lat + 0.003}&layer=mapnik&marker=${
-          pass.kiosk_lat
-        }%2C${pass.kiosk_lng}`
-      : null;
+      ? `https://www.openstreetmap.org/?mlat=${pass.kiosk_lat}&mlon=${pass.kiosk_lng}#map=18/${pass.kiosk_lat}/${pass.kiosk_lng}`
+      : pass.kiosk_address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pass.kiosk_address)}`
+        : null;
+
+  const schedule = (pass.kiosk_schedule ?? {}) as KioskSchedule;
 
   return (
     <div className="min-h-screen bg-background">
@@ -143,81 +153,95 @@ function BoardingPassPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-xl space-y-4 p-5 md:p-8">
-        <section className="overflow-hidden rounded-[16px] border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-dashed border-border p-5">
-            <div>
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.label}</p>
-              <h1 className="text-2xl font-semibold text-foreground">{pass.booking_ref}</h1>
-              <p className="text-sm text-muted-foreground">
-                {pass.property_name ?? pass.key_name ?? "—"}
-              </p>
-            </div>
+      <main className="mx-auto max-w-md space-y-4 p-4 md:p-8">
+        <section className="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-primary to-primary/80 p-6 text-primary-foreground">
+            <p className="text-xs tracking-widest uppercase opacity-80">{t.label}</p>
+            <h1 className="mt-1 text-2xl font-semibold">
+              {pass.property_name ?? pass.key_name ?? "—"}
+            </h1>
+            <p className="mt-1 text-sm opacity-80">
+              {t.stay} · {pass.booking_ref}
+            </p>
           </div>
 
-          <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <div>
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.point}</p>
-              <p className="font-medium text-foreground">{pass.kiosk_name ?? "—"}</p>
-              <p className="text-sm text-muted-foreground">{pass.kiosk_address ?? "—"}</p>
-              {pass.kiosk_is_24h && (
-                <span className="mt-1 inline-block">
-                  <Pill tone="success">{t.open24}</Pill>
-                </span>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                  {t.pickupCode}
-                </p>
-                {pass.pickup_code ? (
-                  <CodeChip value={pass.pickup_code} />
-                ) : (
-                  <p className="text-sm text-muted-foreground">—</p>
-                )}
-              </div>
-              {pass.pickup_time && (
-                <p className="text-xs text-muted-foreground">
-                  {t.pickupTime}: {pass.pickup_time}
-                </p>
-              )}
-            </div>
-            <div>
+          {/* Access code */}
+          <div className="border-b border-dashed border-border px-6 py-7 text-center">
+            <p className="text-xs tracking-widest text-muted-foreground uppercase">{t.accessCode}</p>
+            <p className="mt-2 font-mono text-5xl font-bold tracking-[0.08em] text-foreground">
+              {pass.pickup_code ?? "—"}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">{t.bidirectional}</p>
+            {pass.pickup_time && (
+              <p className="mt-3 text-sm font-medium text-foreground">
+                {t.pickupAvailable} {pass.pickup_time}
+              </p>
+            )}
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 divide-x divide-border border-b border-border">
+            <div className="px-6 py-4">
               <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.checkIn}</p>
-              <p className="text-sm text-foreground">
+              <p className="mt-1 text-sm font-medium text-foreground">
                 {pass.check_in ? formatDate(pass.check_in) : "—"}
               </p>
             </div>
-            <div>
+            <div className="px-6 py-4">
               <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.checkOut}</p>
-              <p className="text-sm text-foreground">
+              <p className="mt-1 text-sm font-medium text-foreground">
                 {pass.check_out ? formatDate(pass.check_out) : "—"}
               </p>
             </div>
           </div>
-        </section>
 
-        {mapSrc && (
-          <section className="overflow-hidden rounded-[16px] border border-border bg-card">
-            <iframe
-              title={pass.kiosk_name ?? "Mapa"}
-              src={mapSrc}
-              className="h-56 w-full border-0"
-              loading="lazy"
-            />
-            <div className="p-3 text-right">
+          {/* Point */}
+          <div className="space-y-3 px-6 py-5">
+            <div>
+              <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.point}</p>
+              <p className="mt-1 font-medium text-foreground">{pass.kiosk_name ?? "—"}</p>
+              <p className="text-sm text-muted-foreground">{pass.kiosk_address ?? "—"}</p>
+            </div>
+
+            {pass.kiosk_is_24h ? (
+              <Pill tone="success">{t.open24}</Pill>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAYS.map((d) => {
+                  const slot = schedule[d.key];
+                  return (
+                    <div key={d.key} className="text-center">
+                      <div
+                        className={`flex h-7 w-7 items-center justify-center rounded-[8px] text-xs font-semibold ${
+                          slot
+                            ? "bg-accent text-accent-foreground"
+                            : "bg-secondary text-muted-foreground"
+                        }`}
+                      >
+                        {DAY_LETTERS[d.key]}
+                      </div>
+                      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
+                        {slot ? `${slot.open}\n${slot.close}` : "—"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {mapUrl && (
               <a
-                href={`https://www.openstreetmap.org/?mlat=${pass.kiosk_lat}&mlon=${pass.kiosk_lng}#map=18/${pass.kiosk_lat}/${pass.kiosk_lng}`}
+                href={mapUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-primary underline"
+                className="inline-block text-sm font-medium text-primary underline"
               >
                 {t.map}
               </a>
-            </div>
-          </section>
-        )}
+            )}
+          </div>
+        </section>
 
         <section className="rounded-[16px] border border-border bg-card p-5">
           <h2 className="text-sm font-semibold text-foreground">{t.steps}</h2>
@@ -231,12 +255,7 @@ function BoardingPassPage() {
               </li>
             ))}
           </ol>
-          {pass.pickup_time && (
-            <p className="mt-4 text-sm font-medium text-foreground">
-              {t.pickupAvailable} {pass.pickup_time}
-            </p>
-          )}
-          <p className="mt-4 text-xs text-muted-foreground">{t.pending}</p>
+          <p className="mt-4 text-xs text-muted-foreground">{t.returnNote}</p>
         </section>
 
         <div className="text-center">
@@ -248,3 +267,4 @@ function BoardingPassPage() {
     </div>
   );
 }
+
