@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
@@ -45,6 +46,11 @@ const BuscarRoute = BuscarRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/login'
+    | '/sitemap.xml'
     | '/admin'
     | '/associate'
     | '/checkout'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/'
     | '/buscar'
     | '/login'
+    | '/sitemap.xml'
     | '/associate'
     | '/checkout'
     | '/host'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/buscar'
     | '/login'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   BuscarRoute: typeof BuscarRoute
   LoginRoute: typeof LoginRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PaseRefRoute: typeof PaseRefRoute
 }
 
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -430,6 +450,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   BuscarRoute: BuscarRoute,
   LoginRoute: LoginRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   PaseRefRoute: PaseRefRoute,
 }
 export const routeTree = rootRouteImport
