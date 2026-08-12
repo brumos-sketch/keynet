@@ -281,14 +281,22 @@ function SearchPage() {
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card lg:sticky lg:top-8 lg:self-start">
-            {mapSrc ? (
+            {mapPoints.length > 0 || origin ? (
               <>
-                <iframe
-                  title={current?.name ?? "Mapa"}
-                  src={mapSrc}
-                  className="h-[420px] w-full border-0"
-                  loading="lazy"
-                />
+                <ClientOnly
+                  fallback={<div className="h-[420px] w-full animate-pulse bg-gray-100" />}
+                >
+                  <Suspense
+                    fallback={<div className="h-[420px] w-full animate-pulse bg-gray-100" />}
+                  >
+                    <PointsMap
+                      points={mapPoints}
+                      origin={origin}
+                      selectedId={current?.id ?? null}
+                      onSelect={setSelected}
+                    />
+                  </Suspense>
+                </ClientOnly>
                 <div className="flex items-center justify-between gap-3 p-4">
                   <div className="flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 text-electric" />
