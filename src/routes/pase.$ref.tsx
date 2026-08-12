@@ -37,7 +37,6 @@ const T = {
     label: "Pase de abordar",
     stay: "Estadía",
     point: "Punto asociado",
-    locker: "Casillero",
     pickupCode: "Código de retiro",
     returnCode: "Código de devolución",
     pickupTime: "Horario estimado de retiro",
@@ -46,7 +45,7 @@ const T = {
     steps: "Cómo retirar la llave",
     s1: "Andá al punto asociado en la dirección indicada, dentro del horario de atención.",
     s2: "Decí que venís a retirar una llave de PASALLAVE e ingresá tu código en la pantalla.",
-    s3: "Retirá la llave del casillero indicado y revisá que sea la correcta.",
+    s3: "Retirá la llave del casillero que te indique la pantalla del punto y revisá que sea la correcta.",
     s4: "Al finalizar tu estadía, devolvé la llave en el mismo punto usando el código de devolución.",
     open24: "Abierto 24 hs",
     map: "Ver en el mapa",
@@ -57,7 +56,6 @@ const T = {
     label: "Boarding pass",
     stay: "Stay",
     point: "Partner point",
-    locker: "Locker",
     pickupCode: "Pickup code",
     returnCode: "Return code",
     pickupTime: "Estimated pickup time",
@@ -66,7 +64,7 @@ const T = {
     steps: "How to pick up the key",
     s1: "Go to the partner point at the address shown, during opening hours.",
     s2: "Say you are picking up a PASALLAVE key and enter your code on the screen.",
-    s3: "Take the key from the indicated locker and check it is the right one.",
+    s3: "Take the key from the locker shown on the point screen and check it is the right one.",
     s4: "At the end of your stay, return the key at the same point using the return code.",
     open24: "Open 24/7",
     map: "Open in map",
@@ -77,7 +75,6 @@ const T = {
     label: "Cartão de embarque",
     stay: "Estadia",
     point: "Ponto parceiro",
-    locker: "Armário",
     pickupCode: "Código de retirada",
     returnCode: "Código de devolução",
     pickupTime: "Horário estimado de retirada",
@@ -86,7 +83,7 @@ const T = {
     steps: "Como retirar a chave",
     s1: "Vá até o ponto parceiro no endereço indicado, dentro do horário de atendimento.",
     s2: "Diga que vai retirar uma chave PASALLAVE e digite seu código na tela.",
-    s3: "Retire a chave do armário indicado e confira se é a correta.",
+    s3: "Retire a chave do armário indicado na tela do ponto e confira se é a correta.",
     s4: "No fim da estadia, devolva a chave no mesmo ponto usando o código de devolução.",
     open24: "Aberto 24 h",
     map: "Ver no mapa",
@@ -155,10 +152,6 @@ function BoardingPassPage() {
               <p className="text-sm text-muted-foreground">
                 {pass.property_name ?? pass.key_name ?? "—"}
               </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">{t.locker}</p>
-              <p className="text-3xl font-semibold text-primary">{pass.locker_position}</p>
             </div>
           </div>
 
