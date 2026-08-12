@@ -1,1 +1,0 @@
-UPDATE key_exchanges SET pickup_time = '14:00' WHERE booking_ref = 'RCL-207';
