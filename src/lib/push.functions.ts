@@ -93,9 +93,9 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
   // Remove invalid subscriptions
   const deadEndpoints: string[] = [];
   for (let i = 0; i < results.length; i++) {
-    const result = results[i];
+    const result = results[i]!;
     if (result.status === "rejected") {
-      const err = result.reason as webpush.WebPushError | undefined;
+      const err = (result as PromiseRejectedResult).reason as webpush.WebPushError | undefined;
       if (err && (err.statusCode === 404 || err.statusCode === 410)) {
         deadEndpoints.push(subs[i]!.endpoint);
       }
