@@ -71,6 +71,33 @@ function SearchPage() {
   const [open, setOpen] = useState(false);
 
   const [origin, setOrigin] = useState<(GeoPoint & { label: string }) | null>(null);
+  const [locating, setLocating] = useState(false);
+  const reverseFn = useServerFn(reverseGeocode);
+
+  const useMyLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Tu navegador no permite compartir la ubicación.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setOrigin({ lat: latitude, lng: longitude, label: "tu ubicación" });
+        void reverseFn({ data: { lat: latitude, lng: longitude } })
+          .then((place) => {
+            if (place) setOrigin(place);
+          })
+          .catch(() => undefined)
+          .finally(() => setLocating(false));
+      },
+      () => {
+        setLocating(false);
+        toast.error("No pudimos obtener tu ubicación. Probá escribiendo la dirección.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
