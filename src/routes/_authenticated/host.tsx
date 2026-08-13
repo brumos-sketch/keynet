@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { PlanBadge } from "@/components/pasallave/status-badge";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
@@ -536,8 +537,8 @@ function HostPanel() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {PLAN_LABELS[e.keys.subscription_type as SubscriptionType] ?? e.keys.subscription_type}
+                      <td className="px-4 py-3">
+                        <PlanBadge plan={e.keys.subscription_type} />
                       </td>
                       <td className="px-4 py-3">
                         <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>

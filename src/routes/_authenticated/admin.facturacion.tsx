@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/pasallave/ui-bits";
 import { Input } from "@/components/ui/input";
+import { PlanBadge } from "@/components/pasallave/status-badge";
 import { PLAN_LABELS, formatMoney, type SubscriptionType } from "@/lib/pasallave";
 import { generateBillingPeriod } from "@/lib/pasallave.functions";
 import { PlanPriceEditor } from "@/components/pasallave/plan-price-editor";
@@ -159,7 +160,7 @@ function AdminBilling() {
                   <td className="px-4 py-3 text-foreground">{hostName(b.host_id)}</td>
                   <td className="px-4 py-3 text-gray-500">{b.period ?? "—"}</td>
                   <td className="px-4 py-3 text-gray-500">
-                    {b.plan ? (PLAN_LABELS[b.plan as SubscriptionType] ?? b.plan) : "—"}
+                    {b.plan ? <PlanBadge plan={b.plan} /> : "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-500">{b.keys_count ?? 0}</td>
                   <td className="px-4 py-3 text-gray-500">
