@@ -320,7 +320,9 @@ function SearchPage() {
               </>
             ) : (
               <div className="flex h-[420px] items-center justify-center p-6 text-center text-sm text-gray-500">
-                Elegí un punto para verlo en el mapa.
+                {current
+                  ? `"${current.name}" todavía no tiene ubicación cargada en el mapa.`
+                  : "Elegí un punto para verlo en el mapa."}
               </div>
             )}
           </div>
