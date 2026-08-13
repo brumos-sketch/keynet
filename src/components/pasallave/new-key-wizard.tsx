@@ -160,6 +160,12 @@ export function NewKeyWizard({
 
   const selectedItemRef = useRef<HTMLButtonElement | null>(null);
 
+  useEffect(() => {
+    if (step === 1 && selectedItemRef.current) {
+      selectedItemRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [step]);
+
   return (
     <Dialog
       open={open}
