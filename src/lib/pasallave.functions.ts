@@ -834,12 +834,22 @@ export const payBilling = createServerFn({ method: "POST" })
         .maybeSingle();
       notifyPush = prefs?.notify_push ?? true;
     }
-    if (notifyPush)
+    const message = `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`;
+    if (notifyPush) {
       await supabaseAdmin.from("notifications").insert({
         host_id: row.host_id,
         type: "payment",
-        message: `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`,
+        message,
       });
+      if (hostRow?.user_id) {
+        await sendPushToUser(hostRow.user_id, {
+          title: "Pasallave · pago confirmado",
+          body: message,
+          tag: `payment`,
+          data: { url: "/checkout" },
+        });
+      }
+    }
 
     return { ok: true, alreadyPaid: false };
   });
