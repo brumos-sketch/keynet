@@ -28,9 +28,8 @@ const categoryLabel = (value: string) =>
   KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
 
 export const Route = createFileRoute("/buscar")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    punto: typeof search.punto === "string" ? search.punto : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { punto?: string } =>
+    typeof search['punto'] === "string" ? { punto: search['punto'] } : {},
   loader: () => listPublicKiosks(),
   head: () => ({
     meta: [

@@ -58,7 +58,7 @@ export function PlanCard({
       </ul>
       <Link
         to="/login"
-        search={{ plan: planKey }}
+        search={planKey ? { plan: planKey } : {}}
         onClick={onClick}
         className={cn(
           "block w-full rounded-2xl py-4 text-center font-bold transition-all",

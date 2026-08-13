@@ -105,7 +105,6 @@ export function PhoneMockup({ points = [] }: { points?: PhonePoint[] }) {
               ) : (
                 <Link
                   to="/buscar"
-                  search={{ punto: undefined }}
                   className="block w-full rounded-xl bg-navy py-3 text-center text-xs font-bold text-white"
                 >
                   Dejar llave aquí
