@@ -34,15 +34,25 @@ function ResetPassword() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) return toast.error("La contraseña debe tener al menos 6 caracteres");
-    if (password !== password2) return toast.error("Las contraseñas no coinciden");
+    if (password.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (password !== password2) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ password });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Contraseña actualizada");
     void navigate({ to: "/login" });
   };
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-5">

@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PointRouteImport } from './routes/point'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -53,6 +54,11 @@ const LoginRoute = LoginRouteImport.update({
 const PointRoute = PointRouteImport.update({
   id: '/point',
   path: '/point',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/associate': typeof AuthenticatedAssociateRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/login'
     | '/point'
+    | '/reset-password'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/login'
     | '/point'
+    | '/reset-password'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/associate'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/login'
     | '/point'
+    | '/reset-password'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   BuscarRoute: typeof BuscarRoute
   LoginRoute: typeof LoginRoute
   PointRoute: typeof PointRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PaseRefRoute: typeof PaseRefRoute
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/point'
       fullPath: '/point'
       preLoaderRoute: typeof PointRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -491,6 +511,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuscarRoute: BuscarRoute,
   LoginRoute: LoginRoute,
   PointRoute: PointRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PaseRefRoute: PaseRefRoute,
