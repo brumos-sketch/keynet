@@ -314,12 +314,27 @@ export async function runCodeValidation(
       .eq("id", logKeyId)
       .maybeSingle();
     if (keyRow?.host_id) {
+      const { data: hostRow } = await supabaseAdmin
+        .from("hosts")
+        .select("user_id")
+        .eq("id", keyRow.host_id)
+        .maybeSingle();
+      let notifyPush = true;
+      if (hostRow?.user_id) {
+        const { data: prefs } = await supabaseAdmin
+          .from("profiles")
+          .select("notify_push")
+          .eq("id", hostRow.user_id)
+          .maybeSingle();
+        notifyPush = prefs?.notify_push ?? true;
+      }
       const messages: Record<string, string> = {
         deposited: `Se depositó la llave "${keyRow.name}" en el punto.`,
         picked_up: `Se retiró la llave "${keyRow.name}" del punto.`,
         completed: `Se devolvió la llave "${keyRow.name}" al punto.`,
       };
-      await supabaseAdmin.from("notifications").insert({
+      if (notifyPush)
+        await supabaseAdmin.from("notifications").insert({
         host_id: keyRow.host_id,
         type: result.action,
         message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,

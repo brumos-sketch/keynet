@@ -289,6 +289,9 @@ function HostPanel() {
             <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
               <Link to="/checkout">Pagos</Link>
             </Button>
+            <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
+              <Link to="/perfil">Perfil</Link>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
