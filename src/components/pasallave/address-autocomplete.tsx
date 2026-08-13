@@ -84,10 +84,18 @@ export function AddressAutocomplete({
   const choose = (item: AddressSuggestion) => {
     skipNext.current = true;
     onChange(item.label);
-    onSelect(item);
     setOpen(false);
     setItems([]);
     setState("idle");
+    if (item.placeId && item.lat === 0 && item.lng === 0) {
+      void resolveFn({ data: { placeId: item.placeId } })
+        .then((place) => {
+          if (place) onSelect({ ...place, placeId: item.placeId });
+        })
+        .catch(() => undefined);
+      return;
+    }
+    onSelect(item);
   };
 
   return (
