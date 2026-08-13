@@ -173,7 +173,7 @@ function Landing() {
               </h1>
               <p className="mx-auto mb-10 max-w-xl text-xl text-gray-600 lg:mx-0">
                 La red de puntos seguros para entrega y retiro de llaves en comercios de tu barrio.
-                <span className="block font-semibold text-navy">Simple, cercano y 100% confiable.</span>
+                <span className="block font-bold text-navy">Simple, cercano y 100% confiable.</span>
               </p>
 
               <div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
