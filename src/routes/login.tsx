@@ -60,19 +60,32 @@ function LoginPage() {
   const [storedPunto, setStoredPunto] = useState<string | null>(null);
 
   useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("login_redirect_punto");
+      if (saved) {
+        setStoredPunto(saved);
+        sessionStorage.removeItem("login_redirect_punto");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
     if (loading || !session || !role) return;
     if (role === "pending") {
       toast.error("Tu cuenta está pendiente de aprobación");
       void signOut();
       return;
     }
+    const redirectPunto = punto || storedPunto;
     const target = ROLE_HOME[role as AppRole];
-    if (role === "host" && punto) {
-      void navigate({ to: target, search: { punto }, replace: true });
+    if (role === "host" && redirectPunto) {
+      void navigate({ to: target, search: { punto: redirectPunto }, replace: true });
     } else {
       void navigate({ to: target, replace: true });
     }
-  }, [loading, session, role, navigate, signOut, punto]);
+  }, [loading, session, role, navigate, signOut, punto, storedPunto]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
