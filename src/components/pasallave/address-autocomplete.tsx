@@ -30,6 +30,7 @@ export function AddressAutocomplete({
   const fallbackId = useId();
   const inputId = id ?? fallbackId;
   const suggestFn = useServerFn(suggestAddresses);
+  const resolveFn = useServerFn(resolvePlace);
   const [items, setItems] = useState<AddressSuggestion[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "none">("idle");
   const [open, setOpen] = useState(false);
