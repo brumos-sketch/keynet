@@ -339,3 +339,48 @@ function SearchPage() {
     </div>
   );
 }
+
+function ActionButton({
+  current,
+  session,
+  role,
+}: {
+  current: PublicKiosk;
+  session: ReturnType<typeof useAuth>["session"];
+  role: ReturnType<typeof useAuth>["role"];
+}) {
+  const label = "Dejar llaves aquí";
+  if (session && role && role !== "pending") {
+    const target = role === "host" ? "/host" : ROLE_HOME[role];
+    if (role === "host") {
+      return (
+        <Button
+          asChild
+          className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+        >
+          <Link to={target} search={{ punto: current.id }}>
+            {label}
+          </Link>
+        </Button>
+      );
+    }
+    return (
+      <Button
+        asChild
+        className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+      >
+        <Link to={target}>{label}</Link>
+      </Button>
+    );
+  }
+  return (
+    <Button
+      asChild
+      className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+    >
+      <Link to="/login" search={{ punto: current.id }}>
+        {label}
+      </Link>
+    </Button>
+  );
+}
