@@ -68,17 +68,33 @@ export const STATUS_LABELS: Record<ExchangeStatus, string> = {
   overdue: "Atrasado",
 };
 
-export const STATUS_TONE: Record<
-  ExchangeStatus,
-  "neutral" | "info" | "success" | "warning" | "danger"
-> = {
+export type Tone =
+  | "neutral"
+  | "info"
+  | "success"
+  | "warning"
+  | "danger"
+  | "primary"
+  | "purple"
+  | "sky"
+  | "amber"
+  | "orange"
+  | "gold";
+
+export const STATUS_TONE: Record<ExchangeStatus, Tone> = {
   created: "neutral",
-  waiting_deposit: "neutral",
+  waiting_deposit: "amber",
   deposited: "info",
-  picked_up: "info",
+  picked_up: "purple",
   completed: "success",
   expired: "danger",
-  overdue: "warning",
+  overdue: "orange",
+};
+
+export const PLAN_TONE: Record<SubscriptionType, Tone> = {
+  one_use: "sky",
+  monthly: "primary",
+  pro: "gold",
 };
 
 export const KIOSK_CATEGORIES = [
