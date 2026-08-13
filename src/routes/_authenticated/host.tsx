@@ -308,7 +308,11 @@ function HostPanel() {
                 onChange={setQuery}
                 placeholder="Buscar por llave, reserva o código…"
               />
-              <NewKeyWizard hostId={hostId ?? null} />
+              <NewKeyWizard
+                hostId={hostId ?? null}
+                preselectedKioskId={punto}
+                defaultOpen={!!punto}
+              />
             </div>
           </div>
 
