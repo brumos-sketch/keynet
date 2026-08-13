@@ -1,6 +1,6 @@
-# App instalable (PWA) con notificaciones, y camino hacia los lockers automáticos
+# App instalable (PWA) con notificaciones
 
-Sí a las dos cosas. Arranco por lo que se puede hacer hoy — la app instalable con notificaciones — y dejo preparado el terreno para los casilleros automáticos.
+Sí. Arranco por lo que se puede hacer hoy: la app instalable con notificaciones push reales.
 
 ## Etapa 1 — App instalable en el teléfono
 
