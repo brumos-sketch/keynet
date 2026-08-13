@@ -31,3 +31,35 @@ export const geocodeAddress = createServerFn({ method: "POST" })
       return null;
     }
   });
+
+export type AddressSuggestion = { lat: number; lng: number; label: string };
+
+export const suggestAddresses = createServerFn({ method: "POST" })
+  .inputValidator((input: { query: string }) => ({
+    query: String(input.query ?? "").trim().slice(0, 200),
+  }))
+  .handler(async ({ data }): Promise<AddressSuggestion[]> => {
+    if (data.query.length < 3) return [];
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&countrycodes=ar&q=${encodeURIComponent(
+      data.query,
+    )}`;
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "PASALLAVE/1.0 (https://pasallave.com)",
+        },
+      });
+      if (!res.ok) return [];
+      const results = (await res.json()) as Array<{
+        lat: string;
+        lon: string;
+        display_name: string;
+      }>;
+      return (results ?? [])
+        .filter((r) => r?.lat && r?.lon)
+        .map((r) => ({ lat: Number(r.lat), lng: Number(r.lon), label: r.display_name }));
+    } catch {
+      return [];
+    }
+  });
