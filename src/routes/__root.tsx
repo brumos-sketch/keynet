@@ -86,14 +86,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Plataforma para anfitriones de Airbnb en Argentina: dejá y retirá llaves en kioscos, cafés y tiendas asociadas.",
       },
       { name: "author", content: "PASALLAVE" },
+      { name: "theme-color", content: "#405EFB" },
+      { name: "msapplication-TileColor", content: "#405EFB" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" },
-
-
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon.png" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
