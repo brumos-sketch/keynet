@@ -153,6 +153,18 @@ function HostPanel() {
     },
   });
 
+  const { data: proActive } = useQuery({
+    queryKey: ["host", "pro-agreement"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pro_agreements")
+        .select("id")
+        .eq("status", "active")
+        .limit(1);
+      return (data ?? []).length > 0;
+    },
+  });
+
   const { data, isLoading } = useQuery({
     queryKey: ["host", "overview"],
     queryFn: async () => {
