@@ -21,6 +21,7 @@ import {
 import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
 import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
+import { reverseGeocode } from "@/lib/geo.functions";
 import { distanceKm, formatDistance, type GeoPoint } from "@/lib/geo";
 import type { MapPointItem } from "@/components/pasallave/points-map";
 
