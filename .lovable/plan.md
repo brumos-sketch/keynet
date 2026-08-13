@@ -25,11 +25,8 @@ Hoy la campanita es interna (avisos dentro de la web). Con push, el aviso llega 
 - Manifiesto en `public/manifest.webmanifest` + etiquetas en `src/routes/__root.tsx`. Sin service worker de caché (solo el de mensajería), para no romper la vista previa.
 - Push con Web Push estándar (VAPID): par de claves guardado como secreto del proyecto; la clave pública se expone al cliente. Envío desde funciones de servidor, junto al `insert` en `notifications` que ya existe en `src/lib/exchange.server.ts` y `src/lib/pasallave.functions.ts`.
 - `push_subscriptions` con RLS: cada usuario solo ve y borra las suyas; `service_role` para el envío.
-- `locker_devices` / `locker_events`: sin acceso anónimo; el endpoint público valida el token con cliente privilegiado dentro del handler.
-- Reutilizo la lógica actual de `pointValidateCode` para la validación del casillero, agregando el evento de apertura.
 
 ## Orden sugerido
 
 1. Etapa 1 (instalable) — rápida y visible.
 2. Etapa 2 (push) — requiere el interruptor de perfil que ya existe.
-3. Etapa 3 (lockers) — cuando definas el hardware.
