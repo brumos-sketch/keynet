@@ -36,9 +36,9 @@ type Lang = (typeof LANGS)[number];
 
 const T = {
   es: {
-    label: "Pase de abordar",
+    label: "Tarjeta de embarque",
     stay: "Estadía",
-    point: "Punto asociado",
+    point: "Dónde retirar las llaves:",
     accessCode: "Código de acceso",
     bidirectional: "Sirve para retirar y para devolver la llave",
     returnNote: "Usá el mismo código al devolver la llave en el punto.",
@@ -47,17 +47,20 @@ const T = {
     checkOut: "Check-out",
     steps: "Cómo retirar la llave",
     s1: "Andá al punto asociado en la dirección indicada, dentro del horario de atención.",
-    s2: "Dá tu código al encargado del punto.",
+    s2: "Mostrá tu código al empleado del punto.",
     s3: "Recibí la llave de la propiedad.",
     pickupAvailable: "Retiro disponible a partir de las",
     open24: "Abierto 24 hs",
     map: "Ver en el mapa",
     status: "Estado",
+    copy: "Copiar código",
+    copied: "¡Copiado!",
+    share: "Compartir",
   },
   en: {
     label: "Boarding pass",
     stay: "Stay",
-    point: "Partner point",
+    point: "Where to pick up the keys:",
     accessCode: "Access code",
     bidirectional: "Use it to pick up and to return the key",
     returnNote: "Use the same code when returning the key at the point.",
@@ -66,17 +69,20 @@ const T = {
     checkOut: "Check-out",
     steps: "How to pick up the key",
     s1: "Go to the partner point at the address shown, during opening hours.",
-    s2: "Give your code to the point attendant.",
+    s2: "Show your code to the point attendant.",
     s3: "Receive the property key.",
     pickupAvailable: "Pickup available from",
     open24: "Open 24/7",
     map: "Open in map",
     status: "Status",
+    copy: "Copy code",
+    copied: "Copied!",
+    share: "Share",
   },
   pt: {
     label: "Cartão de embarque",
     stay: "Estadia",
-    point: "Ponto parceiro",
+    point: "Onde retirar as chaves:",
     accessCode: "Código de acesso",
     bidirectional: "Serve para retirar e para devolver a chave",
     returnNote: "Use o mesmo código ao devolver a chave no ponto.",
@@ -85,14 +91,27 @@ const T = {
     checkOut: "Check-out",
     steps: "Como retirar a chave",
     s1: "Vá até o ponto parceiro no endereço indicado, dentro do horário de atendimento.",
-    s2: "Dê seu código ao atendente do ponto.",
+    s2: "Mostre seu código ao atendente do ponto.",
     s3: "Receba a chave da propriedade.",
     pickupAvailable: "Retirada disponível a partir das",
     open24: "Aberto 24 h",
     map: "Ver no mapa",
     status: "Status",
+    copy: "Copiar código",
+    copied: "Copiado!",
+    share: "Compartilhar",
   },
 } satisfies Record<Lang, Record<string, string>>;
+
+function detectLang(): Lang {
+  if (typeof navigator === "undefined") return "en";
+  const langs = [navigator.language, ...(navigator.languages ?? [])];
+  for (const l of langs) {
+    const code = (l ?? "").slice(0, 2).toLowerCase();
+    if ((LANGS as readonly string[]).includes(code)) return code as Lang;
+  }
+  return "en";
+}
 
 function Fallback({ message }: { message: string }) {
   return (
