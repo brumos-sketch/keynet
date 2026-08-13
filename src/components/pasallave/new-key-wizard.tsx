@@ -73,7 +73,7 @@ export function NewKeyWizard({
 
   const reset = () => {
     setStep(0);
-    setForm({ name: "", propertyName: "", kioskId: "", plan: "one_use" });
+    setForm({ name: "", propertyName: "", kioskId: "", plan: forcePro ? "pro" : "one_use" });
   };
 
   const mutation = useMutation({
