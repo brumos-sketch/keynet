@@ -693,7 +693,7 @@ function HostPanel() {
                   ))}
                   {exchangeRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-gray-500">
+                      <td colSpan={7} className="px-4 py-6 text-gray-500">
                         {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
                       </td>
                     </tr>
