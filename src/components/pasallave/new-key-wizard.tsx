@@ -358,7 +358,7 @@ export function NewKeyWizard({
             <Button
               className="rounded-xl"
               disabled={!canContinue}
-              onClick={() => setStep((s) => s + 1)}
+              onClick={handleContinue}
             >
               Continuar
             </Button>
