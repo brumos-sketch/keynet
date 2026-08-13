@@ -3,9 +3,10 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Bell, Mail } from "lucide-react";
+import { Bell, Mail, Smartphone } from "lucide-react";
 import { Brand } from "@/components/pasallave/ui-bits";
 import { ThemeToggle } from "@/components/pasallave/theme-toggle";
+import { InstallButton } from "@/components/pasallave/install-button";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -73,6 +74,7 @@ function Perfil() {
       <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
         <Brand />
         <div className="flex items-center gap-2">
+          <InstallButton />
           <ThemeToggle />
           <Button
             variant="ghost"
@@ -122,10 +124,11 @@ function Perfil() {
               <Bell className="mt-0.5 h-4 w-4 text-orange-brand" />
               <div>
                 <Label htmlFor="notify-push" className="text-sm font-semibold text-foreground">
-                  Notificaciones en la campanita
+                  Notificaciones push
                 </Label>
                 <p className="text-xs text-gray-500">
-                  Avisos dentro de la app, en el ícono de la campanita.
+                  Avisos instantáneos en el celular cuando pasa algo con tus llaves.
+                  Activá también el botón "Push on" en la parte superior.
                 </p>
               </div>
             </div>
@@ -135,6 +138,19 @@ function Perfil() {
               disabled={isLoading || save.isPending}
               onCheckedChange={(v) => update({ notifyPush: v })}
             />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-gray-100 p-4">
+            <div className="flex items-start gap-3">
+              <Smartphone className="mt-0.5 h-4 w-4 text-electric" />
+              <div>
+                <Label className="text-sm font-semibold text-foreground">Instalar app</Label>
+                <p className="text-xs text-gray-500">
+                  Agregá Pasallave a tu pantalla de inicio para usarla como una app.
+                </p>
+              </div>
+            </div>
+            <InstallButton />
           </div>
 
           <p className="text-xs text-gray-500">

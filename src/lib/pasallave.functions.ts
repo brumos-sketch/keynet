@@ -4,6 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
+import { sendPushToUser } from "@/lib/push.server";
 
 type TypedSupabase = SupabaseClient<Database>;
 
@@ -105,12 +106,26 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
         .eq("booking_ref", row.booking_ref)
         .maybeSingle();
       if (already) continue;
+      const message = `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`;
       await supabaseAdmin.from("notifications").insert({
         host_id: key.host_id,
         type: "expired",
         booking_ref: row.booking_ref,
-        message: `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`,
+        message,
       });
+      const { data: hostRow } = await supabaseAdmin
+        .from("hosts")
+        .select("user_id")
+        .eq("id", key.host_id)
+        .maybeSingle();
+      if (hostRow?.user_id) {
+        await sendPushToUser(supabaseAdmin, hostRow.user_id, {
+          title: "Pasallave · estadía vencida",
+          body: message,
+          tag: `exchange-expired`,
+          data: { url: "/host" },
+        });
+      }
     }
 
     return { ok: true };
@@ -819,12 +834,22 @@ export const payBilling = createServerFn({ method: "POST" })
         .maybeSingle();
       notifyPush = prefs?.notify_push ?? true;
     }
-    if (notifyPush)
+    const message = `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`;
+    if (notifyPush) {
       await supabaseAdmin.from("notifications").insert({
         host_id: row.host_id,
         type: "payment",
-        message: `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`,
+        message,
       });
+      if (hostRow?.user_id) {
+        await sendPushToUser(supabaseAdmin, hostRow.user_id, {
+          title: "Pasallave · pago confirmado",
+          body: message,
+          tag: `payment`,
+          data: { url: "/checkout" },
+        });
+      }
+    }
 
     return { ok: true, alreadyPaid: false };
   });

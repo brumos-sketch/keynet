@@ -10,6 +10,7 @@ import { PlanBadge } from "@/components/pasallave/status-badge";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
+import { InstallButton } from "@/components/pasallave/install-button";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,6 +286,7 @@ function HostPanel() {
           <Brand />
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <InstallButton />
             <NotificationBell />
             <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
               <Link to="/checkout">Pagos</Link>
