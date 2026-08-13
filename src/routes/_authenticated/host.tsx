@@ -634,6 +634,7 @@ function HostPanel() {
                 <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 font-medium">Reserva</th>
+                    <th className="px-4 py-3 font-medium">Llave</th>
                     <th className="px-4 py-3 font-medium">Punto</th>
                     <th className="px-4 py-3 font-medium">Plan</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
