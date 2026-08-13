@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 interface PlanCardProps {
@@ -9,6 +10,7 @@ interface PlanCardProps {
   cta: string;
   variant?: "default" | "recommended" | "outline";
   onClick?: () => void;
+  planKey?: string;
 }
 
 export function PlanCard({
@@ -20,6 +22,7 @@ export function PlanCard({
   cta,
   variant = "default",
   onClick,
+  planKey,
 }: PlanCardProps) {
   const isRecommended = variant === "recommended";
   const isOutline = variant === "outline";
@@ -53,10 +56,12 @@ export function PlanCard({
           </li>
         ))}
       </ul>
-      <button
+      <Link
+        to="/login"
+        search={{ plan: planKey }}
         onClick={onClick}
         className={cn(
-          "w-full rounded-2xl py-4 font-bold transition-all",
+          "block w-full rounded-2xl py-4 text-center font-bold transition-all",
           isRecommended
             ? "bg-electric text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
             : isOutline
@@ -65,7 +70,7 @@ export function PlanCard({
         )}
       >
         {cta}
-      </button>
+      </Link>
     </div>
   );
 }
