@@ -567,7 +567,8 @@ function HostPanel() {
                     )}
                   </ul>
                 )}
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
               );
             })}
             {!isLoading && keyRows.length === 0 && (
