@@ -165,25 +165,25 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="w-prop">Dirección (opcional)</Label>
-                <Input
+                <AddressAutocomplete
                   id="w-prop"
-                  maxLength={120}
                   placeholder="Gorriti 4500, CABA"
                   value={form.propertyName}
-                  onChange={(e) => setForm({ ...form, propertyName: e.target.value })}
+                  onChange={(value) => {
+                    setForm((f) => ({ ...f, propertyName: value }));
+                    setCoords(null);
+                  }}
+                  onSelect={(s) => setCoords({ lat: s.lat, lng: s.lng })}
                 />
               </div>
-              {address.length >= 5 && (
+              {address.length >= 3 && (
                 <div className="rounded-xl border border-gray-100 p-3">
-                  {geoState === "loading" && (
-                    <p className="text-sm text-gray-500">Buscando el punto más cercano…</p>
-                  )}
-                  {geoState !== "loading" && !nearest && (
+                  {!nearest && (
                     <p className="text-sm text-gray-500">
-                      No pudimos ubicar esa dirección. Podés elegir el punto en el paso siguiente.
+                      Elegí una dirección sugerida para ver el punto más cercano.
                     </p>
                   )}
-                  {geoState !== "loading" && nearest && (
+                  {nearest && (
                     <>
                       <p className="text-xs tracking-wide text-gray-500 uppercase">
                         Punto más cercano
