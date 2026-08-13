@@ -42,10 +42,12 @@ export function NewKeyWizard({
   hostId,
   preselectedKioskId,
   defaultOpen = false,
+  forcePro = false,
 }: {
   hostId: string | null;
   preselectedKioskId?: string | undefined;
   defaultOpen?: boolean | undefined;
+  forcePro?: boolean | undefined;
 }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
@@ -55,7 +57,7 @@ export function NewKeyWizard({
     name: "",
     propertyName: "",
     kioskId: preselectedKioskId ?? "",
-    plan: "one_use" as SubscriptionType,
+    plan: (forcePro ? "pro" : "one_use") as SubscriptionType,
   });
 
   const { data: kiosks } = useQuery({
