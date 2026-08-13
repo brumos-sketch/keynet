@@ -19,22 +19,6 @@ Hoy la campanita es interna (avisos dentro de la web). Con push, el aviso llega 
 - Un service worker exclusivo de mensajería recibe y muestra la notificación; al tocarla abre la pantalla correspondiente.
 - Panel de perfil: lista de dispositivos con notificaciones activas y opción de desactivar.
 
-## Etapa 3 — Lockers automáticos (preparación)
-
-La lógica de códigos y estados ya sirve tal cual: hoy una persona valida el código en `/point`; mañana la pantalla del casillero hace lo mismo y además abre la puerta.
-
-Lo que se agrega:
-
-- Tabla `locker_devices`: un dispositivo por punto, con token propio y estado de conexión (último latido).
-- Tabla `locker_events`: registro de cada apertura, cierre y falla, con fecha, casillero e intercambio asociado.
-- Endpoint público seguro `/api/public/locker/*` para que el controlador del casillero:
-  1. valide el código y reciba la orden "abrí el casillero N",
-  2. confirme que la puerta se abrió y se cerró.
-  Toda llamada se autentica con el token del dispositivo; nunca devuelve datos personales.
-- Modo kiosco en `/point`: pantalla completa, sin botón de salir, con mensaje "Abriendo casillero N…" y confirmación de cierre.
-- En Admin → Puntos: estado del dispositivo (en línea / fuera de línea), últimas aperturas y opción de apertura manual de emergencia.
-
-Esta etapa queda como esqueleto funcional (se puede probar con un dispositivo simulado) hasta que definas el hardware. Cuando elijas el controlador (por ejemplo ESP32 con relés, o una marca de casilleros con su propia API) se ajusta solo la capa de comunicación, no la lógica.
 
 ## Detalle técnico
 
