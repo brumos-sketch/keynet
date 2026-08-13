@@ -131,7 +131,12 @@ export default function PointsMap({
 
   return (
     <div style={{ height, width: "100%" }}>
-      <APIProvider apiKey={apiKey} channel={channel} language="es" region="AR">
+      <APIProvider
+        apiKey={apiKey}
+        {...(channel && Number.isFinite(Number(channel)) ? { channel: Number(channel) } : {})}
+        language="es"
+        region="AR"
+      >
         <Map
           defaultCenter={center}
           defaultZoom={13}
