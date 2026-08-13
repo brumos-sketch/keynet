@@ -59,6 +59,7 @@ function SearchPage() {
   const { kiosks } = Route.useLoaderData() as { kiosks: PublicKiosk[] };
   const { punto } = Route.useSearch();
   const preselected = punto ? (kiosks.find((k) => k.id === punto) ?? null) : null;
+  const preselectedId = preselected?.id ?? null;
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(
     preselected?.id ?? kiosks[0]?.id ?? null,
