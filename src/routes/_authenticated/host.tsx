@@ -92,6 +92,12 @@ function HostPanel() {
   const renewFn = useServerFn(renewExchange);
   const expireFn = useServerFn(expireOneUseExchanges);
   const updateExchangeFn = useServerFn(updateExchange);
+  const updateKeyFn = useServerFn(updateKeyFnRaw);
+  const deleteKeyFn = useServerFn(deleteKeyFnRaw);
+  const [editKey, setEditKey] = useState<{ id: string; name: string; property: string } | null>(
+    null,
+  );
+  const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState("");
