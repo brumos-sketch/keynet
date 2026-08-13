@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { associateOverview } from "@/lib/pasallave.functions";
+import { PlanBadge } from "@/components/pasallave/status-badge";
+
 import {
   KIOSK_CATEGORIES,
   PLAN_LABELS,
