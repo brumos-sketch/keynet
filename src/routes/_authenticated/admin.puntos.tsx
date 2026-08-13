@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Clock, Lock, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
+import { geocodeAddress } from "@/lib/geo.functions";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -126,6 +128,25 @@ function AdminKiosks() {
     },
     onSuccess: () => {
       toast.success("Código de acceso regenerado");
+      void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const geocodeFn = useServerFn(geocodeAddress);
+  const locate = useMutation({
+    mutationFn: async (k: { id: string; address: string | null }) => {
+      if (!k.address) throw new Error("El punto no tiene dirección cargada.");
+      const result = await geocodeFn({ data: { address: k.address } });
+      if (!result) throw new Error("No pudimos ubicar esa dirección. Editá el punto y elegí una sugerencia.");
+      const { error } = await supabase
+        .from("kiosks")
+        .update({ lat: result.lat, lng: result.lng })
+        .eq("id", k.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Ubicación guardada");
       void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -484,6 +505,20 @@ function AdminKiosks() {
                         k.category}
                     </Pill>
                     <Pill tone="warning">Comisión {k.commission_percent}%</Pill>
+                    {(k.lat == null || k.lng == null) && (
+                      <span className="flex items-center gap-2">
+                        <Pill tone="danger">Sin ubicación en el mapa</Pill>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 rounded-lg"
+                          disabled={locate.isPending || !k.address}
+                          onClick={() => locate.mutate({ id: k.id, address: k.address })}
+                        >
+                          Ubicar
+                        </Button>
+                      </span>
+                    )}
                     <span className="text-sm text-gray-500">
                       {k.address ?? "Sin dirección"}
                     </span>
