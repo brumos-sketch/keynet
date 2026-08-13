@@ -366,7 +366,7 @@ export async function runCodeValidation(
           booking_ref: result.bookingRef,
         });
         if (hostRow?.user_id) {
-          await sendPushToUser(hostRow.user_id, {
+          await sendPushToUser(supabaseAdmin, hostRow.user_id, {
             title: "Pasallave · movimiento",
             body: message,
             tag: `exchange-${result.action}`,
