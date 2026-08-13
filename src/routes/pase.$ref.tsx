@@ -53,7 +53,7 @@ const T = {
     open24: "Abierto 24 hs",
     map: "Ver en el mapa",
     status: "Estado",
-    copy: "Copiar código",
+    copy: "Copiar enlace",
     copied: "¡Copiado!",
     share: "Compartir",
   },
@@ -75,7 +75,7 @@ const T = {
     open24: "Open 24/7",
     map: "Open in map",
     status: "Status",
-    copy: "Copy code",
+    copy: "Copy link",
     copied: "Copied!",
     share: "Share",
   },
@@ -97,7 +97,7 @@ const T = {
     open24: "Aberto 24 h",
     map: "Ver no mapa",
     status: "Status",
-    copy: "Copiar código",
+    copy: "Copiar link",
     copied: "Copiado!",
     share: "Compartilhar",
   },
@@ -163,7 +163,7 @@ function BoardingPassPage() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(pass.pickup_code ?? shareUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
