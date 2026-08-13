@@ -67,6 +67,7 @@ export const Route = createFileRoute("/_authenticated/host")({
 });
 
 function HostPanel() {
+  const { punto } = useSearch({ from: "/_authenticated/host" });
   const { name, signOut } = useAuth();
   const qc = useQueryClient();
   const createExchangeFn = useServerFn(createExchange);
