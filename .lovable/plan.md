@@ -8,7 +8,7 @@ La selección **sí** se guarda: al tocar "Elegir este punto" en el paso 1 se gu
 
 1. **Aviso arriba de la lista**: si ya hay un punto elegido, mostrar una franja con "Punto elegido: <nombre>" y su distancia, para que se vea de inmediato.
 2. **Orden**: el punto elegido siempre primero; después, si hay dirección con coordenadas, el resto ordenado por cercanía.
-3. **Auto-scroll**: al entrar al paso 2, desplazar la lista hasta la tarjeta seleccionada (por si el usuario vuelve atrás y adelante).
+3. **Auto-avance si ya hay punto elegido**: si `form.kioskId` tiene valor (por haberlo elegido en el paso 1 o por `preselectedKioskId`), saltear el paso 2 "Punto" y mostrar directamente el paso 3 "Plan". La lista de puntos alternativos solo aparece cuando aún no se eligió ninguno.
 4. **Marca más clara**: además del borde azul, agregar un check/etiqueta "Elegido" en la tarjeta seleccionada.
 
 ## Detalle técnico
