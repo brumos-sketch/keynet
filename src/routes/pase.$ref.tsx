@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Brand, CodeChip, Pill } from "@/components/pasallave/ui-bits";
+import { Check, Copy, Share2 } from "lucide-react";
+import { Brand, Pill } from "@/components/pasallave/ui-bits";
+import { BrandLogo } from "@/components/pasallave/brand-logo";
 import { Button } from "@/components/ui/button";
 import { formatDate, WEEKDAYS, type KioskSchedule } from "@/lib/pasallave";
 import { getBoardingPass } from "@/lib/pasallave.functions";
