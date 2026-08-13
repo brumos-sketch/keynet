@@ -10,7 +10,13 @@ const toneClasses: Record<string, string> = {
   warning: "bg-warning/15 text-warning-foreground border-warning/35",
   danger: "bg-destructive/10 text-destructive border-destructive/25",
   primary: "bg-electric/10 text-electric border-electric/25",
+  purple: "bg-purple-brand/10 text-purple-brand border-purple-brand/30",
+  sky: "bg-sky-brand/10 text-sky-brand border-sky-brand/30",
+  amber: "bg-amber-brand/10 text-amber-brand border-amber-brand/30",
+  orange: "bg-orange-brand/10 text-orange-brand border-orange-brand/30",
+  gold: "bg-gold-brand/10 text-gold-brand border-gold-brand/30",
 };
+
 
 export function Pill({
   tone = "neutral",
