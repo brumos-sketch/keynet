@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { suggestAddresses, type AddressSuggestion } from "@/lib/geo.functions";
+import { resolvePlace, suggestAddresses, type AddressSuggestion } from "@/lib/geo.functions";
 
 type Props = {
   value: string;
@@ -30,6 +30,7 @@ export function AddressAutocomplete({
   const fallbackId = useId();
   const inputId = id ?? fallbackId;
   const suggestFn = useServerFn(suggestAddresses);
+  const resolveFn = useServerFn(resolvePlace);
   const [items, setItems] = useState<AddressSuggestion[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "none">("idle");
   const [open, setOpen] = useState(false);
@@ -83,10 +84,19 @@ export function AddressAutocomplete({
   const choose = (item: AddressSuggestion) => {
     skipNext.current = true;
     onChange(item.label);
-    onSelect(item);
     setOpen(false);
     setItems([]);
     setState("idle");
+    const placeId = item.placeId;
+    if (placeId && item.lat === 0 && item.lng === 0) {
+      void resolveFn({ data: { placeId } })
+        .then((place) => {
+          if (place) onSelect({ ...place, placeId });
+        })
+        .catch(() => undefined);
+      return;
+    }
+    onSelect(item);
   };
 
   return (

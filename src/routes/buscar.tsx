@@ -3,7 +3,7 @@ import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { MapPin, Search } from "lucide-react";
+import { LocateFixed, MapPin, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLE_HOME } from "@/lib/pasallave";
 import { Brand, Pill } from "@/components/pasallave/ui-bits";
@@ -21,6 +21,7 @@ import {
 import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
 import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
+import { reverseGeocode } from "@/lib/geo.functions";
 import { distanceKm, formatDistance, type GeoPoint } from "@/lib/geo";
 import type { MapPointItem } from "@/components/pasallave/points-map";
 
@@ -71,6 +72,33 @@ function SearchPage() {
   const [open, setOpen] = useState(false);
 
   const [origin, setOrigin] = useState<(GeoPoint & { label: string }) | null>(null);
+  const [locating, setLocating] = useState(false);
+  const reverseFn = useServerFn(reverseGeocode);
+
+  const useMyLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Tu navegador no permite compartir la ubicación.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setOrigin({ lat: latitude, lng: longitude, label: "tu ubicación" });
+        void reverseFn({ data: { lat: latitude, lng: longitude } })
+          .then((place) => {
+            if (place) setOrigin(place);
+          })
+          .catch(() => undefined)
+          .finally(() => setLocating(false));
+      },
+      () => {
+        setLocating(false);
+        toast.error("No pudimos obtener tu ubicación. Probá escribiendo la dirección.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -166,11 +194,24 @@ function SearchPage() {
             <Search className="pointer-events-none absolute top-6 left-4 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
           }
         />
-        <p className="-mt-3 text-xs text-gray-500">
-          {origin
-            ? `Ordenado por cercanía a ${origin.label}`
-            : "Escribí una dirección y elegí una sugerencia para ordenar por cercanía."}
-        </p>
+        <div className="-mt-3 flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-2xl"
+            disabled={locating}
+            onClick={useMyLocation}
+          >
+            <LocateFixed className="mr-2 h-4 w-4" />
+            {locating ? "Buscando tu ubicación…" : "Usar mi ubicación"}
+          </Button>
+          <p className="text-xs text-gray-500">
+            {origin
+              ? `Ordenado por cercanía a ${origin.label}`
+              : "Elegí una sugerencia de dirección o usá tu ubicación para ordenar por cercanía."}
+          </p>
+        </div>
 
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -313,7 +354,11 @@ function SearchPage() {
                       </div>
                     </div>
                     <a
-                      href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
+                      href={
+                        origin
+                          ? `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${current?.lat},${current?.lng}`
+                          : `https://www.google.com/maps/dir/?api=1&destination=${current?.lat},${current?.lng}`
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
