@@ -3,7 +3,7 @@
 ## 1. Editar y eliminar llaves (panel del anfitrión)
 
 - Dentro de la tarjeta desplegable de cada llave se agregan dos acciones: **Editar llave** y **Eliminar llave**.
-- Editar permite cambiar nombre, dirección y punto asociado. El nombre sigue validándose como único dentro del anfitrión.
+- Editar permite cambiar nombre y dirección; el punto asociado no se puede cambiar. El nombre sigue validándose como único dentro del anfitrión.
 - Eliminar solo está disponible si la llave no está depositada en un punto: se bloquea cuando existe algún intercambio en estado "depositado" o "retirado". En ese caso el botón queda deshabilitado con la aclaración "La llave está depositada en un punto".
 - Al eliminar se borran también sus intercambios y códigos de acceso asociados, con diálogo de confirmación previo.
 
