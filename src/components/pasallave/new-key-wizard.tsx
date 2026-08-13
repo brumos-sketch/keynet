@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Check, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export function NewKeyWizard({
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const [open, setOpen] = useState(defaultOpen);
-  const [step, setStep] = useState(preselectedKioskId ? 1 : 0);
+  const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
@@ -120,6 +121,50 @@ export function NewKeyWizard({
     (step === 1 && !!form.kioskId) ||
     step === 2 ||
     step === 3;
+
+  const handleContinue = () => {
+    if (step === 0) {
+      setStep(form.kioskId ? 2 : 1);
+      return;
+    }
+    setStep((s) => s + 1);
+  };
+
+  const sortedKiosks = useMemo(() => {
+    const list = [...(kiosks ?? [])];
+    if (coords) {
+      list.sort((a, b) => {
+        const aSelected = a.id === form.kioskId;
+        const bSelected = b.id === form.kioskId;
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        const aKm =
+          a.lat != null && a.lng != null
+            ? haversineKm(coords.lat, coords.lng, a.lat, a.lng)
+            : Infinity;
+        const bKm =
+          b.lat != null && b.lng != null
+            ? haversineKm(coords.lat, coords.lng, b.lat, b.lng)
+            : Infinity;
+        return aKm - bKm;
+      });
+    } else if (form.kioskId) {
+      list.sort((a, b) => {
+        if (a.id === form.kioskId) return -1;
+        if (b.id === form.kioskId) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [kiosks, form.kioskId, coords]);
+
+  const selectedItemRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (step === 1 && selectedItemRef.current) {
+      selectedItemRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [step]);
 
   return (
     <Dialog
@@ -222,38 +267,73 @@ export function NewKeyWizard({
           )}
 
           {step === 1 && (
-            <div className="max-h-[280px] space-y-2 overflow-y-auto">
-              {(kiosks ?? []).map((k) => (
-                <button
-                  key={k.id}
-                  type="button"
-                  onClick={() => setForm({ ...form, kioskId: k.id })}
-                  className={cn(
-                    "w-full rounded-xl border p-3 text-left transition-colors",
-                    form.kioskId === k.id
-                      ? "border-electric bg-electric/5"
-                      : "border-gray-100 hover:bg-gray-50",
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-foreground">{k.name}</span>
-                    <Pill tone="neutral">
-                      {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
-                        k.custom_category ??
-                        k.category}
-                    </Pill>
+            <div className="space-y-3">
+              {form.kioskId && chosenKiosk && (
+                <div className="flex items-start gap-3 rounded-xl border border-electric/20 bg-electric/5 p-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-electric" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-electric">
+                      Punto elegido
+                    </p>
+                    <p className="font-medium text-foreground">{chosenKiosk.name}</p>
+                    <p className="text-sm text-gray-500">{chosenKiosk.address ?? "—"}</p>
                   </div>
-                  <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
-                  <p className="text-xs text-gray-500">
-                    {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
-                    {k.free_positions} posiciones libres de {k.positions}
-                  </p>
-                </button>
-
-              ))}
-              {(kiosks ?? []).length === 0 && (
-                <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
+                  {coords && chosenKiosk.lat != null && chosenKiosk.lng != null && (
+                    <Pill tone="info">
+                      {formatDistance(
+                        haversineKm(coords.lat, coords.lng, chosenKiosk.lat, chosenKiosk.lng),
+                      )}
+                    </Pill>
+                  )}
+                </div>
               )}
+              <div className="max-h-[280px] space-y-2 overflow-y-auto">
+                {sortedKiosks.map((k) => {
+                  const selected = form.kioskId === k.id;
+                  return (
+                    <button
+                      key={k.id}
+                      ref={selected ? selectedItemRef : undefined}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, kioskId: k.id });
+                        setStep(2);
+                      }}
+                      className={cn(
+                        "w-full rounded-xl border p-3 text-left transition-colors",
+                        selected
+                          ? "border-electric bg-electric/5"
+                          : "border-gray-100 hover:bg-gray-50",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {selected && <Check className="h-4 w-4 shrink-0 text-electric" />}
+                          <span className="font-medium text-foreground">{k.name}</span>
+                        </div>
+                        <Pill tone="neutral">
+                          {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
+                            k.custom_category ??
+                            k.category}
+                        </Pill>
+                      </div>
+                      <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                      <p className="text-xs text-gray-500">
+                        {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
+                        {k.free_positions} posiciones libres de {k.positions}
+                      </p>
+                      {selected && (
+                        <Pill tone="info" className="mt-2">
+                          Elegido
+                        </Pill>
+                      )}
+                    </button>
+                  );
+                })}
+                {sortedKiosks.length === 0 && (
+                  <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -319,7 +399,7 @@ export function NewKeyWizard({
             <Button
               className="rounded-xl"
               disabled={!canContinue}
-              onClick={() => setStep((s) => s + 1)}
+              onClick={handleContinue}
             >
               Continuar
             </Button>
