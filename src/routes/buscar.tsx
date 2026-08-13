@@ -303,22 +303,43 @@ function SearchPage() {
                     />
                   </Suspense>
                 </ClientOnly>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 text-electric" />
-                    <div>
-                      <p className="text-sm font-bold text-navy">{current?.name}</p>
-                      <p className="text-xs text-gray-500">{current?.address}</p>
+                <div className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 text-electric" />
+                      <div>
+                        <p className="text-sm font-bold text-navy">{current?.name}</p>
+                        <p className="text-xs text-gray-500">{current?.address}</p>
+                      </div>
                     </div>
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
+                    >
+                      Cómo llegar
+                    </a>
                   </div>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
-                  >
-                    Cómo llegar
-                  </a>
+                  {current && current.lat != null && current.lng != null && (
+                    <Button
+                      asChild
+                      className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+                    >
+                      {session && role && role !== "pending" ? (
+                        <Link
+                          to={role === "host" ? "/host" : ROLE_HOME[role]}
+                          search={role === "host" ? { punto: current.id } : undefined}
+                        >
+                          Dejar llaves aquí
+                        </Link>
+                      ) : (
+                        <Link to="/login" search={{ punto: current.id }}>
+                          Dejar llaves aquí
+                        </Link>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </>
             ) : (
