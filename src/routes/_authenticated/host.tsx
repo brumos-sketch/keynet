@@ -861,6 +861,77 @@ function HostPanel() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={!!editKey} onOpenChange={(open) => !open && setEditKey(null)}>
+            <DialogContent className="rounded-2xl sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Editar llave</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="k-name">Nombre de la llave</Label>
+                  <Input
+                    id="k-name"
+                    maxLength={80}
+                    value={editKey?.name ?? ""}
+                    onChange={(e) =>
+                      setEditKey((prev) => (prev ? { ...prev, name: e.target.value } : prev))
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="k-prop">Dirección</Label>
+                  <Input
+                    id="k-prop"
+                    maxLength={300}
+                    value={editKey?.property ?? ""}
+                    onChange={(e) =>
+                      setEditKey((prev) => (prev ? { ...prev, property: e.target.value } : prev))
+                    }
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  El punto asociado no se puede cambiar.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  disabled={updateKeyMutation.isPending || !(editKey?.name.trim())}
+                  onClick={() => updateKeyMutation.mutate()}
+                >
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog
+            open={!!deleteKeyTarget}
+            onOpenChange={(open) => !open && setDeleteKeyTarget(null)}
+          >
+            <DialogContent className="rounded-2xl sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle>Eliminar llave</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-gray-500">
+                ¿Seguro que querés eliminar «{deleteKeyTarget?.name}»? Se borran también sus
+                estadías y códigos de acceso. Esta acción no se puede deshacer.
+              </p>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setDeleteKeyTarget(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteKeyMutation.isPending}
+                  onClick={() => deleteKeyMutation.mutate()}
+                >
+                  Eliminar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
         </main>
 
       </div>
