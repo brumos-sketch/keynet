@@ -37,15 +37,23 @@ const PLAN_DETAILS: Record<SubscriptionType, string> = {
   pro: "Acuerdo a medida con códigos de acceso por persona (huésped, limpieza, mantenimiento).",
 };
 
-export function NewKeyWizard({ hostId }: { hostId: string | null }) {
+export function NewKeyWizard({
+  hostId,
+  preselectedKioskId,
+  defaultOpen = false,
+}: {
+  hostId: string | null;
+  preselectedKioskId?: string;
+  defaultOpen?: boolean;
+}) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
+  const [open, setOpen] = useState(defaultOpen);
+  const [step, setStep] = useState(preselectedKioskId ? 1 : 0);
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
-    kioskId: "",
+    kioskId: preselectedKioskId ?? "",
     plan: "one_use" as SubscriptionType,
   });
 
