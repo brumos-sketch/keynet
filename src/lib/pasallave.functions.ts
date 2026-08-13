@@ -106,12 +106,26 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
         .eq("booking_ref", row.booking_ref)
         .maybeSingle();
       if (already) continue;
+      const message = `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`;
       await supabaseAdmin.from("notifications").insert({
         host_id: key.host_id,
         type: "expired",
         booking_ref: row.booking_ref,
-        message: `La estadía ${row.booking_ref} de "${key.name}" venció. Podés renovarla con días extra.`,
+        message,
       });
+      const { data: hostRow } = await supabaseAdmin
+        .from("hosts")
+        .select("user_id")
+        .eq("id", key.host_id)
+        .maybeSingle();
+      if (hostRow?.user_id) {
+        await sendPushToUser(hostRow.user_id, {
+          title: "Pasallave · estadía vencida",
+          body: message,
+          tag: `exchange-expired`,
+          data: { url: "/host" },
+        });
+      }
     }
 
     return { ok: true };
