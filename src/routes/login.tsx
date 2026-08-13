@@ -50,6 +50,7 @@ function LoginPage() {
 
   const navigate = useNavigate();
   const { session, role, loading, refresh, signOut } = useAuth();
+  const { punto } = Route.useSearch();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
