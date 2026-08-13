@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { User } from "lucide-react";
+
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
