@@ -60,9 +60,11 @@ import {
 } from "@/lib/pasallave";
 import {
   createExchange,
+  deleteKey as deleteKeyFnRaw,
   expireOneUseExchanges,
   renewExchange,
   updateExchange,
+  updateKey as updateKeyFnRaw,
 } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
