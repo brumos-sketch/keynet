@@ -99,6 +99,8 @@ function HostPanel() {
   const [renewId, setRenewId] = useState<string | null>(null);
   const [extraDays, setExtraDays] = useState(1);
   const [logKeyId, setLogKeyId] = useState<string | null>(null);
+  const [openCard, setOpenCard] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [selectedExchange, setSelectedExchange] = useState<{
     id: string;
