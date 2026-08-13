@@ -612,6 +612,7 @@ export type Database = {
           name: string | null
           notify_email: boolean
           notify_push: boolean
+          phone: string | null
         }
         Insert: {
           created_at?: string
@@ -621,6 +622,7 @@ export type Database = {
           name?: string | null
           notify_email?: boolean
           notify_push?: boolean
+          phone?: string | null
         }
         Update: {
           created_at?: string
@@ -630,6 +632,7 @@ export type Database = {
           name?: string | null
           notify_email?: boolean
           notify_push?: boolean
+          phone?: string | null
         }
         Relationships: [
           {

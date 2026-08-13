@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { User } from "lucide-react";
+
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -285,19 +287,27 @@ function HostPanel() {
         <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
           <Brand />
           <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <Link
+              to="/perfil"
+              aria-label="Mi perfil"
+              title="Mi perfil"
+              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy"
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-electric/10 text-electric">
+                <User className="size-4" />
+              </span>
+              <span className="max-w-[9rem] truncate">{name}</span>
+            </Link>
             <InstallButton />
             <NotificationBell />
             <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
               <Link to="/checkout">Pagos</Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
-              <Link to="/perfil">Perfil</Link>
-            </Button>
             <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
           </div>
+
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">

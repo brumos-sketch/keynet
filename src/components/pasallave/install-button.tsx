@@ -26,7 +26,7 @@ function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-export function InstallButton() {
+export function InstallButton({ showPush = false }: { showPush?: boolean } = {}) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -138,7 +138,7 @@ export function InstallButton() {
           Instalada
         </div>
       )}
-      {"serviceWorker" in navigator && "PushManager" in window && (
+      {showPush && "serviceWorker" in navigator && "PushManager" in window && (
         <Button
           variant={pushEnabled ? "default" : "outline"}
           size="sm"
