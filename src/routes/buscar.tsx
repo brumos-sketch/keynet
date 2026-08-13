@@ -354,7 +354,11 @@ function SearchPage() {
                       </div>
                     </div>
                     <a
-                      href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
+                      href={
+                        origin
+                          ? `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${current?.lat},${current?.lng}`
+                          : `https://www.google.com/maps/dir/?api=1&destination=${current?.lat},${current?.lng}`
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
