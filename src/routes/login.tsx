@@ -65,8 +65,13 @@ function LoginPage() {
       void signOut();
       return;
     }
-    void navigate({ to: ROLE_HOME[role as AppRole], replace: true });
-  }, [loading, session, role, navigate, signOut]);
+    const target = ROLE_HOME[role as AppRole];
+    if (role === "host" && punto) {
+      void navigate({ to: target, search: { punto }, replace: true });
+    } else {
+      void navigate({ to: target, replace: true });
+    }
+  }, [loading, session, role, navigate, signOut, punto]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
