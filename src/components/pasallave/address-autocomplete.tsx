@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { suggestAddresses, type AddressSuggestion } from "@/lib/geo.functions";
+import { resolvePlace, suggestAddresses, type AddressSuggestion } from "@/lib/geo.functions";
 
 type Props = {
   value: string;
