@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, Bell, BellOff, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getVapidPublicKey, savePushSubscription, deletePushSubscription } from "@/lib/push.functions";
+import {
+  getVapidPublicKey,
+  savePushSubscription,
+  deletePushSubscription,
+} from "@/lib/push-subscriptions.functions";
 import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
