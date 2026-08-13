@@ -357,13 +357,23 @@ export async function runCodeValidation(
         picked_up: `Se retiró la llave "${keyRow.name}" del punto.`,
         completed: `Se devolvió la llave "${keyRow.name}" al punto.`,
       };
-      if (notifyPush)
+      const message = messages[result.action] ?? `Movimiento registrado (${result.action}).`;
+      if (notifyPush) {
         await supabaseAdmin.from("notifications").insert({
           host_id: keyRow.host_id,
           type: result.action,
-          message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,
+          message,
           booking_ref: result.bookingRef,
         });
+        if (hostRow?.user_id) {
+          await sendPushToUser(hostRow.user_id, {
+            title: "Pasallave · movimiento",
+            body: message,
+            tag: `exchange-${result.action}`,
+            data: { url: "/host" },
+          });
+        }
+      }
     }
   }
 
