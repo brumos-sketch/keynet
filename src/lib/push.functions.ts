@@ -81,7 +81,8 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
 
   if (!subs || subs.length === 0) return { sent: 0 };
 
-  configureVapid();
+  const webpush = await getWebPush();
+  await configureVapid();
   const body = JSON.stringify(payload);
   const results = await Promise.allSettled(
     subs.map(async (sub) => {
@@ -100,7 +101,7 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
   for (let i = 0; i < results.length; i++) {
     const result = results[i]!;
     if (result.status === "rejected") {
-      const err = (result as PromiseRejectedResult).reason as webpush.WebPushError | undefined;
+      const err = (result as PromiseRejectedResult).reason as { statusCode?: number } | undefined;
       if (err && (err.statusCode === 404 || err.statusCode === 410)) {
         deadEndpoints.push(subs[i]!.endpoint);
       }
