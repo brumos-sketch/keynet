@@ -396,19 +396,19 @@ function HostPanel() {
                 key={k.id}
                 open={openCard === k.id}
                 onOpenChange={(o) => setOpenCard(o ? k.id : null)}
-                className="glass-card px-4 py-3 sm:px-5"
+                className="glass-card px-5 py-4"
               >
-                <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate font-bold text-navy">{k.name}</h2>
-                    <p className="truncate text-xs text-gray-500">{k.property_name ?? "—"}</p>
+                <CollapsibleTrigger className="group flex w-full items-start gap-3 text-left">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h2 className="break-words font-bold text-navy">{k.name}</h2>
+                    <p className="break-words text-xs text-gray-500">{k.property_name ?? "—"}</p>
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <PlanBadge plan={k.subscription_type} />
+                      <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
+                      {k.locked && <Pill tone="danger">Bloqueada</Pill>}
+                    </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-                    <PlanBadge plan={k.subscription_type} />
-                    <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
-                    {k.locked && <Pill tone="danger">Bloqueada</Pill>}
-                  </div>
-                  <ChevronDown className="size-5 shrink-0 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  <ChevronDown className="mt-1 size-5 shrink-0 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none">
                 {oneUseActive && (
