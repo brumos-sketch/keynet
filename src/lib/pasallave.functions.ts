@@ -160,6 +160,20 @@ export const createKey = createServerFn({ method: "POST" })
     if (!host) throw new Error("Anfitrión no encontrado");
     if (!kiosk) throw new Error("Punto no encontrado");
 
+    // El nombre de la llave debe ser único dentro del anfitrión
+    const { data: existing } = await supabaseAdmin
+      .from("keys")
+      .select("id, name")
+      .eq("host_id", data.hostId);
+    const normalized = data.name.trim().toLowerCase().replace(/\s+/g, " ");
+    if (
+      (existing ?? []).some(
+        (k) => (k.name ?? "").trim().toLowerCase().replace(/\s+/g, " ") === normalized,
+      )
+    ) {
+      throw new Error("Ya tenés una llave con ese nombre");
+    }
+
     // Insert key — every key gets a fixed, unique deposit code (host side)
     const depositCode = generateExchangeCode();
     const { data: key, error: keyError } = await supabaseAdmin

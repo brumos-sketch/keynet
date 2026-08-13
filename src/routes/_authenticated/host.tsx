@@ -1,5 +1,17 @@
 import { useEffect, useState } from "react";
-import { User } from "lucide-react";
+import { ChevronDown, Menu, User } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -99,6 +111,8 @@ function HostPanel() {
   const [renewId, setRenewId] = useState<string | null>(null);
   const [extraDays, setExtraDays] = useState(1);
   const [logKeyId, setLogKeyId] = useState<string | null>(null);
+  const [openCard, setOpenCard] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [selectedExchange, setSelectedExchange] = useState<{
     id: string;
@@ -284,30 +298,64 @@ function HostPanel() {
   return (
     <RoleGuard allow="host">
       <div className="min-h-screen bg-background">
-        <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
-          <Brand />
-          <div className="flex items-center gap-2">
+        <header className="grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-gray-100 bg-white px-4 sm:px-5">
+          <div className="min-w-0 overflow-hidden">
+            <Brand />
+          </div>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link
               to="/perfil"
               aria-label="Mi perfil"
               title="Mi perfil"
-              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy"
+              className="flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy sm:px-2"
             >
-              <span className="flex size-8 items-center justify-center rounded-full bg-electric/10 text-electric">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-electric/10 text-electric">
                 <User className="size-4" />
               </span>
-              <span className="max-w-[9rem] truncate">{name}</span>
+              <span className="hidden max-w-[9rem] truncate sm:inline">{name}</span>
             </Link>
-            <InstallButton />
             <NotificationBell />
-            <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
-              <Link to="/checkout">Pagos</Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
-              Salir
-            </Button>
+            <div className="hidden items-center gap-2 sm:flex">
+              <InstallButton />
+              <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
+                <Link to="/checkout">Pagos</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
+                Salir
+              </Button>
+            </div>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0 sm:hidden" aria-label="Menú">
+                  <Menu className="size-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 p-5">
+                <SheetHeader className="p-0">
+                  <SheetTitle className="text-left text-navy">{name}</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 flex flex-col gap-2">
+                  <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
+                    <Link to="/perfil">Mi perfil</Link>
+                  </Button>
+                  <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
+                    <Link to="/checkout">Pagos</Link>
+                  </Button>
+                  <InstallButton />
+                  <Button
+                    variant="ghost"
+                    className="justify-start"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void signOut();
+                    }}
+                  >
+                    Salir
+                  </Button>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
-
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
@@ -334,7 +382,7 @@ function HostPanel() {
 
           {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3">
             {keyRows.map((k) => {
               const st = keyStatus(k.id);
               const oneUseActive =
@@ -344,18 +392,25 @@ function HostPanel() {
                   ? deadlineFor(st.exchange.created_at)
                   : null;
               return (
-              <div key={k.id} className="glass-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="font-bold text-navy">{k.name}</h2>
-                    <p className="text-sm text-gray-500">{k.property_name ?? "—"}</p>
+              <Collapsible
+                key={k.id}
+                open={openCard === k.id}
+                onOpenChange={(o) => setOpenCard(o ? k.id : null)}
+                className="glass-card px-4 py-3 sm:px-5"
+              >
+                <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate font-bold text-navy">{k.name}</h2>
+                    <p className="truncate text-xs text-gray-500">{k.property_name ?? "—"}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
                     <PlanBadge plan={k.subscription_type} />
                     <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
                     {k.locked && <Pill tone="danger">Bloqueada</Pill>}
                   </div>
-                </div>
+                  <ChevronDown className="size-5 shrink-0 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none">
                 {oneUseActive && (
                   <p className="mt-3 text-xs text-gray-500">
                     {oneUseActive.getTime() > now.getTime()
@@ -363,6 +418,7 @@ function HostPanel() {
                       : "Guardado vencido: renová para recuperar la llave"}
                   </p>
                 )}
+
 
                 <div className="mt-4 space-y-2 text-sm text-gray-500">
                   <p>Punto: {kioskName(k.kiosk_id)}</p>
@@ -511,7 +567,8 @@ function HostPanel() {
                     )}
                   </ul>
                 )}
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
               );
             })}
             {!isLoading && keyRows.length === 0 && (
