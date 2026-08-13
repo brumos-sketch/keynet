@@ -382,7 +382,7 @@ function HostPanel() {
 
           {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3">
             {keyRows.map((k) => {
               const st = keyStatus(k.id);
               const oneUseActive =
@@ -392,18 +392,25 @@ function HostPanel() {
                   ? deadlineFor(st.exchange.created_at)
                   : null;
               return (
-              <div key={k.id} className="glass-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="font-bold text-navy">{k.name}</h2>
-                    <p className="text-sm text-gray-500">{k.property_name ?? "—"}</p>
+              <Collapsible
+                key={k.id}
+                open={openCard === k.id}
+                onOpenChange={(o) => setOpenCard(o ? k.id : null)}
+                className="glass-card px-4 py-3 sm:px-5"
+              >
+                <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate font-bold text-navy">{k.name}</h2>
+                    <p className="truncate text-xs text-gray-500">{k.property_name ?? "—"}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
                     <PlanBadge plan={k.subscription_type} />
                     <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
                     {k.locked && <Pill tone="danger">Bloqueada</Pill>}
                   </div>
-                </div>
+                  <ChevronDown className="size-5 shrink-0 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none">
                 {oneUseActive && (
                   <p className="mt-3 text-xs text-gray-500">
                     {oneUseActive.getTime() > now.getTime()
@@ -411,6 +418,7 @@ function HostPanel() {
                       : "Guardado vencido: renová para recuperar la llave"}
                   </p>
                 )}
+
 
                 <div className="mt-4 space-y-2 text-sm text-gray-500">
                   <p>Punto: {kioskName(k.kiosk_id)}</p>
