@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { plan?: string } =>
+    typeof search['plan'] === "string" ? { plan: search['plan'] } : {},
   head: () => ({
     meta: [
       { title: "Ingresar — PASALLAVE" },

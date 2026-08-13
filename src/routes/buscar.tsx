@@ -28,6 +28,8 @@ const categoryLabel = (value: string) =>
   KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
 
 export const Route = createFileRoute("/buscar")({
+  validateSearch: (search: Record<string, unknown>): { punto?: string } =>
+    typeof search['punto'] === "string" ? { punto: search['punto'] } : {},
   loader: () => listPublicKiosks(),
   head: () => ({
     meta: [
@@ -54,8 +56,13 @@ export const Route = createFileRoute("/buscar")({
 
 function SearchPage() {
   const { kiosks } = Route.useLoaderData() as { kiosks: PublicKiosk[] };
+  const { punto } = Route.useSearch();
+  const preselected = punto ? (kiosks.find((k) => k.id === punto) ?? null) : null;
+  const preselectedId = preselected?.id ?? null;
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<string | null>(kiosks[0]?.id ?? null);
+  const [selected, setSelected] = useState<string | null>(
+    preselected?.id ?? kiosks[0]?.id ?? null,
+  );
   const waitlistFn = useServerFn(joinWaitlist);
   const [waitlist, setWaitlist] = useState({ address: "", email: "", name: "", phone: "" });
   const [open, setOpen] = useState(false);
@@ -109,12 +116,19 @@ function SearchPage() {
         .slice()
         .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
+    if (preselectedId) {
+      return withDistance
+        .slice()
+        .sort((a, b) =>
+          a.id === preselectedId ? -1 : b.id === preselectedId ? 1 : 0,
+        );
+    }
     if (!q) return withDistance;
     return withDistance.filter(
       (k) =>
         k.name.toLowerCase().includes(q) || (k.address ?? "").toLowerCase().includes(q),
     );
-  }, [kiosks, query, origin]);
+  }, [kiosks, query, origin, preselectedId]);
 
   const current = filtered.find((k) => k.id === selected) ?? filtered[0] ?? null;
 

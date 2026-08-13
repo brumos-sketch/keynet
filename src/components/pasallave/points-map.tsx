@@ -48,11 +48,13 @@ export default function PointsMap({
   origin,
   selectedId,
   onSelect,
+  height = 420,
 }: {
   points: MapPointItem[];
   origin: GeoPoint | null;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  height?: number | string;
 }) {
   const center = useMemo<[number, number]>(() => {
     if (origin) return [origin.lat, origin.lng];
@@ -65,8 +67,8 @@ export default function PointsMap({
       center={center}
       zoom={13}
       scrollWheelZoom
-      className="h-[420px] w-full"
-      style={{ height: 420, width: "100%" }}
+      className="w-full"
+      style={{ height, width: "100%" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
