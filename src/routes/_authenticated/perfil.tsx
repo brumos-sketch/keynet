@@ -124,10 +124,11 @@ function Perfil() {
               <Bell className="mt-0.5 h-4 w-4 text-orange-brand" />
               <div>
                 <Label htmlFor="notify-push" className="text-sm font-semibold text-foreground">
-                  Notificaciones en la campanita
+                  Notificaciones push
                 </Label>
                 <p className="text-xs text-gray-500">
-                  Avisos dentro de la app, en el ícono de la campanita.
+                  Avisos instantáneos en el celular cuando pasa algo con tus llaves.
+                  Activá también el botón "Push on" en la parte superior.
                 </p>
               </div>
             </div>
@@ -137,6 +138,19 @@ function Perfil() {
               disabled={isLoading || save.isPending}
               onCheckedChange={(v) => update({ notifyPush: v })}
             />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-xl border border-gray-100 p-4">
+            <div className="flex items-start gap-3">
+              <Smartphone className="mt-0.5 h-4 w-4 text-electric" />
+              <div>
+                <Label className="text-sm font-semibold text-foreground">Instalar app</Label>
+                <p className="text-xs text-gray-500">
+                  Agregá Pasallave a tu pantalla de inicio para usarla como una app.
+                </p>
+              </div>
+            </div>
+            <InstallButton />
           </div>
 
           <p className="text-xs text-gray-500">
