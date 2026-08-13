@@ -50,6 +50,8 @@ import {
 } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
+  validateSearch: (search: Record<string, unknown>): { punto?: string } =>
+    typeof search["punto"] === "string" ? { punto: search["punto"] } : {},
   head: () => ({
     meta: [
       { title: "Mis llaves — PASALLAVE" },
