@@ -842,7 +842,7 @@ export const payBilling = createServerFn({ method: "POST" })
         message,
       });
       if (hostRow?.user_id) {
-        await sendPushToUser(hostRow.user_id, {
+        await sendPushToUser(supabaseAdmin, hostRow.user_id, {
           title: "Pasallave · pago confirmado",
           body: message,
           tag: `payment`,
