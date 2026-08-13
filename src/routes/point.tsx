@@ -10,6 +10,7 @@ import { formatCountdown, kioskOpenState, type KioskSchedule } from "@/lib/pasal
 import {
   AlertTriangle,
   ArrowLeft,
+  Check,
   CheckCircle2,
   Clock,
   Delete,
@@ -77,6 +78,7 @@ const ACTION_META: Record<
 type Screen =
   | { kind: "keypad" }
   | { kind: "result"; action: string; position: number | null; bookingRef: string | null }
+  | { kind: "confirmed" }
   | { kind: "error"; message: string }
   | { kind: "countdown"; message: string; availableAt: string | null };
 
@@ -360,7 +362,8 @@ function PointPanel({ point }: { point: PointInfo }) {
           </div>
         )}
 
-        {screen.kind === "result" && <ResultScreen screen={screen} onConfirm={backToKeypad} />}
+        {screen.kind === "result" && <ResultScreen screen={screen} onConfirm={() => setScreen({ kind: "confirmed" })} />}
+        {screen.kind === "confirmed" && <ConfirmedScreen onComplete={backToKeypad} />}
 
         {screen.kind === "error" && (
           <div className="animate-fade-in flex min-h-[24rem] flex-col items-center justify-center gap-4 text-center">
