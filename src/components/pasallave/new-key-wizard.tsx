@@ -261,38 +261,73 @@ export function NewKeyWizard({
           )}
 
           {step === 1 && (
-            <div className="max-h-[280px] space-y-2 overflow-y-auto">
-              {(kiosks ?? []).map((k) => (
-                <button
-                  key={k.id}
-                  type="button"
-                  onClick={() => setForm({ ...form, kioskId: k.id })}
-                  className={cn(
-                    "w-full rounded-xl border p-3 text-left transition-colors",
-                    form.kioskId === k.id
-                      ? "border-electric bg-electric/5"
-                      : "border-gray-100 hover:bg-gray-50",
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-foreground">{k.name}</span>
-                    <Pill tone="neutral">
-                      {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
-                        k.custom_category ??
-                        k.category}
-                    </Pill>
+            <div className="space-y-3">
+              {form.kioskId && chosenKiosk && (
+                <div className="flex items-start gap-3 rounded-xl border border-electric/20 bg-electric/5 p-3">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-electric" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-electric">
+                      Punto elegido
+                    </p>
+                    <p className="font-medium text-foreground">{chosenKiosk.name}</p>
+                    <p className="text-sm text-gray-500">{chosenKiosk.address ?? "—"}</p>
                   </div>
-                  <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
-                  <p className="text-xs text-gray-500">
-                    {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
-                    {k.free_positions} posiciones libres de {k.positions}
-                  </p>
-                </button>
-
-              ))}
-              {(kiosks ?? []).length === 0 && (
-                <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
+                  {coords && chosenKiosk.lat != null && chosenKiosk.lng != null && (
+                    <Pill tone="info">
+                      {formatDistance(
+                        haversineKm(coords.lat, coords.lng, chosenKiosk.lat, chosenKiosk.lng),
+                      )}
+                    </Pill>
+                  )}
+                </div>
               )}
+              <div className="max-h-[280px] space-y-2 overflow-y-auto">
+                {sortedKiosks.map((k) => {
+                  const selected = form.kioskId === k.id;
+                  return (
+                    <button
+                      key={k.id}
+                      ref={selected ? selectedItemRef : undefined}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, kioskId: k.id });
+                        setStep(2);
+                      }}
+                      className={cn(
+                        "w-full rounded-xl border p-3 text-left transition-colors",
+                        selected
+                          ? "border-electric bg-electric/5"
+                          : "border-gray-100 hover:bg-gray-50",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {selected && <Check className="h-4 w-4 shrink-0 text-electric" />}
+                          <span className="font-medium text-foreground">{k.name}</span>
+                        </div>
+                        <Pill tone="neutral">
+                          {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
+                            k.custom_category ??
+                            k.category}
+                        </Pill>
+                      </div>
+                      <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                      <p className="text-xs text-gray-500">
+                        {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
+                        {k.free_positions} posiciones libres de {k.positions}
+                      </p>
+                      {selected && (
+                        <Pill tone="info" className="mt-2">
+                          Elegido
+                        </Pill>
+                      )}
+                    </button>
+                  );
+                })}
+                {sortedKiosks.length === 0 && (
+                  <p className="text-sm text-gray-500">No hay puntos disponibles.</p>
+                )}
+              </div>
             </div>
           )}
 
