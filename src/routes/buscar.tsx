@@ -166,11 +166,24 @@ function SearchPage() {
             <Search className="pointer-events-none absolute top-6 left-4 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
           }
         />
-        <p className="-mt-3 text-xs text-gray-500">
-          {origin
-            ? `Ordenado por cercanía a ${origin.label}`
-            : "Escribí una dirección y elegí una sugerencia para ordenar por cercanía."}
-        </p>
+        <div className="-mt-3 flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-2xl"
+            disabled={locating}
+            onClick={useMyLocation}
+          >
+            <LocateFixed className="mr-2 h-4 w-4" />
+            {locating ? "Buscando tu ubicación…" : "Usar mi ubicación"}
+          </Button>
+          <p className="text-xs text-gray-500">
+            {origin
+              ? `Ordenado por cercanía a ${origin.label}`
+              : "Elegí una sugerencia de dirección o usá tu ubicación para ordenar por cercanía."}
+          </p>
+        </div>
 
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
