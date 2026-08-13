@@ -135,7 +135,7 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
 
 const createKeySchema = z.object({
   name: z.string().trim().min(1).max(80),
-  propertyName: z.string().trim().max(120).optional().nullable(),
+  propertyName: z.string().trim().max(300).optional().nullable(),
   hostId: z.string().uuid(),
   kioskId: z.string().uuid(),
   subscriptionType: z.enum(["one_use", "monthly", "pro"]),
