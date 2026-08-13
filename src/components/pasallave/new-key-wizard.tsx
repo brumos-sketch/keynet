@@ -122,6 +122,44 @@ export function NewKeyWizard({
     step === 2 ||
     step === 3;
 
+  const handleContinue = () => {
+    if (step === 0) {
+      setStep(form.kioskId ? 2 : 1);
+      return;
+    }
+    setStep((s) => s + 1);
+  };
+
+  const sortedKiosks = useMemo(() => {
+    const list = [...(kiosks ?? [])];
+    if (coords) {
+      list.sort((a, b) => {
+        const aSelected = a.id === form.kioskId;
+        const bSelected = b.id === form.kioskId;
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        const aKm =
+          a.lat != null && a.lng != null
+            ? haversineKm(coords.lat, coords.lng, a.lat, a.lng)
+            : Infinity;
+        const bKm =
+          b.lat != null && b.lng != null
+            ? haversineKm(coords.lat, coords.lng, b.lat, b.lng)
+            : Infinity;
+        return aKm - bKm;
+      });
+    } else if (form.kioskId) {
+      list.sort((a, b) => {
+        if (a.id === form.kioskId) return -1;
+        if (b.id === form.kioskId) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [kiosks, form.kioskId, coords]);
+
+  const selectedItemRef = useRef<HTMLButtonElement | null>(null);
+
   return (
     <Dialog
       open={open}
