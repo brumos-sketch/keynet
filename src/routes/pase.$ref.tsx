@@ -125,7 +125,7 @@ function BoardingPassPage() {
 
   const mapUrl =
     pass.kiosk_lat && pass.kiosk_lng
-      ? `https://www.openstreetmap.org/?mlat=${pass.kiosk_lat}&mlon=${pass.kiosk_lng}#map=18/${pass.kiosk_lat}/${pass.kiosk_lng}`
+      ? `https://www.google.com/maps/dir/?api=1&destination=${pass.kiosk_lat},${pass.kiosk_lng}`
       : pass.kiosk_address
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pass.kiosk_address)}`
         : null;
