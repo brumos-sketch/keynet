@@ -425,6 +425,7 @@ function HostPanel() {
                 hostId={hostId ?? null}
                 preselectedKioskId={punto}
                 defaultOpen={!!punto}
+                forcePro={!!proActive}
               />
             </div>
           </div>
