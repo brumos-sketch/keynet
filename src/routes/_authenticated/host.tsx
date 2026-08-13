@@ -594,7 +594,36 @@ function HostPanel() {
                   >
                     {logKeyId === k.id ? "Ocultar actividad" : "Ver actividad"}
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })
+                    }
+                  >
+                    Editar llave
+                  </Button>
+                  {(() => {
+                    const deposited = (data?.exchanges ?? []).some(
+                      (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
+                    );
+                    return (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={deposited}
+                        title={
+                          deposited ? "La llave está depositada en un punto" : "Eliminar llave"
+                        }
+                        onClick={() => setDeleteKeyTarget({ id: k.id, name: k.name })}
+                      >
+                        Eliminar
+                      </Button>
+                    );
+                  })()}
                 </div>
+
 
                 {k.subscription_type === "pro" && (
                   <ProAccessCodes keyId={k.id} keyName={k.name} />
