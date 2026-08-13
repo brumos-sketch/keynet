@@ -87,10 +87,11 @@ export function AddressAutocomplete({
     setOpen(false);
     setItems([]);
     setState("idle");
-    if (item.placeId && item.lat === 0 && item.lng === 0) {
-      void resolveFn({ data: { placeId: item.placeId } })
+    const placeId = item.placeId;
+    if (placeId && item.lat === 0 && item.lng === 0) {
+      void resolveFn({ data: { placeId } })
         .then((place) => {
-          if (place) onSelect({ ...place, placeId: item.placeId });
+          if (place) onSelect({ ...place, placeId });
         })
         .catch(() => undefined);
       return;
