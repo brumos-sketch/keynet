@@ -138,7 +138,7 @@ export function InstallButton({ showPush = false }: { showPush?: boolean } = {})
           Instalada
         </div>
       )}
-      {"serviceWorker" in navigator && "PushManager" in window && (
+      {showPush && "serviceWorker" in navigator && "PushManager" in window && (
         <Button
           variant={pushEnabled ? "default" : "outline"}
           size="sm"
