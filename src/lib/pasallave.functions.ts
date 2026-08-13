@@ -3,11 +3,7 @@ import { z } from "zod";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import {
-  generateBookingRef,
-  generateExchangeCode,
-  pickFreePosition,
-} from "@/lib/pasallave";
+import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
 
 type TypedSupabase = SupabaseClient<Database>;
 
@@ -24,7 +20,10 @@ function in48Hours() {
 }
 
 function normalizeCode(value: string) {
-  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
 function hyphenatedCode(value: string) {
@@ -56,7 +55,11 @@ async function loadAdminClient() {
 }
 
 async function reservePosition(supabase: TypedSupabase, kioskId: string) {
-  const { data: kiosk } = await supabase.from("kiosks").select("positions").eq("id", kioskId).maybeSingle();
+  const { data: kiosk } = await supabase
+    .from("kiosks")
+    .select("positions")
+    .eq("id", kioskId)
+    .maybeSingle();
   if (!kiosk) throw new Error("Punto no encontrado");
   // A locker is occupied only while a key is physically inside it:
   // status 'deposited' (waiting for the guest) or 'completed' (guest returned it).
@@ -68,12 +71,13 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
     .gt("locker_position", 0);
   const position = pickFreePosition(
     kiosk.positions,
-    (taken ?? []).map((x: { locker_position: number | null }) => x.locker_position ?? 0).filter(Boolean),
+    (taken ?? [])
+      .map((x: { locker_position: number | null }) => x.locker_position ?? 0)
+      .filter(Boolean),
   );
   if (position === 0) throw new Error("No hay posiciones libres");
   return position;
 }
-
 
 // ---------- expire old one-use exchanges ----------
 
@@ -90,7 +94,8 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
       .eq("status", "expired")
       .limit(100);
     for (const row of expired ?? []) {
-      const key = (row as unknown as { keys: { host_id: string | null; name: string } | null }).keys;
+      const key = (row as unknown as { keys: { host_id: string | null; name: string } | null })
+        .keys;
       if (!key?.host_id) continue;
       const { data: already } = await supabaseAdmin
         .from("notifications")
@@ -175,7 +180,8 @@ export const createKey = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (exError || !exchange) throw new Error(exError?.message ?? "No se pudo crear el intercambio");
+    if (exError || !exchange)
+      throw new Error(exError?.message ?? "No se pudo crear el intercambio");
 
     if (data.subscriptionType === "pro") {
       // Pro guest access code: one reusable access code that covers deposit and pickup
@@ -246,7 +252,6 @@ export const updateExchange = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 // ---------- exchange creation (host) ----------
 
 const createExchangeSchema = z.object({
@@ -264,7 +269,11 @@ export const createExchange = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     // Load key and verify ownership (host or admin)
-    const { data: key } = await supabase.from("keys").select("*").eq("id", data.keyId).maybeSingle();
+    const { data: key } = await supabase
+      .from("keys")
+      .select("*")
+      .eq("id", data.keyId)
+      .maybeSingle();
     if (!key) throw new Error("Llave no encontrada");
     if (key.locked) throw new Error("La llave está bloqueada");
 
@@ -284,7 +293,6 @@ export const createExchange = createServerFn({ method: "POST" })
 
     // Single bidirectional code: the guest uses it to pick up AND to return.
     const bidiCode = generateExchangeCode();
-
 
     const { data: exchange, error } = await supabase
       .from("key_exchanges")
@@ -312,10 +320,8 @@ export const createExchange = createServerFn({ method: "POST" })
       person_name: data.guestName ?? null,
     });
 
-
     return { exchangeId: exchange.id, bookingRef } as { exchangeId: string; bookingRef: string };
   });
-
 
 // ---------- renew an expired one-use exchange ----------
 
@@ -335,9 +341,12 @@ export const renewExchange = createServerFn({ method: "POST" })
       .eq("id", data.exchangeId)
       .maybeSingle();
     if (!exchange) throw new Error("Intercambio no encontrado");
-    const key = (exchange as unknown as { keys: { subscription_type: string; host_id: string } }).keys;
-    if (key.subscription_type !== "one_use") throw new Error("Solo se pueden renovar intercambios de un solo uso");
-    if (exchange.status !== "expired") throw new Error("Solo se pueden renovar intercambios vencidos");
+    const key = (exchange as unknown as { keys: { subscription_type: string; host_id: string } })
+      .keys;
+    if (key.subscription_type !== "one_use")
+      throw new Error("Solo se pueden renovar intercambios de un solo uso");
+    if (exchange.status !== "expired")
+      throw new Error("Solo se pueden renovar intercambios vencidos");
 
     const { data: myHost } = await supabase.rpc("my_host_id");
     const admin = await isAdmin(context);
@@ -408,13 +417,18 @@ export const createAccessCode = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => createAccessCodeSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: key } = await supabase.from("keys").select("*").eq("id", data.keyId).maybeSingle();
+    const { data: key } = await supabase
+      .from("keys")
+      .select("*")
+      .eq("id", data.keyId)
+      .maybeSingle();
     if (!key) throw new Error("Llave no encontrada");
 
     const { data: myHost } = await supabase.rpc("my_host_id");
     const admin = await isAdmin(context);
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
-    if (key.subscription_type !== "pro") throw new Error("Los códigos de acceso solo aplican al plan Pro");
+    if (key.subscription_type !== "pro")
+      throw new Error("Los códigos de acceso solo aplican al plan Pro");
 
     const code = generateExchangeCode();
     const { error } = await supabase.from("access_codes").insert({
@@ -445,7 +459,11 @@ export const toggleAccessCode = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => toggleAccessCodeSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: code } = await supabase.from("access_codes").select("*, keys!inner(host_id)").eq("id", data.codeId).maybeSingle();
+    const { data: code } = await supabase
+      .from("access_codes")
+      .select("*, keys!inner(host_id)")
+      .eq("id", data.codeId)
+      .maybeSingle();
     if (!code) throw new Error("Código no encontrado");
     const key = (code as unknown as { keys: { host_id: string } }).keys;
 
@@ -453,7 +471,10 @@ export const toggleAccessCode = createServerFn({ method: "POST" })
     const admin = await isAdmin(context);
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para este código");
 
-    const { error } = await supabase.from("access_codes").update({ status: data.status }).eq("id", data.codeId);
+    const { error } = await supabase
+      .from("access_codes")
+      .update({ status: data.status })
+      .eq("id", data.codeId);
     if (error) throw error;
     return { ok: true };
   });
@@ -474,7 +495,6 @@ export const validateCode = createServerFn({ method: "POST" })
     const { runCodeValidation } = await import("@/lib/exchange.server");
     return runCodeValidation(supabase, myKioskId, data.code);
   });
-
 
 // ---------- associate overview (occupancy + commissions) ----------
 
@@ -498,7 +518,9 @@ export const associateOverview = createServerFn({ method: "POST" })
 
     const { data: exchanges } = await supabaseAdmin
       .from("key_exchanges")
-      .select("id, kiosk_id, booking_ref, status, created_at, locker_position, keys(name, subscription_type)")
+      .select(
+        "id, kiosk_id, booking_ref, status, created_at, locker_position, keys(name, subscription_type)",
+      )
       .in("kiosk_id", kioskIds)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -521,8 +543,8 @@ export const associateOverview = createServerFn({ method: "POST" })
         created_at: e.created_at,
         keyName: (e as unknown as { keys: { name: string } | null }).keys?.name ?? "—",
         plan:
-          (e as unknown as { keys: { subscription_type: string } | null }).keys?.subscription_type ??
-          "",
+          (e as unknown as { keys: { subscription_type: string } | null }).keys
+            ?.subscription_type ?? "",
       })),
     };
   });
@@ -564,7 +586,9 @@ export type PublicKiosk = {
 export const listPublicKiosks = createServerFn({ method: "GET" }).handler(async () => {
   const supabasePublic = publicClient();
   const { data, error } = await (
-    supabasePublic.rpc as unknown as (fn: string) => Promise<{ data: PublicKiosk[] | null; error: { message: string } | null }>
+    supabasePublic.rpc as unknown as (
+      fn: string,
+    ) => Promise<{ data: PublicKiosk[] | null; error: { message: string } | null }>
   )("search_kiosks_public");
   if (error) return { kiosks: [] as PublicKiosk[], error: error.message };
   return { kiosks: data ?? [], error: null as string | null };
@@ -590,7 +614,9 @@ export type BoardingPass = {
 };
 
 export const getBoardingPass = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => z.object({ ref: z.string().trim().min(3).max(16) }).parse(input))
+  .inputValidator((input: unknown) =>
+    z.object({ ref: z.string().trim().min(3).max(16) }).parse(input),
+  )
   .handler(async ({ data }) => {
     const supabasePublic = publicClient();
     const { data: rows } = await (
@@ -650,23 +676,27 @@ export const generateBillingPeriod = createServerFn({ method: "POST" })
     toDate.setMonth(toDate.getMonth() + 1);
     const to = toDate.toISOString();
 
-    const [{ data: hosts }, { data: keys }, { data: exchanges }, { data: pro }] = await Promise.all([
-      supabaseAdmin.from("hosts").select("id"),
-      supabaseAdmin.from("keys").select("id, host_id, kiosk_id, subscription_type"),
-      supabaseAdmin
-        .from("key_exchanges")
-        .select("id, key_id, kiosk_id, created_at")
-        .gte("created_at", from)
-        .lt("created_at", to),
-      supabaseAdmin.from("pro_agreements").select("host_id, monthly_price, status"),
-    ]);
+    const [{ data: hosts }, { data: keys }, { data: exchanges }, { data: pro }] = await Promise.all(
+      [
+        supabaseAdmin.from("hosts").select("id"),
+        supabaseAdmin.from("keys").select("id, host_id, kiosk_id, subscription_type"),
+        supabaseAdmin
+          .from("key_exchanges")
+          .select("id, key_id, kiosk_id, created_at")
+          .gte("created_at", from)
+          .lt("created_at", to),
+        supabaseAdmin.from("pro_agreements").select("host_id, monthly_price, status"),
+      ],
+    );
 
     let hostRows = 0;
     for (const host of hosts ?? []) {
       const hostKeys = (keys ?? []).filter((k) => k.host_id === host.id);
       if (hostKeys.length === 0) continue;
       const hostKeyIds = hostKeys.map((k) => k.id);
-      const hostExchanges = (exchanges ?? []).filter((e) => e.key_id && hostKeyIds.includes(e.key_id));
+      const hostExchanges = (exchanges ?? []).filter(
+        (e) => e.key_id && hostKeyIds.includes(e.key_id),
+      );
 
       const proDeal = (pro ?? []).find((p) => p.host_id === host.id && p.status === "active");
       const plan = proDeal
@@ -682,7 +712,9 @@ export const generateBillingPeriod = createServerFn({ method: "POST" })
         for (const k of hostKeys) {
           if (k.subscription_type === "monthly") amount += PLAN_AMOUNT["monthly"]!;
         }
-        const oneUseKeyIds = hostKeys.filter((k) => k.subscription_type === "one_use").map((k) => k.id);
+        const oneUseKeyIds = hostKeys
+          .filter((k) => k.subscription_type === "one_use")
+          .map((k) => k.id);
         amount +=
           hostExchanges.filter((e) => e.key_id && oneUseKeyIds.includes(e.key_id)).length *
           PLAN_AMOUNT["one_use"]!;
@@ -773,11 +805,26 @@ export const payBilling = createServerFn({ method: "POST" })
       .eq("id", row.id);
     if (error) throw error;
 
-    await supabaseAdmin.from("notifications").insert({
-      host_id: row.host_id,
-      type: "payment",
-      message: `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`,
-    });
+    const { data: hostRow } = await supabaseAdmin
+      .from("hosts")
+      .select("user_id")
+      .eq("id", row.host_id ?? "")
+      .maybeSingle();
+    let notifyPush = true;
+    if (hostRow?.user_id) {
+      const { data: prefs } = await supabaseAdmin
+        .from("profiles")
+        .select("notify_push")
+        .eq("id", hostRow.user_id)
+        .maybeSingle();
+      notifyPush = prefs?.notify_push ?? true;
+    }
+    if (notifyPush)
+      await supabaseAdmin.from("notifications").insert({
+        host_id: row.host_id,
+        type: "payment",
+        message: `Pago registrado por ${(row.amount ?? 0) + (row.extra_amount ?? 0)} ARS.`,
+      });
 
     return { ok: true, alreadyPaid: false };
   });

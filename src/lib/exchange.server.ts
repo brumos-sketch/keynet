@@ -9,7 +9,10 @@ function nowIso() {
 }
 
 function normalizeCode(value: string) {
-  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
 function hyphenatedCode(value: string) {
@@ -45,7 +48,9 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
     .gt("locker_position", 0);
   const position = pickFreePosition(
     kiosk.positions,
-    (taken ?? []).map((x: { locker_position: number | null }) => x.locker_position ?? 0).filter(Boolean),
+    (taken ?? [])
+      .map((x: { locker_position: number | null }) => x.locker_position ?? 0)
+      .filter(Boolean),
   );
   if (position === 0) throw new Error("No hay posiciones libres");
   return position;
@@ -85,18 +90,27 @@ export async function runCodeValidation(
       .eq("keys.kiosk_id", kioskId);
     if (accessCodes && accessCodes.length > 0) {
       const ac = accessCodes[0]!;
-      const key = (ac as unknown as { keys: { id: string; kiosk_id: string; host_id: string; subscription_type: string } }).keys;
+      const key = (
+        ac as unknown as {
+          keys: { id: string; kiosk_id: string; host_id: string; subscription_type: string };
+        }
+      ).keys;
       logKeyId = key.id;
       logRole = ac.role ?? "guest";
       logPerson = ac.person_name ?? null;
-      await supabase.from("access_codes").update({ uses_count: (ac.uses_count ?? 0) + 1 }).eq("id", ac.id);
+      await supabase
+        .from("access_codes")
+        .update({ uses_count: (ac.uses_count ?? 0) + 1 })
+        .eq("id", ac.id);
       if (!ac.reusable && (ac.uses_count ?? 0) >= 1) throw new Error("Este código ya fue usado");
 
       if (ac.has_validity) {
         if (ac.valid_from && today < ac.valid_from) throw new Error("El código aún no es válido");
         if (ac.valid_to && today > ac.valid_to) throw new Error("El código expiró");
-        if (ac.time_from && currentTime < ac.time_from) throw new Error("El código aún no es válido en este horario");
-        if (ac.time_to && currentTime > ac.time_to) throw new Error("El código ya no es válido en este horario");
+        if (ac.time_from && currentTime < ac.time_from)
+          throw new Error("El código aún no es válido en este horario");
+        if (ac.time_to && currentTime > ac.time_to)
+          throw new Error("El código ya no es válido en este horario");
       }
 
       const { data: activeExchanges } = await supabase
@@ -141,7 +155,11 @@ export async function runCodeValidation(
           .from("key_exchanges")
           .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
           .eq("id", active.id);
-        return { action: "picked_up", position: active.locker_position, bookingRef: active.booking_ref };
+        return {
+          action: "picked_up",
+          position: active.locker_position,
+          bookingRef: active.booking_ref,
+        };
       }
 
       // scope === both
@@ -176,7 +194,11 @@ export async function runCodeValidation(
           .from("key_exchanges")
           .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
           .eq("id", active.id);
-        return { action: "picked_up", position: active.locker_position, bookingRef: active.booking_ref };
+        return {
+          action: "picked_up",
+          position: active.locker_position,
+          bookingRef: active.booking_ref,
+        };
       }
       if (active.status === "picked_up") {
         const position = await reservePosition(supabase, kioskId);
@@ -217,7 +239,8 @@ export async function runCodeValidation(
             .eq("id", existing.id);
           return { action: "deposited", position, bookingRef: existing.booking_ref };
         }
-        if (existing.status === "deposited") throw new Error("Esta llave ya está depositada en el punto");
+        if (existing.status === "deposited")
+          throw new Error("Esta llave ya está depositada en el punto");
         throw new Error("La llave está en poder del huésped");
       }
 
@@ -335,11 +358,11 @@ export async function runCodeValidation(
       };
       if (notifyPush)
         await supabaseAdmin.from("notifications").insert({
-        host_id: keyRow.host_id,
-        type: result.action,
-        message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,
-        booking_ref: result.bookingRef,
-      });
+          host_id: keyRow.host_id,
+          type: result.action,
+          message: messages[result.action] ?? `Movimiento registrado (${result.action}).`,
+          booking_ref: result.bookingRef,
+        });
     }
   }
 

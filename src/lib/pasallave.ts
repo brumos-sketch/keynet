@@ -19,13 +19,7 @@ export function matchesQuery(fields: Array<unknown>, query: string): boolean {
 
 export type SubscriptionType = "one_use" | "monthly" | "pro";
 export type ExchangeStatus =
-  | "created"
-  | "waiting_deposit"
-  | "deposited"
-  | "picked_up"
-  | "completed"
-  | "expired"
-  | "overdue";
+  "created" | "waiting_deposit" | "deposited" | "picked_up" | "completed" | "expired" | "overdue";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
   pending: "Pendiente",
@@ -157,7 +151,6 @@ export function generateKioskCode(): string {
   return pick(DIGITS, 6);
 }
 
-
 /** Posición aleatoria entre las libres del punto. */
 export function pickFreePosition(totalPositions: number, taken: number[]): number {
   const free: number[] = [];
@@ -201,7 +194,6 @@ export function formatDateTime(value: string | null | undefined): string {
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
   return `${get("day")}/${get("month")}/${get("year")} - ${get("hour")}:${get("minute")}`;
 }
-
 
 export function describeSchedule(is24h: boolean, schedule: KioskSchedule | null): string {
   if (is24h) return "Abierto 24 horas";
@@ -293,5 +285,4 @@ export const ACTION_LABELS: Record<string, string> = {
   completed: "Devolución",
   exchange_created: "Intercambio creado",
   exchange_updated: "Estadía editada",
-
 };

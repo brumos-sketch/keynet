@@ -17,7 +17,6 @@ const toneClasses: Record<string, string> = {
   gold: "bg-gold-brand/10 text-gold-brand border-gold-brand/30",
 };
 
-
 export function Pill({
   tone = "neutral",
   className,
@@ -40,7 +39,13 @@ export function Pill({
   );
 }
 
-export function CodeChip({ value, className }: { value: string | null | undefined; className?: string }) {
+export function CodeChip({
+  value,
+  className,
+}: {
+  value: string | null | undefined;
+  className?: string;
+}) {
   if (!value) return <span className="text-gray-500">—</span>;
   return (
     <span
@@ -98,4 +103,3 @@ export function SearchField({
     </div>
   );
 }
-

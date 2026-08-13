@@ -23,9 +23,7 @@ export const getNotificationPrefs = createServerFn({ method: "GET" })
 export const saveNotificationPrefs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ notifyEmail: z.boolean(), notifyPush: z.boolean() })
-      .parse(input),
+    z.object({ notifyEmail: z.boolean(), notifyPush: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
