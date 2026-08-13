@@ -13,9 +13,10 @@ import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>): { plan?: string; punto?: string } => {
-    const plan = typeof search["plan"] === "string" ? search["plan"] : undefined;
-    const punto = typeof search["punto"] === "string" ? search["punto"] : undefined;
-    return { plan, punto };
+    const result: { plan?: string; punto?: string } = {};
+    if (typeof search["plan"] === "string") result.plan = search["plan"];
+    if (typeof search["punto"] === "string") result.punto = search["punto"];
+    return result;
   },
   head: () => ({
     meta: [
