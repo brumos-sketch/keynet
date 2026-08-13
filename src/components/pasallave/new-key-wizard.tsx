@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ import {
   type SubscriptionType,
 } from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
-import { geocodeAddress } from "@/lib/geo.functions";
+import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
 import { formatDistance, haversineKm } from "@/lib/geo";
 
 const STEPS = ["Llave", "Punto", "Plan", "Confirmar"] as const;
@@ -40,7 +40,6 @@ const PLAN_DETAILS: Record<SubscriptionType, string> = {
 export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
-  const geocodeFn = useServerFn(geocodeAddress);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
