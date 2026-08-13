@@ -302,11 +302,23 @@ function BoardingPassPage() {
           <p className="mt-4 text-xs text-gray-500">{t.returnNote}</p>
         </section>
 
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => void handleCopy()} className="gap-2">
+            {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
+            {copied ? t.copied : t.copy}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => void handleShare()} className="gap-2">
+            <Share2 className="size-4" />
+            {t.share}
+          </Button>
+        </div>
+
         <div className="text-center">
           <Button asChild variant="link" size="sm">
             <Link to="/buscar">PASALLAVE</Link>
           </Button>
         </div>
+
       </main>
     </div>
   );
