@@ -74,6 +74,7 @@ function Perfil() {
       <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
         <Brand />
         <div className="flex items-center gap-2">
+          <InstallButton />
           <ThemeToggle />
           <Button
             variant="ghost"
