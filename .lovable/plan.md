@@ -11,7 +11,8 @@ Refinar el pase de abordar (`/pase/$ref`) para que muestre la marca PASALLAVE, u
 
 ### 2. Marca en la cabecera
 - Incluir el logo de PASALLAVE y el wordmark en la parte superior de la tarjeta, usando los componentes existentes `BrandLogo` / `Brand` de `src/components/pasallave/brand-logo.tsx` y `ui-bits.tsx`.
-- Ubicarlo justo debajo del selector de idioma o dentro del header de la tarjeta, sin romper el diseño responsive actual.
+- Ubicarlo dentro del header de la tarjeta, sin romper el diseño responsive actual.
+- Quitar el selector manual de idioma: el idioma se detecta automáticamente desde el navegador/sistema (`navigator.language`), y si no hay traducción disponible se muestra en inglés.
 
 ### 3. Etiqueta del punto
 - Reemplazar el texto `t.point` en español de `"Punto asociado"` a `"Donde retirar las llaves:"`.
