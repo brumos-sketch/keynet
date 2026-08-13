@@ -143,7 +143,7 @@ function AdminPro() {
         <Button
           className="rounded-xl"
           onClick={() =>
-            setForm({ ...EMPTY, monthlyPrice: data?.monthlyPrice ?? PLAN_PRICES.monthly })
+            setForm({ ...EMPTY, monthlyPrice: data?.monthlyPrice ?? PLAN_PRICES.monthly ?? 0 })
           }
         >
           Nuevo acuerdo
