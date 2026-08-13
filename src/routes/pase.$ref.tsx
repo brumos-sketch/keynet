@@ -139,8 +139,13 @@ const DAY_LETTERS: Record<string, string> = {
 
 function BoardingPassPage() {
   const { pass } = Route.useLoaderData();
-  const [lang, setLang] = useState<Lang>("es");
+  const [lang, setLang] = useState<Lang>("en");
+  const [copied, setCopied] = useState(false);
   const t = T[lang];
+
+  useEffect(() => {
+    setLang(detectLang());
+  }, []);
 
   if (!pass) return <Fallback message="No encontramos ese pase. Revisá el código de reserva." />;
 
@@ -153,35 +158,45 @@ function BoardingPassPage() {
 
   const schedule = (pass.kiosk_schedule ?? {}) as KioskSchedule;
 
+  const shareText = `${t.label} · ${pass.booking_ref}${pass.pickup_code ? ` · ${t.accessCode}: ${pass.pickup_code}` : ""}`;
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(pass.pickup_code ?? shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* noop */
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t.label, text: shareText, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      /* noop */
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
-        <Brand />
-        <div className="flex gap-1">
-          {LANGS.map((l) => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase transition-colors ${
-                lang === l
-                  ? "bg-electric text-white"
-                  : "text-gray-500 hover:bg-gray-100"
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
-      </header>
-
       <main className="mx-auto max-w-md space-y-4 p-4 md:p-8">
         <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card">
           {/* Header */}
           <div className="bg-navy p-6 text-white">
-            <p className="text-xs tracking-widest uppercase opacity-80">{t.label}</p>
+            <BrandLogo textClassName="text-xl text-white" />
+            <p className="mt-4 text-xs tracking-widest uppercase opacity-80">{t.label}</p>
             <h1 className="mt-1 text-2xl font-bold">
               {pass.property_name ?? pass.key_name ?? "—"}
             </h1>
+
             <p className="mt-1 text-sm opacity-80">
               {t.stay} · {pass.booking_ref}
             </p>
