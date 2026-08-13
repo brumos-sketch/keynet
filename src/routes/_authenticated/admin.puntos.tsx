@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -62,6 +63,8 @@ const DAY_LETTERS: Record<string, string> = {
 const blankForm = {
   name: "",
   address: "",
+  lat: null as number | null,
+  lng: null as number | null,
   category: "kiosco",
   customCategory: "",
   positions: 10,
@@ -133,6 +136,8 @@ function AdminKiosks() {
       const payload = {
         name: form.name.trim(),
         address: form.address.trim() || null,
+        lat: form.lat,
+        lng: form.lng,
         category: form.category,
         custom_category: form.category === "otro" ? form.customCategory.trim() || null : null,
         positions: form.positions,
@@ -167,6 +172,8 @@ function AdminKiosks() {
     id: string;
     name: string;
     address: string | null;
+    lat: number | null;
+    lng: number | null;
     category: string;
     custom_category: string | null;
     positions: number;
@@ -181,6 +188,8 @@ function AdminKiosks() {
     setForm({
       name: k.name,
       address: k.address ?? "",
+      lat: k.lat ?? null,
+      lng: k.lng ?? null,
       category: k.category,
       customCategory: k.custom_category ?? "",
       positions: k.positions,
@@ -258,12 +267,22 @@ function AdminKiosks() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="k-address">Dirección</Label>
-                  <Input
+                  <AddressAutocomplete
                     id="k-address"
-                    maxLength={160}
                     value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    onChange={(value) =>
+                      setForm((f) => ({ ...f, address: value, lat: null, lng: null }))
+                    }
+                    onSelect={(s) =>
+                      setForm((f) => ({ ...f, address: s.label, lat: s.lat, lng: s.lng }))
+                    }
+                    placeholder="Av. Las Heras 2100, CABA"
                   />
+                  <p className="text-xs text-gray-500">
+                    {form.lat != null && form.lng != null
+                      ? "Ubicación confirmada: el punto aparece en el mapa."
+                      : "Elegí una sugerencia para guardar la ubicación en el mapa."}
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Categoría</Label>

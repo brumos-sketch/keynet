@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { KIOSK_CATEGORIES, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import { joinWaitlist, listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
-import { geocodeAddress } from "@/lib/geo.functions";
+import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
 import { distanceKm, formatDistance, type GeoPoint } from "@/lib/geo";
 import type { MapPointItem } from "@/components/pasallave/points-map";
 
@@ -67,40 +67,7 @@ function SearchPage() {
   const [waitlist, setWaitlist] = useState({ address: "", email: "", name: "", phone: "" });
   const [open, setOpen] = useState(false);
 
-  const geocodeFn = useServerFn(geocodeAddress);
   const [origin, setOrigin] = useState<(GeoPoint & { label: string }) | null>(null);
-  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
-
-  useEffect(() => {
-    const address = query.trim();
-    if (address.length < 5) {
-      setOrigin(null);
-      setGeoState("idle");
-      return;
-    }
-    let cancelled = false;
-    setGeoState("loading");
-    const timer = setTimeout(() => {
-      void geocodeFn({ data: { address } })
-        .then((result) => {
-          if (cancelled) return;
-          if (!result) {
-            setOrigin(null);
-            setGeoState("none");
-            return;
-          }
-          setOrigin(result);
-          setGeoState("idle");
-        })
-        .catch(() => {
-          if (!cancelled) setGeoState("none");
-        });
-    }, 700);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [query, geocodeFn]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -182,24 +149,24 @@ function SearchPage() {
           </p>
         </div>
 
-        <div className="relative">
-          <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Escribí una dirección, barrio o el nombre del punto"
-            className="h-12 rounded-2xl border-gray-200 pl-11"
-            aria-label="Buscar puntos"
-          />
-        </div>
+        <AddressAutocomplete
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setOrigin(null);
+          }}
+          onSelect={(s) => setOrigin({ lat: s.lat, lng: s.lng, label: s.label })}
+          placeholder="Escribí una dirección, barrio o el nombre del punto"
+          ariaLabel="Buscar puntos"
+          inputClassName="h-12 rounded-2xl border-gray-200 pl-11"
+          leading={
+            <Search className="pointer-events-none absolute top-6 left-4 z-10 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          }
+        />
         <p className="-mt-3 text-xs text-gray-500">
-          {geoState === "loading"
-            ? "Buscando la dirección…"
-            : origin
-              ? `Ordenado por cercanía a ${origin.label}`
-              : geoState === "none"
-                ? "No encontramos esa dirección; mostramos coincidencias por nombre."
-                : "Escribí una dirección para ordenar los puntos por cercanía."}
+          {origin
+            ? `Ordenado por cercanía a ${origin.label}`
+            : "Escribí una dirección y elegí una sugerencia para ordenar por cercanía."}
         </p>
 
 

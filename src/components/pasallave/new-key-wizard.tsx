@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ import {
   type SubscriptionType,
 } from "@/lib/pasallave";
 import { cn } from "@/lib/utils";
-import { geocodeAddress } from "@/lib/geo.functions";
+import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
 import { formatDistance, haversineKm } from "@/lib/geo";
 
 const STEPS = ["Llave", "Punto", "Plan", "Confirmar"] as const;
@@ -40,7 +40,6 @@ const PLAN_DETAILS: Record<SubscriptionType, string> = {
 export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
-  const geocodeFn = useServerFn(geocodeAddress);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -96,38 +95,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   const chosenKiosk = (kiosks ?? []).find((k) => k.id === form.kioskId);
 
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
   const address = form.propertyName.trim();
-
-  useEffect(() => {
-    if (address.length < 5) {
-      setCoords(null);
-      setGeoState("idle");
-      return;
-    }
-    let cancelled = false;
-    setGeoState("loading");
-    const timer = setTimeout(() => {
-      void geocodeFn({ data: { address } })
-        .then((result) => {
-          if (cancelled) return;
-          if (!result) {
-            setCoords(null);
-            setGeoState("none");
-            return;
-          }
-          setCoords({ lat: result.lat, lng: result.lng });
-          setGeoState("idle");
-        })
-        .catch(() => {
-          if (!cancelled) setGeoState("none");
-        });
-    }, 700);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [address, geocodeFn]);
 
   const nearest = useMemo(() => {
     if (!coords) return null;
@@ -196,25 +164,25 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="w-prop">Dirección (opcional)</Label>
-                <Input
+                <AddressAutocomplete
                   id="w-prop"
-                  maxLength={120}
                   placeholder="Gorriti 4500, CABA"
                   value={form.propertyName}
-                  onChange={(e) => setForm({ ...form, propertyName: e.target.value })}
+                  onChange={(value) => {
+                    setForm((f) => ({ ...f, propertyName: value }));
+                    setCoords(null);
+                  }}
+                  onSelect={(s) => setCoords({ lat: s.lat, lng: s.lng })}
                 />
               </div>
-              {address.length >= 5 && (
+              {address.length >= 3 && (
                 <div className="rounded-xl border border-gray-100 p-3">
-                  {geoState === "loading" && (
-                    <p className="text-sm text-gray-500">Buscando el punto más cercano…</p>
-                  )}
-                  {geoState !== "loading" && !nearest && (
+                  {!nearest && (
                     <p className="text-sm text-gray-500">
-                      No pudimos ubicar esa dirección. Podés elegir el punto en el paso siguiente.
+                      Elegí una dirección sugerida para ver el punto más cercano.
                     </p>
                   )}
-                  {geoState !== "loading" && nearest && (
+                  {nearest && (
                     <>
                       <p className="text-xs tracking-wide text-gray-500 uppercase">
                         Punto más cercano
