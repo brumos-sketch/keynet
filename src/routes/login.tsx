@@ -12,8 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>): { plan?: string } =>
-    typeof search['plan'] === "string" ? { plan: search['plan'] } : {},
+  validateSearch: (search: Record<string, unknown>): { plan?: string; punto?: string } => {
+    const result: { plan?: string; punto?: string } = {};
+    if (typeof search["plan"] === "string") result.plan = search["plan"];
+    if (typeof search["punto"] === "string") result.punto = search["punto"];
+    return result;
+  },
   head: () => ({
     meta: [
       { title: "Ingresar — PASALLAVE" },
@@ -46,12 +50,26 @@ function LoginPage() {
 
   const navigate = useNavigate();
   const { session, role, loading, refresh, signOut } = useAuth();
+  const { punto } = Route.useSearch();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [storedPunto, setStoredPunto] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("login_redirect_punto");
+      if (saved) {
+        setStoredPunto(saved);
+        sessionStorage.removeItem("login_redirect_punto");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     if (loading || !session || !role) return;
@@ -60,8 +78,14 @@ function LoginPage() {
       void signOut();
       return;
     }
-    void navigate({ to: ROLE_HOME[role as AppRole], replace: true });
-  }, [loading, session, role, navigate, signOut]);
+    const redirectPunto = punto || storedPunto;
+    const target = ROLE_HOME[role as AppRole];
+    if (role === "host" && redirectPunto) {
+      void navigate({ to: target, search: { punto: redirectPunto }, replace: true });
+    } else {
+      void navigate({ to: target, replace: true });
+    }
+  }, [loading, session, role, navigate, signOut, punto, storedPunto]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -97,6 +121,9 @@ function LoginPage() {
 
   const handleGoogle = async () => {
     setBusy(true);
+    if (punto) {
+      sessionStorage.setItem("login_redirect_punto", punto);
+    }
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -50,6 +50,8 @@ import {
 } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
+  validateSearch: (search: Record<string, unknown>): { punto?: string } =>
+    typeof search["punto"] === "string" ? { punto: search["punto"] } : {},
   head: () => ({
     meta: [
       { title: "Mis llaves — PASALLAVE" },
@@ -65,6 +67,7 @@ export const Route = createFileRoute("/_authenticated/host")({
 });
 
 function HostPanel() {
+  const { punto } = useSearch({ from: "/_authenticated/host" });
   const { name, signOut } = useAuth();
   const qc = useQueryClient();
   const createExchangeFn = useServerFn(createExchange);
@@ -305,7 +308,11 @@ function HostPanel() {
                 onChange={setQuery}
                 placeholder="Buscar por llave, reserva o código…"
               />
-              <NewKeyWizard hostId={hostId ?? null} />
+              <NewKeyWizard
+                hostId={hostId ?? null}
+                preselectedKioskId={punto}
+                defaultOpen={!!punto}
+              />
             </div>
           </div>
 

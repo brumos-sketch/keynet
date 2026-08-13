@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { MapPin, Search } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { ROLE_HOME } from "@/lib/pasallave";
 import { Brand, Pill } from "@/components/pasallave/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,7 @@ export const Route = createFileRoute("/buscar")({
 function SearchPage() {
   const { kiosks } = Route.useLoaderData() as { kiosks: PublicKiosk[] };
   const { punto } = Route.useSearch();
+  const { session, role } = useAuth();
   const preselected = punto ? (kiosks.find((k) => k.id === punto) ?? null) : null;
   const preselectedId = preselected?.id ?? null;
   const [query, setQuery] = useState("");
@@ -300,22 +303,27 @@ function SearchPage() {
                     />
                   </Suspense>
                 </ClientOnly>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 text-electric" />
-                    <div>
-                      <p className="text-sm font-bold text-navy">{current?.name}</p>
-                      <p className="text-xs text-gray-500">{current?.address}</p>
+                <div className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 text-electric" />
+                      <div>
+                        <p className="text-sm font-bold text-navy">{current?.name}</p>
+                        <p className="text-xs text-gray-500">{current?.address}</p>
+                      </div>
                     </div>
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
+                    >
+                      Cómo llegar
+                    </a>
                   </div>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${current?.lat}&mlon=${current?.lng}#map=18/${current?.lat}/${current?.lng}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm whitespace-nowrap font-bold text-electric hover:underline"
-                  >
-                    Cómo llegar
-                  </a>
+                  {current && current.lat != null && current.lng != null && (
+                    <ActionButton current={current} session={session} role={role} />
+                  )}
                 </div>
               </>
             ) : (
@@ -329,5 +337,50 @@ function SearchPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function ActionButton({
+  current,
+  session,
+  role,
+}: {
+  current: PublicKiosk;
+  session: ReturnType<typeof useAuth>["session"];
+  role: ReturnType<typeof useAuth>["role"];
+}) {
+  const label = "Dejar llaves aquí";
+  if (session && role && role !== "pending") {
+    const target = role === "host" ? "/host" : ROLE_HOME[role];
+    if (role === "host") {
+      return (
+        <Button
+          asChild
+          className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+        >
+          <Link to={target} search={{ punto: current.id }}>
+            {label}
+          </Link>
+        </Button>
+      );
+    }
+    return (
+      <Button
+        asChild
+        className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+      >
+        <Link to={target}>{label}</Link>
+      </Button>
+    );
+  }
+  return (
+    <Button
+      asChild
+      className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+    >
+      <Link to="/login" search={{ punto: current.id }}>
+        {label}
+      </Link>
+    </Button>
   );
 }
