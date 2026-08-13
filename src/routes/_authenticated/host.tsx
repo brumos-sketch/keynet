@@ -60,9 +60,11 @@ import {
 } from "@/lib/pasallave";
 import {
   createExchange,
+  deleteKey as deleteKeyFnRaw,
   expireOneUseExchanges,
   renewExchange,
   updateExchange,
+  updateKey as updateKeyFnRaw,
 } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/host")({
@@ -90,6 +92,12 @@ function HostPanel() {
   const renewFn = useServerFn(renewExchange);
   const expireFn = useServerFn(expireOneUseExchanges);
   const updateExchangeFn = useServerFn(updateExchange);
+  const updateKeyFn = useServerFn(updateKeyFnRaw);
+  const deleteKeyFn = useServerFn(deleteKeyFnRaw);
+  const [editKey, setEditKey] = useState<{ id: string; name: string; property: string } | null>(
+    null,
+  );
+  const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -142,6 +150,18 @@ function HostPanel() {
     queryFn: async () => {
       const { data } = await supabase.rpc("my_host_id");
       return (data as string | null) ?? null;
+    },
+  });
+
+  const { data: proActive } = useQuery({
+    queryKey: ["host", "pro-agreement"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pro_agreements")
+        .select("id")
+        .eq("status", "active")
+        .limit(1);
+      return (data ?? []).length > 0;
     },
   });
 
@@ -281,6 +301,35 @@ function HostPanel() {
   });
 
 
+
+  const updateKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!editKey) throw new Error("Elegí una llave");
+      return updateKeyFn({
+        data: { keyId: editKey.id, name: editKey.name, propertyName: editKey.property || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Llave actualizada");
+      setEditKey(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!deleteKeyTarget) throw new Error("Elegí una llave");
+      return deleteKeyFn({ data: { keyId: deleteKeyTarget.id } });
+    },
+    onSuccess: () => {
+      toast.success("Llave eliminada");
+      setDeleteKeyTarget(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const renewMutation = useMutation({
     mutationFn: async () => {
       if (!renewId) throw new Error("Elegí un intercambio");
@@ -376,6 +425,7 @@ function HostPanel() {
                 hostId={hostId ?? null}
                 preselectedKioskId={punto}
                 defaultOpen={!!punto}
+                forcePro={!!proActive}
               />
             </div>
           </div>
@@ -545,7 +595,36 @@ function HostPanel() {
                   >
                     {logKeyId === k.id ? "Ocultar actividad" : "Ver actividad"}
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })
+                    }
+                  >
+                    Editar llave
+                  </Button>
+                  {(() => {
+                    const deposited = (data?.exchanges ?? []).some(
+                      (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
+                    );
+                    return (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={deposited}
+                        title={
+                          deposited ? "La llave está depositada en un punto" : "Eliminar llave"
+                        }
+                        onClick={() => setDeleteKeyTarget({ id: k.id, name: k.name })}
+                      >
+                        Eliminar
+                      </Button>
+                    );
+                  })()}
                 </div>
+
 
                 {k.subscription_type === "pro" && (
                   <ProAccessCodes keyId={k.id} keyName={k.name} />
@@ -585,6 +664,7 @@ function HostPanel() {
                 <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
                   <tr>
                     <th className="px-4 py-3 font-medium">Reserva</th>
+                    <th className="px-4 py-3 font-medium">Llave</th>
                     <th className="px-4 py-3 font-medium">Punto</th>
                     <th className="px-4 py-3 font-medium">Plan</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
@@ -607,6 +687,9 @@ function HostPanel() {
                             Pase
                           </Link>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-foreground">
+                        {data?.keys.find((k) => k.id === e.key_id)?.name ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
                       <td className="px-4 py-3">
@@ -640,7 +723,7 @@ function HostPanel() {
                   ))}
                   {exchangeRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-gray-500">
+                      <td colSpan={7} className="px-4 py-6 text-gray-500">
                         {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
                       </td>
                     </tr>
@@ -779,6 +862,77 @@ function HostPanel() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={!!editKey} onOpenChange={(open) => !open && setEditKey(null)}>
+            <DialogContent className="rounded-2xl sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Editar llave</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="k-name">Nombre de la llave</Label>
+                  <Input
+                    id="k-name"
+                    maxLength={80}
+                    value={editKey?.name ?? ""}
+                    onChange={(e) =>
+                      setEditKey((prev) => (prev ? { ...prev, name: e.target.value } : prev))
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="k-prop">Dirección</Label>
+                  <Input
+                    id="k-prop"
+                    maxLength={300}
+                    value={editKey?.property ?? ""}
+                    onChange={(e) =>
+                      setEditKey((prev) => (prev ? { ...prev, property: e.target.value } : prev))
+                    }
+                  />
+                </div>
+                <p className="text-xs text-gray-500">
+                  El punto asociado no se puede cambiar.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  disabled={updateKeyMutation.isPending || !(editKey?.name.trim())}
+                  onClick={() => updateKeyMutation.mutate()}
+                >
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog
+            open={!!deleteKeyTarget}
+            onOpenChange={(open) => !open && setDeleteKeyTarget(null)}
+          >
+            <DialogContent className="rounded-2xl sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle>Eliminar llave</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-gray-500">
+                ¿Seguro que querés eliminar «{deleteKeyTarget?.name}»? Se borran también sus
+                estadías y códigos de acceso. Esta acción no se puede deshacer.
+              </p>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setDeleteKeyTarget(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteKeyMutation.isPending}
+                  onClick={() => deleteKeyMutation.mutate()}
+                >
+                  Eliminar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
         </main>
 
       </div>

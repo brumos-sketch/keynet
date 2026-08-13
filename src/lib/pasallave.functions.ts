@@ -281,7 +281,87 @@ export const updateExchange = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ---------- key edit / delete (host / admin) ----------
+
+const updateKeySchema = z.object({
+  keyId: z.string().uuid(),
+  name: z.string().trim().min(1).max(80),
+  propertyName: z.string().trim().max(300).optional().nullable(),
+});
+
+async function assertKeyOwnership(
+  context: { supabase: TypedSupabase; userId: string },
+  keyId: string,
+) {
+  const { data: key } = await context.supabase
+    .from("keys")
+    .select("id, host_id, name")
+    .eq("id", keyId)
+    .maybeSingle();
+  if (!key) throw new Error("Llave no encontrada");
+  const admin = await isAdmin(context);
+  const { data: myHost } = await context.supabase.rpc("my_host_id");
+  if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
+  return key;
+}
+
+export const updateKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => updateKeySchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const key = await assertKeyOwnership(context, data.keyId);
+    const supabaseAdmin = await loadAdminClient();
+
+    const normalized = data.name.trim().toLowerCase().replace(/\s+/g, " ");
+    const { data: siblings } = await supabaseAdmin
+      .from("keys")
+      .select("id, name")
+      .eq("host_id", key.host_id!);
+    if (
+      (siblings ?? []).some(
+        (k) =>
+          k.id !== key.id &&
+          (k.name ?? "").trim().toLowerCase().replace(/\s+/g, " ") === normalized,
+      )
+    ) {
+      throw new Error("Ya tenés una llave con ese nombre");
+    }
+
+    const { error } = await supabaseAdmin
+      .from("keys")
+      .update({ name: data.name.trim(), property_name: data.propertyName?.trim() || null })
+      .eq("id", key.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+export const deleteKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ keyId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const key = await assertKeyOwnership(context, data.keyId);
+    const supabaseAdmin = await loadAdminClient();
+
+    const { data: blocking } = await supabaseAdmin
+      .from("key_exchanges")
+      .select("id")
+      .eq("key_id", key.id)
+      .in("status", ["deposited", "picked_up"])
+      .limit(1);
+    if ((blocking ?? []).length > 0) {
+      throw new Error("La llave está depositada en un punto: no se puede eliminar");
+    }
+
+    await supabaseAdmin.from("access_log").delete().eq("key_id", key.id);
+    await supabaseAdmin.from("access_codes").delete().eq("key_id", key.id);
+    await supabaseAdmin.from("key_exchanges").delete().eq("key_id", key.id);
+    const { error } = await supabaseAdmin.from("keys").delete().eq("id", key.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 // ---------- exchange creation (host) ----------
+
 
 const createExchangeSchema = z.object({
   keyId: z.string().uuid(),
