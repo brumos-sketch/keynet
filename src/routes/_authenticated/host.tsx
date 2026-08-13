@@ -286,6 +286,7 @@ function HostPanel() {
           <Brand />
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <InstallButton />
             <NotificationBell />
             <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
               <Link to="/checkout">Pagos</Link>
