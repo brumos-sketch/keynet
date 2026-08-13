@@ -1,6 +1,7 @@
 import { Pill } from "@/components/pasallave/ui-bits";
 import {
   PLAN_LABELS,
+  PLAN_TONE,
   STATUS_LABELS,
   STATUS_TONE,
   type ExchangeStatus,
@@ -14,12 +15,6 @@ export function StatusBadge({ status }: { status: string }) {
     <Pill tone={STATUS_TONE[key] ?? "neutral"}>{STATUS_LABELS[key] ?? status}</Pill>
   );
 }
-
-const PLAN_TONE: Record<string, "primary" | "info" | "success"> = {
-  one_use: "info",
-  monthly: "primary",
-  pro: "success",
-};
 
 export function PlanBadge({ plan }: { plan: string }) {
   const key = plan as SubscriptionType;

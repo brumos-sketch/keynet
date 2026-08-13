@@ -20,6 +20,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
@@ -82,6 +83,11 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
 const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   id: '/host',
   path: '/host',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const PaseRefRoute = PaseRefRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/pase/$ref': typeof PaseRefRoute
   '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/pase/$ref': typeof PaseRefRoute
   '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
   '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
+    | '/perfil'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
+    | '/perfil'
     | '/pase/$ref'
     | '/admin/anfitriones'
     | '/admin/facturacion'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
     | '/_authenticated/host'
+    | '/_authenticated/perfil'
     | '/pase/$ref'
     | '/_authenticated/admin/anfitriones'
     | '/_authenticated/admin/facturacion'
@@ -356,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/pase/$ref': {
       id: '/pase/$ref'
       path: '/pase/$ref'
@@ -452,6 +471,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -459,6 +479,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

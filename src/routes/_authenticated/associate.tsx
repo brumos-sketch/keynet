@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { associateOverview } from "@/lib/pasallave.functions";
+import { PlanBadge } from "@/components/pasallave/status-badge";
+
 import {
   KIOSK_CATEGORIES,
   PLAN_LABELS,
@@ -250,7 +252,9 @@ function AssociatePanel() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
                       <td className="px-4 py-3 text-gray-500">
-                        {e.keyName} · {PLAN_LABELS[e.plan as SubscriptionType] ?? e.plan}
+                        <span className="inline-flex items-center gap-2">
+                          {e.keyName} <PlanBadge plan={e.plan} />
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>

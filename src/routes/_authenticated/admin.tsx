@@ -11,6 +11,7 @@ import {
   Crown,
   LogOut,
   Menu,
+  UserCog,
 } from "lucide-react";
 import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, Pill } from "@/components/pasallave/ui-bits";
@@ -32,6 +33,7 @@ const NAV = [
   { to: "/admin/puntos", label: "Puntos", icon: Store, exact: false },
   { to: "/admin/pro", label: "Acuerdos Pro", icon: Crown, exact: false },
   { to: "/admin/facturacion", label: "Facturación", icon: Receipt, exact: false },
+  { to: "/perfil", label: "Mi perfil", icon: UserCog, exact: false },
 ] as const;
 
 function AdminLayout() {

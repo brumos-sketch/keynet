@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { PlanBadge } from "@/components/pasallave/status-badge";
 import { PLAN_LABELS, formatDate, matchesQuery, type SubscriptionType } from "@/lib/pasallave";
 import { createKey } from "@/lib/pasallave.functions";
 
@@ -253,9 +254,7 @@ function AdminKeys() {
                 <td className="px-4 py-3 text-gray-500">{hostName(k.host_id)}</td>
                 <td className="px-4 py-3 text-gray-500">{kioskName(k.kiosk_id)}</td>
                 <td className="px-4 py-3">
-                  <Pill tone="info">
-                    {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
-                  </Pill>
+                  <PlanBadge plan={k.subscription_type} />
                 </td>
                 <td className="px-4 py-3">
                   <CodeChip value={k.deposit_code} />

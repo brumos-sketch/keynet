@@ -61,6 +61,11 @@
   --color-electric-foreground: #ffffff;
   --color-orange-brand: #ff6d00;
   --color-orange-brand-foreground: #ffffff;
+  --color-purple-brand: #7c3aed;
+  --color-sky-brand: #0288d1;
+  --color-amber-brand: #b45309;
+  --color-gold-brand: #a16207;
+
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);

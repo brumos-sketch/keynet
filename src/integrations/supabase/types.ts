@@ -610,6 +610,8 @@ export type Database = {
           id: string
           kiosk_id: string | null
           name: string | null
+          notify_email: boolean
+          notify_push: boolean
         }
         Insert: {
           created_at?: string
@@ -617,6 +619,8 @@ export type Database = {
           id: string
           kiosk_id?: string | null
           name?: string | null
+          notify_email?: boolean
+          notify_push?: boolean
         }
         Update: {
           created_at?: string
@@ -624,6 +628,8 @@ export type Database = {
           id?: string
           kiosk_id?: string | null
           name?: string | null
+          notify_email?: boolean
+          notify_push?: boolean
         }
         Relationships: [
           {
