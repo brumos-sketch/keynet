@@ -24,17 +24,17 @@ const JSON_LD = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PASALLAVE | Intercambiá llaves sin coordinar horarios" },
+      { title: "PASALLAVE | Simplificá tu check-in sin coordinar horarios" },
       {
         name: "description",
         content:
-          "Dejá y retirá las llaves de tu alquiler temporario en kioscos, cafés y comercios asociados. Sin esperas ni check-in presencial.",
+          "La red de puntos seguros para entrega y retiro de llaves en comercios de tu barrio. Simple, cercano y 100% confiable.",
       },
-      { property: "og:title", content: "PASALLAVE — Intercambiá llaves sin coordinar horarios" },
+      { property: "og:title", content: "PASALLAVE — Simplificá tu check-in sin coordinar horarios" },
       {
         property: "og:description",
         content:
-          "Red de puntos asociados en Argentina para que tus huéspedes retiren la llave cuando llegan.",
+          "Entrega y retiro de llaves en kioscos y comercios asociados. Simple, cercano y 100% confiable.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${SITE_ORIGIN}/` },
@@ -168,11 +168,12 @@ function Landing() {
           <div className="flex flex-col items-center gap-12 lg:flex-row">
             <div className="flex-1 text-center lg:text-left">
               <h1 className="mb-6 text-5xl leading-tight font-bold text-navy lg:text-6xl">
-                Intercambiá llaves <br />
+                Simplificá tu check-in <br />
                 <span className="text-electric">sin coordinar horarios</span>
               </h1>
               <p className="mx-auto mb-10 max-w-xl text-xl text-gray-600 lg:mx-0">
-                La red de puntos seguros en los mejores comercios de tu barrio. Simple, humano y 100% confiable.
+                La red de puntos seguros para entrega y retiro de llaves en comercios de tu barrio.
+                <span className="block font-semibold text-navy">Simple, cercano y 100% confiable.</span>
               </p>
 
               <div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
