@@ -286,30 +286,64 @@ function HostPanel() {
   return (
     <RoleGuard allow="host">
       <div className="min-h-screen bg-background">
-        <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
-          <Brand />
-          <div className="flex items-center gap-2">
+        <header className="grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-gray-100 bg-white px-4 sm:px-5">
+          <div className="min-w-0 overflow-hidden">
+            <Brand />
+          </div>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link
               to="/perfil"
               aria-label="Mi perfil"
               title="Mi perfil"
-              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy"
+              className="flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy sm:px-2"
             >
-              <span className="flex size-8 items-center justify-center rounded-full bg-electric/10 text-electric">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-electric/10 text-electric">
                 <User className="size-4" />
               </span>
-              <span className="max-w-[9rem] truncate">{name}</span>
+              <span className="hidden max-w-[9rem] truncate sm:inline">{name}</span>
             </Link>
-            <InstallButton />
             <NotificationBell />
-            <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
-              <Link to="/checkout">Pagos</Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
-              Salir
-            </Button>
+            <div className="hidden items-center gap-2 sm:flex">
+              <InstallButton />
+              <Button asChild variant="ghost" size="sm" className="text-gray-500 hover:text-navy">
+                <Link to="/checkout">Pagos</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
+                Salir
+              </Button>
+            </div>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0 sm:hidden" aria-label="Menú">
+                  <Menu className="size-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 p-5">
+                <SheetHeader className="p-0">
+                  <SheetTitle className="text-left text-navy">{name}</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 flex flex-col gap-2">
+                  <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
+                    <Link to="/perfil">Mi perfil</Link>
+                  </Button>
+                  <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
+                    <Link to="/checkout">Pagos</Link>
+                  </Button>
+                  <InstallButton />
+                  <Button
+                    variant="ghost"
+                    className="justify-start"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void signOut();
+                    }}
+                  >
+                    Salir
+                  </Button>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
-
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
