@@ -341,29 +341,42 @@ export function NewKeyWizard({
 
           {step === 2 && (
             <div className="space-y-2">
-              {(["one_use", "monthly", "pro"] as SubscriptionType[]).map((plan) => (
-                <button
-                  key={plan}
-                  type="button"
-                  onClick={() => setForm({ ...form, plan })}
-                  className={cn(
-                    "w-full rounded-xl border p-3 text-left transition-colors",
-                    form.plan === plan
-                      ? "border-electric bg-electric/5"
-                      : "border-gray-100 hover:bg-gray-50",
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-foreground">{PLAN_LABELS[plan]}</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {PLAN_PRICES[plan] === null ? "A convenir" : formatMoney(PLAN_PRICES[plan]!)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
-                </button>
-              ))}
+              {forcePro && (
+                <p className="rounded-xl border border-electric/20 bg-electric/5 p-3 text-sm text-foreground">
+                  Tu cuenta tiene acuerdo Pro activo: la llave se crea con el plan Pro.
+                </p>
+              )}
+              {(["one_use", "monthly", "pro"] as SubscriptionType[]).map((plan) => {
+                const disabled = forcePro && plan !== "pro";
+                return (
+                  <button
+                    key={plan}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setForm({ ...form, plan })}
+                    className={cn(
+                      "w-full rounded-xl border p-3 text-left transition-colors",
+                      form.plan === plan
+                        ? "border-electric bg-electric/5"
+                        : "border-gray-100 hover:bg-gray-50",
+                      disabled && "pointer-events-none opacity-50 grayscale",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-foreground">{PLAN_LABELS[plan]}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {PLAN_PRICES[plan] === null
+                          ? "A convenir"
+                          : formatMoney(PLAN_PRICES[plan]!)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
+                  </button>
+                );
+              })}
             </div>
           )}
+
 
           {step === 3 && (
             <div className="space-y-3 rounded-xl border border-gray-100 p-4 text-sm">
