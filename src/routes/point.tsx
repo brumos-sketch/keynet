@@ -458,3 +458,20 @@ function ResultScreen({
     </div>
   );
 }
+
+function ConfirmedScreen({ onComplete }: { onComplete: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(() => onComplete(), 3000);
+    return () => clearTimeout(t);
+  }, [onComplete]);
+
+  return (
+    <div className="animate-fade-in flex min-h-[24rem] flex-col items-center justify-center gap-4 text-center">
+      <span className="flex size-20 items-center justify-center rounded-full bg-success/15 text-success">
+        <Check className="size-10" />
+      </span>
+      <h2 className="text-3xl font-bold tracking-tight text-foreground">Operación confirmada</h2>
+      <p className="max-w-sm text-sm text-gray-500">Volviendo al teclado…</p>
+    </div>
+  );
+}
