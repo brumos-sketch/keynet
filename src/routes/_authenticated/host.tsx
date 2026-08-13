@@ -301,6 +301,35 @@ function HostPanel() {
   });
 
 
+
+  const updateKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!editKey) throw new Error("Elegí una llave");
+      return updateKeyFn({
+        data: { keyId: editKey.id, name: editKey.name, propertyName: editKey.property || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Llave actualizada");
+      setEditKey(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!deleteKeyTarget) throw new Error("Elegí una llave");
+      return deleteKeyFn({ data: { keyId: deleteKeyTarget.id } });
+    },
+    onSuccess: () => {
+      toast.success("Llave eliminada");
+      setDeleteKeyTarget(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const renewMutation = useMutation({
     mutationFn: async () => {
       if (!renewId) throw new Error("Elegí un intercambio");
