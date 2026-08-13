@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Check, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export function NewKeyWizard({
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const [open, setOpen] = useState(defaultOpen);
-  const [step, setStep] = useState(preselectedKioskId ? 1 : 0);
+  const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
