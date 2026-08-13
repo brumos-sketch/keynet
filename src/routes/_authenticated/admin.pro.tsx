@@ -140,7 +140,12 @@ function AdminPro() {
             Contratos a medida para anfitriones con varias propiedades.
           </p>
         </div>
-        <Button className="rounded-xl" onClick={() => setForm(EMPTY)}>
+        <Button
+          className="rounded-xl"
+          onClick={() =>
+            setForm({ ...EMPTY, monthlyPrice: data?.monthlyPrice ?? PLAN_PRICES.monthly })
+          }
+        >
           Nuevo acuerdo
         </Button>
       </div>
