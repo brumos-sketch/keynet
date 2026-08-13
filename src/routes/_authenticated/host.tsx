@@ -658,6 +658,9 @@ function HostPanel() {
                           </Link>
                         </div>
                       </td>
+                      <td className="px-4 py-3 text-foreground">
+                        {data?.keys.find((k) => k.id === e.key_id)?.name ?? "—"}
+                      </td>
                       <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
                       <td className="px-4 py-3">
                         <PlanBadge plan={e.keys.subscription_type} />
