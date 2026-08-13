@@ -6,6 +6,7 @@ import { PlanCard } from "@/components/pasallave/plan-card";
 import { PhoneMockup } from "@/components/pasallave/phone-mockup";
 import { StickerMockup } from "@/components/pasallave/sticker-mockup";
 import { listPlanPrices, type PlanPriceRow } from "@/lib/pricing.functions";
+import { listPublicKiosks, type PublicKiosk } from "@/lib/pasallave.functions";
 import ogImageAsset from "@/assets/og-pasallave.png.asset.json";
 
 const SITE_ORIGIN = "https://keynet.lovable.app";
@@ -50,11 +51,13 @@ export const Route = createFileRoute("/")({
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSON_LD) }],
   }),
   loader: async () => {
-    try {
-      return { plans: await listPlanPrices() };
-    } catch {
-      return { plans: [] as PlanPriceRow[] };
-    }
+    const [plans, kiosks] = await Promise.all([
+      listPlanPrices().catch(() => [] as PlanPriceRow[]),
+      listPublicKiosks()
+        .then((r) => r.kiosks)
+        .catch(() => [] as PublicKiosk[]),
+    ]);
+    return { plans, kiosks };
   },
   errorComponent: () => (
     <div className="p-10 text-center text-navy">No pudimos cargar la página. Recargá.</div>
@@ -111,6 +114,7 @@ const FALLBACK_PLANS = [
     features: ["1 intercambio de llave", "Soporte vía App", "Notificaciones en tiempo real"],
     cta: "Empezar ahora",
     variant: "default" as const,
+    planKey: "one_use",
   },
   {
     name: "pasa mes",
@@ -120,6 +124,7 @@ const FALLBACK_PLANS = [
     features: ["Intercambios ilimitados (1 llave)", "Soporte prioritario", "Historial de accesos completo"],
     cta: "Elegir plan",
     variant: "recommended" as const,
+    planKey: "monthly",
   },
   {
     name: "pasa pro",
@@ -129,6 +134,7 @@ const FALLBACK_PLANS = [
     features: ["Gestión de múltiples llaves", "Dashboard para agencias", "API para integración"],
     cta: "Contactar ventas",
     variant: "outline" as const,
+    planKey: "pro",
   },
 ];
 
@@ -136,7 +142,7 @@ const money = (n: number) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 
 function Landing() {
-  const { plans } = Route.useLoaderData();
+  const { plans, kiosks } = Route.useLoaderData();
   const PLANS = plans.length
     ? plans
         .filter((p) => p.plan in PLAN_META)
@@ -148,6 +154,7 @@ function Landing() {
           priceLabel: p.price_label ?? "",
           features: p.features ?? [],
           cta: p.cta ?? "Empezar ahora",
+          planKey: p.plan,
         }))
     : FALLBACK_PLANS;
 
@@ -194,7 +201,7 @@ function Landing() {
             </div>
 
             <div className="flex-1">
-              <PhoneMockup />
+              <PhoneMockup points={kiosks} />
             </div>
           </div>
         </div>
