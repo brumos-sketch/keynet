@@ -335,9 +335,7 @@ function HostPanel() {
                     <p className="text-sm text-gray-500">{k.property_name ?? "—"}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
-                    <Pill tone="info">
-                      {PLAN_LABELS[k.subscription_type as SubscriptionType] ?? k.subscription_type}
-                    </Pill>
+                    <PlanBadge plan={k.subscription_type} />
                     <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
                     {k.locked && <Pill tone="danger">Bloqueada</Pill>}
                   </div>
