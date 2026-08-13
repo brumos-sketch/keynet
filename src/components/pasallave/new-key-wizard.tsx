@@ -96,38 +96,7 @@ export function NewKeyWizard({ hostId }: { hostId: string | null }) {
   const chosenKiosk = (kiosks ?? []).find((k) => k.id === form.kioskId);
 
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [geoState, setGeoState] = useState<"idle" | "loading" | "none">("idle");
   const address = form.propertyName.trim();
-
-  useEffect(() => {
-    if (address.length < 5) {
-      setCoords(null);
-      setGeoState("idle");
-      return;
-    }
-    let cancelled = false;
-    setGeoState("loading");
-    const timer = setTimeout(() => {
-      void geocodeFn({ data: { address } })
-        .then((result) => {
-          if (cancelled) return;
-          if (!result) {
-            setCoords(null);
-            setGeoState("none");
-            return;
-          }
-          setCoords({ lat: result.lat, lng: result.lng });
-          setGeoState("idle");
-        })
-        .catch(() => {
-          if (!cancelled) setGeoState("none");
-        });
-    }, 700);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [address, geocodeFn]);
 
   const nearest = useMemo(() => {
     if (!coords) return null;
