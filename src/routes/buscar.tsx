@@ -322,23 +322,7 @@ function SearchPage() {
                     </a>
                   </div>
                   {current && current.lat != null && current.lng != null && (
-                    <Button
-                      asChild
-                      className="h-12 w-full rounded-2xl bg-electric font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
-                    >
-                      {session && role && role !== "pending" ? (
-                        <Link
-                          to={role === "host" ? "/host" : ROLE_HOME[role]}
-                          search={role === "host" ? { punto: current.id } : undefined}
-                        >
-                          Dejar llaves aquí
-                        </Link>
-                      ) : (
-                        <Link to="/login" search={{ punto: current.id }}>
-                          Dejar llaves aquí
-                        </Link>
-                      )}
-                    </Button>
+                    <ActionButton current={current} session={session} role={role} />
                   )}
                 </div>
               </>
