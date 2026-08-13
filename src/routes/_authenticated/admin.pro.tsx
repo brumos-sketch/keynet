@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pill } from "@/components/pasallave/ui-bits";
-import { formatDate, formatMoney } from "@/lib/pasallave";
+import { PLAN_PRICES, formatDate, formatMoney } from "@/lib/pasallave";
 import { deleteProAgreement, saveProAgreement } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/pro")({
@@ -73,15 +73,18 @@ function AdminPro() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "pro"],
     queryFn: async () => {
-      const [agreements, hosts, keys] = await Promise.all([
+      const [agreements, hosts, keys, prices] = await Promise.all([
         supabase.from("pro_agreements").select("*").order("created_at", { ascending: false }),
         supabase.from("hosts").select("id, name, email").order("name"),
         supabase.from("keys").select("id, host_id, subscription_type"),
+        supabase.from("plan_prices").select("plan, amount"),
       ]);
       return {
         agreements: agreements.data ?? [],
         hosts: hosts.data ?? [],
         keys: keys.data ?? [],
+        monthlyPrice:
+          (prices.data ?? []).find((p) => p.plan === "monthly")?.amount ?? PLAN_PRICES.monthly,
       };
     },
   });
@@ -137,7 +140,12 @@ function AdminPro() {
             Contratos a medida para anfitriones con varias propiedades.
           </p>
         </div>
-        <Button className="rounded-xl" onClick={() => setForm(EMPTY)}>
+        <Button
+          className="rounded-xl"
+          onClick={() =>
+            setForm({ ...EMPTY, monthlyPrice: data?.monthlyPrice ?? PLAN_PRICES.monthly ?? 0 })
+          }
+        >
           Nuevo acuerdo
         </Button>
       </div>
