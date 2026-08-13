@@ -43,8 +43,8 @@ export function NewKeyWizard({
   defaultOpen = false,
 }: {
   hostId: string | null;
-  preselectedKioskId?: string;
-  defaultOpen?: boolean;
+  preselectedKioskId?: string | undefined;
+  defaultOpen?: boolean | undefined;
 }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
