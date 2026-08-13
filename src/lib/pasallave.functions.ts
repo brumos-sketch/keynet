@@ -119,7 +119,7 @@ export const expireOneUseExchanges = createServerFn({ method: "POST" })
         .eq("id", key.host_id)
         .maybeSingle();
       if (hostRow?.user_id) {
-        await sendPushToUser(hostRow.user_id, {
+        await sendPushToUser(supabaseAdmin, hostRow.user_id, {
           title: "Pasallave · estadía vencida",
           body: message,
           tag: `exchange-expired`,
