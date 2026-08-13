@@ -57,6 +57,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [storedPunto, setStoredPunto] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading || !session || !role) return;
