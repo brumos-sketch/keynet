@@ -10,6 +10,7 @@ import { PlanBadge } from "@/components/pasallave/status-badge";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
+import { InstallButton } from "@/components/pasallave/install-button";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
