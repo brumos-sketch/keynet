@@ -9,7 +9,13 @@ const saveSubscriptionSchema = z.object({
   deviceInfo: z.string().optional().nullable(),
 });
 
-function configureVapid() {
+async function getWebPush() {
+  const mod = await import("web-push");
+  return mod.default ?? (mod as unknown as typeof import("web-push"));
+}
+
+async function configureVapid() {
+  const webpush = await getWebPush();
   const publicKey = process.env["VAPID_PUBLIC_KEY"];
   const privateKey = process.env["VAPID_PRIVATE_KEY"];
   if (!publicKey || !privateKey) {
