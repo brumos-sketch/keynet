@@ -24,17 +24,17 @@ const JSON_LD = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PASALLAVE | Intercambiá llaves sin coordinar horarios" },
+      { title: "PASALLAVE | Simplificá tu check-in sin coordinar horarios" },
       {
         name: "description",
         content:
-          "Dejá y retirá las llaves de tu alquiler temporario en kioscos, cafés y comercios asociados. Sin esperas ni check-in presencial.",
+          "La red de puntos seguros para entrega y retiro de llaves en comercios de tu barrio. Simple, cercano y 100% confiable.",
       },
-      { property: "og:title", content: "PASALLAVE — Intercambiá llaves sin coordinar horarios" },
+      { property: "og:title", content: "PASALLAVE — Simplificá tu check-in sin coordinar horarios" },
       {
         property: "og:description",
         content:
-          "Red de puntos asociados en Argentina para que tus huéspedes retiren la llave cuando llegan.",
+          "Entrega y retiro de llaves en kioscos y comercios asociados. Simple, cercano y 100% confiable.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: `${SITE_ORIGIN}/` },
