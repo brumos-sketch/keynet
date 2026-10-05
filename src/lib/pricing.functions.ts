@@ -17,7 +17,7 @@ export type PlanPriceRow = {
 export const listPlanPrices = createServerFn({ method: "GET" }).handler(
   async (): Promise<PlanPriceRow[]> => {
     const url = process.env["SUPABASE_URL"]!;
-    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+    const key = (process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"])!;
     const supabasePublic = createClient<Database>(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
       global: {
@@ -37,7 +37,10 @@ export const listPlanPrices = createServerFn({ method: "GET" }).handler(
       .select("plan, amount, price_label, subtitle, features, cta, sort_order")
       .order("sort_order", { ascending: true });
 
-    if (error) return [];
+    if (error) {
+      console.error("listPlanPrices", error.message);
+      return [];
+    }
     return (data ?? []) as PlanPriceRow[];
   },
 );
