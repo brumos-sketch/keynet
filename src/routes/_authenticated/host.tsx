@@ -292,12 +292,6 @@ function KeyDetail({
   );
   const kiosk = kiosks.find((x) => x.id === k.kiosk_id);
   const keyLog = accessLog;
-
-  const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
-  const activeCount = exchanges.filter(
-    (e) => e.key_id === k.id && ACTIVE_STATUSES.includes(e.status),
-  ).length;
-
   const lastLog = keyLog[0];
 
   const tabs = [
@@ -306,56 +300,101 @@ function KeyDetail({
     { id: "history" as const, label: "Historial" },
   ];
 
+  // History events (same logic as prototype)
+  const historyEvents = [
+    ...kEx.flatMap((ex) => {
+      const evs: Array<{ type: string; label: string; ref: string | null; date: string; icon: string; who?: string; code?: string }> = [];
+      if (ex.created_at) evs.push({ type: "created", label: "Intercambio creado", ref: ex.booking_ref, date: ex.created_at, icon: "+" });
+      if (["deposited", "picked_up", "completed"].includes(ex.status))
+        evs.push({ type: "deposited", label: "Llave depositada", ref: ex.booking_ref, date: ex.created_at, icon: "↓" });
+      if (["picked_up", "completed"].includes(ex.status))
+        evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.check_in ?? ex.created_at, icon: "↑" });
+      if (ex.status === "completed")
+        evs.push({ type: "completed", label: "Llave devuelta", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "↻" });
+      if (ex.status === "expired")
+        evs.push({ type: "expired", label: "Código vencido (48hs)", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "⏳" });
+      return evs;
+    }),
+    ...keyLog.map((l) => ({
+      type: l.action === "pickup" ? "picked_up" : "completed",
+      label: l.action === "pickup" ? "Llave retirada" : "Llave devuelta",
+      ref: null,
+      date: l.timestamp,
+      icon: l.action === "pickup" ? "↑" : "↻",
+      who: [l.role, l.person_name].filter(Boolean).join(" · "),
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const historyToneClass: Record<string, string> = {
+    created: "bg-gray-100 text-gray-500",
+    deposited: "bg-blue-100 text-blue-600",
+    picked_up: "bg-purple-100 text-purple-600",
+    completed: "bg-green-100 text-green-600",
+    expired: "bg-amber-100 text-amber-600",
+    revoked: "bg-red-100 text-red-500",
+  };
+
   return (
-    <div className="space-y-5">
-      {/* header */}
-      <div
-        className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)]"
-        onClick={onBack}
-      >
-        <ArrowLeft className="size-5 shrink-0 text-gray-400" />
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-electric/10">
-            <Key className="size-6 text-electric" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate font-bold text-navy">{k.name}</p>
-            {k.property_name && (
-              <p className="truncate text-xs text-gray-500">{k.property_name}</p>
-            )}
-            <div className="mt-1 flex items-center gap-1.5">
+    <div className="space-y-4">
+      {/* ── detail header (prototype style) ── */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[var(--shadow-card)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={onBack}
+                className="flex items-center gap-1 text-gray-400 hover:text-navy transition-colors text-sm font-medium"
+              >
+                <ArrowLeft className="size-4" />
+              </button>
+              <span className="text-xl font-black text-navy truncate">{k.name}</span>
               <PlanBadge plan={k.subscription_type as SubscriptionType} />
+              {k.locked && <span className="text-xs font-bold text-red-600">BLOQUEADA</span>}
             </div>
-          </div>
-        </div>
-        <div className="flex shrink-0 gap-2" onClick={(e) => e.stopPropagation()}>
-          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditKey(k)}>
-            Editar
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="rounded-xl text-destructive hover:text-destructive"
-            disabled={exchanges.some(
-              (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
+            <p className="mt-1 ml-5 text-sm text-gray-500">
+              {kiosk?.name ?? "—"}{kiosk?.address ? ` · ${kiosk.address}` : ""}
+            </p>
+            {(k.subscription_type === "monthly" || k.subscription_type === "pro") && k.deposit_code && (
+              <div className="mt-3 ml-5 inline-flex items-center gap-2 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Código depósito fijo</span>
+                <CodeChip value={k.deposit_code} />
+              </div>
             )}
-            onClick={() => onDeleteKey(k)}
-          >
-            Eliminar
-          </Button>
+          </div>
+          <div className="flex shrink-0 gap-2" onClick={(e) => e.stopPropagation()}>
+            {k.subscription_type === "pro" && (
+              <Button size="sm" variant="secondary" className="rounded-xl text-xs">
+                Gestionar Pro
+              </Button>
+            )}
+            <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditKey(k)}>
+              Editar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="rounded-xl text-destructive hover:text-destructive"
+              disabled={exchanges.some(
+                (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
+              )}
+              onClick={() => onDeleteKey(k)}
+            >
+              Eliminar
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* tabs */}
-      <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
+      {/* ── underline tabs (prototype style) ── */}
+      <div className="flex gap-0 border-b-2 border-gray-100">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
+            className={`px-6 py-2.5 text-sm font-bold transition-all border-b-2 -mb-0.5 ${
               tab === t.id
-                ? "bg-white text-navy shadow-[var(--shadow-card)]"
-                : "text-gray-500 hover:text-navy"
+                ? "border-electric text-electric"
+                : "border-transparent text-gray-400 hover:text-navy"
             }`}
           >
             {t.label}
@@ -363,143 +402,124 @@ function KeyDetail({
         ))}
       </div>
 
-      {/* Info */}
+      {/* ── Info tab ── */}
       {tab === "info" && (
         <div className="space-y-4">
-          {/* estado actual */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-100 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Estado</p>
-              {activeEx ? (
-                <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]} className="mt-2">
+          {/* Intercambio activo card */}
+          {activeEx ? (
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[var(--shadow-card)]">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-bold text-navy">Intercambio activo</span>
+                <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]}>
                   {STATUS_LABELS[activeEx.status as ExchangeStatus]}
                 </Pill>
-              ) : (
-                <p className="mt-2 text-sm font-semibold text-gray-500">Sin actividad</p>
-              )}
-            </div>
-            <div className="rounded-xl border border-gray-100 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Punto</p>
-              <p className="mt-2 text-sm font-semibold text-navy">{kiosk?.name ?? "—"}</p>
-            </div>
-            {k.deposit_code && (
-              <div className="col-span-2 rounded-xl border border-gray-100 bg-white p-4 sm:col-span-1">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
-                  Cód. depósito
-                </p>
-                <div className="mt-2">
-                  <CodeChip value={k.deposit_code} />
+              </div>
+              <div
+                className={`grid gap-3 ${k.subscription_type === "one_use" ? "grid-cols-3" : "grid-cols-1"}`}
+              >
+                <div className="rounded-xl bg-gray-50 p-3 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Reserva</p>
+                  <CodeChip value={activeEx.booking_ref} />
                 </div>
+                {k.subscription_type === "one_use" && (
+                  <>
+                    <div className="rounded-xl bg-gray-50 p-3 text-center">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Check-in</p>
+                      <p className="text-sm font-bold text-navy">
+                        {activeEx.check_in ? formatDate(activeEx.check_in) : <span className="text-green-600 text-xs">Libre</span>}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-gray-50 p-3 text-center">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Check-out</p>
+                      <p className="text-sm font-bold text-navy">
+                        {activeEx.check_out ? formatDate(activeEx.check_out) : "—"}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* último movimiento */}
-          {lastLog && (
-            <div className="rounded-xl border border-gray-100 bg-white p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
-                Último movimiento
-              </p>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-navy">
-                  {ACTION_LABELS[lastLog.action ?? ""] ?? lastLog.action ?? "—"}
-                  {lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
-                </p>
-                <span className="text-xs text-gray-400">{formatDateTime(lastLog.timestamp)}</span>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && (
+                  <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditExchange(activeEx)}>
+                    Editar estadía
+                  </Button>
+                )}
+                {activeEx.status === "expired" && (
+                  <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onRenewExchange(activeEx.id)}>
+                    Renovar
+                  </Button>
+                )}
               </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-400">
+              Sin intercambio activo
             </div>
           )}
 
-          {/* estadía activa */}
-          {activeEx && (
-            <div className="rounded-xl border border-electric/20 bg-electric/5 p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-electric">
-                  Estadía activa
-                </p>
-                <CodeChip value={activeEx.booking_ref} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                {activeEx.pickup_code && (
-                  <div>
-                    <p className="text-xs text-gray-400">Código huésped</p>
-                    <CodeChip value={activeEx.pickup_code} />
-                  </div>
-                )}
-                <div>
-                  <p className="text-xs text-gray-400">Fechas</p>
-                  <p className="font-medium text-navy">
-                    {activeEx.check_in ? formatDate(activeEx.check_in) : "—"} →{" "}
-                    {activeEx.check_out ? formatDate(activeEx.check_out) : "—"}
+          {/* Último movimiento card */}
+          {lastLog && (
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[var(--shadow-card)]">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">Último movimiento</p>
+              <div className="flex items-center gap-4">
+                <div
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+                    lastLog.action === "pickup" ? "bg-purple-100 text-purple-600" : "bg-green-100 text-green-600"
+                  }`}
+                >
+                  {lastLog.action === "pickup" ? "↑" : "↻"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-navy">
+                    {lastLog.action === "pickup" ? "Llave retirada" : "Llave devuelta"}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {lastLog.role}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
                   </p>
                 </div>
+                <span className="text-xs text-gray-400 font-mono shrink-0">{formatDateTime(lastLog.timestamp)}</span>
               </div>
-              {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 rounded-xl"
-                  onClick={() => onEditExchange(activeEx)}
-                >
-                  Editar estadía
-                </Button>
-              )}
-              {activeEx.status === "expired" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3 rounded-xl"
-                  onClick={() => onRenewExchange(activeEx.id)}
-                >
-                  Renovar
-                </Button>
-              )}
             </div>
           )}
 
-          {/* nueva estadía */}
-          <Button
-            className="w-full rounded-xl"
-            onClick={() => onCreateExchange(k.id)}
-          >
+          {/* Nueva estadía */}
+          <Button className="w-full rounded-xl" onClick={() => onCreateExchange(k.id)}>
             <Plus className="size-4" /> Nueva estadía
           </Button>
-
-          {/* historial de estadías */}
-          {kEx.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
-                Estadías anteriores
-              </p>
-              {kEx
-                .filter((e) => !["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status))
-                .map((ex) => (
-                  <div
-                    key={ex.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 p-3 text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <CodeChip value={ex.booking_ref} />
-                      <Pill tone={STATUS_TONE[ex.status as ExchangeStatus] ?? "neutral"}>
-                        {STATUS_LABELS[ex.status as ExchangeStatus] ?? ex.status}
-                      </Pill>
-                    </div>
-                    <span className="text-xs text-gray-400">{formatDate(ex.created_at)}</span>
-                  </div>
-                ))}
-            </div>
-          )}
         </div>
       )}
 
-      {/* Códigos Pro */}
+      {/* ── Códigos Pro ── */}
       {tab === "codes" && k.subscription_type === "pro" && (
         <ProAccessCodes keyId={k.id} keyName={k.name} />
       )}
 
-      {/* Historial */}
+      {/* ── Historial tab ── */}
       {tab === "history" && (
-        <HistoryTimeline exchanges={kEx} accessLog={keyLog} kioskName={(id) => kiosks.find((x) => x.id === id)?.name ?? "—"} />
+        <div className="divide-y divide-gray-100">
+          {historyEvents.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">Sin movimientos</p>
+          )}
+          {historyEvents.map((ev, i) => (
+            <div key={i} className="flex items-start gap-3.5 py-3.5">
+              <div
+                className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                  historyToneClass[ev.type] ?? "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {ev.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-navy">{ev.label}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                  {ev.who && <span className="text-xs text-gray-500 font-medium">{ev.who}</span>}
+                  {ev.ref && <CodeChip value={ev.ref} />}
+                </div>
+              </div>
+              <span className="text-xs text-gray-400 font-mono shrink-0 mt-0.5">{formatDateTime(ev.date)}</span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
