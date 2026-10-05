@@ -482,10 +482,6 @@ function KeyDetail({
             </div>
           )}
 
-          {/* Nueva estadía */}
-          <Button className="w-full rounded-xl" onClick={() => onCreateExchange(k.id)}>
-            <Plus className="size-4" /> Nueva estadía
-          </Button>
         </div>
       )}
 
