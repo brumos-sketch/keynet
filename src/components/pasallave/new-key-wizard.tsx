@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Pill } from "@/components/pasallave/ui-bits";
-import { createKey } from "@/lib/pasallave.functions";
+import { createKey, keyNameExists } from "@/lib/pasallave.functions";
 import { listPlanPrices } from "@/lib/pricing.functions";
 import {
   KIOSK_CATEGORIES,
