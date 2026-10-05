@@ -294,9 +294,13 @@ function KeyDetail({
   const keyLog = accessLog;
   const lastLog = keyLog[0];
 
+  const kExWithCode = kEx.filter((e) => e.pickup_code);
+
   const tabs = [
     { id: "info" as const, label: "Info" },
-    ...(k.subscription_type === "pro" ? [{ id: "codes" as const, label: "Códigos" }] : []),
+    ...(k.subscription_type === "pro" || k.subscription_type === "monthly"
+      ? [{ id: "codes" as const, label: `Códigos (${k.subscription_type === "pro" ? "Pro" : kExWithCode.length})` }]
+      : []),
     { id: "history" as const, label: "Historial" },
   ];
 
@@ -488,6 +492,53 @@ function KeyDetail({
       {/* ── Códigos Pro ── */}
       {tab === "codes" && k.subscription_type === "pro" && (
         <ProAccessCodes keyId={k.id} keyName={k.name} />
+      )}
+
+      {/* ── Códigos Mensual ── */}
+      {tab === "codes" && k.subscription_type === "monthly" && (
+        <div className="space-y-3">
+          {kExWithCode.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">Sin códigos todavía.</p>
+          )}
+          {kExWithCode.map((ex) => {
+            const isActive = ["created", "waiting_deposit", "deposited", "picked_up"].includes(ex.status);
+            return (
+              <div key={ex.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[var(--shadow-card)]">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CodeChip value={ex.booking_ref} />
+                    <Pill tone={STATUS_TONE[ex.status as ExchangeStatus] ?? "neutral"}>
+                      {STATUS_LABELS[ex.status as ExchangeStatus] ?? ex.status}
+                    </Pill>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 font-medium">Huésped</span>
+                    {isActive && (
+                      <button
+                        className="text-xs font-semibold text-electric hover:underline"
+                        onClick={() => onEditExchange(ex)}
+                      >
+                        Editar
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-2xl font-black font-mono tracking-widest text-electric mb-1">
+                  {ex.pickup_code}
+                </p>
+                <p className="text-xs text-gray-400 mb-3">
+                  {ex.check_in && ex.check_out
+                    ? `${formatDate(ex.check_in)} → ${formatDate(ex.check_out)}`
+                    : "Sin fechas (libre)"}
+                  {ex.pickup_time ? ` · Retiro desde ${ex.pickup_time}` : ""}
+                </p>
+                <Button size="sm" className="rounded-xl">
+                  Copiar link
+                </Button>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* ── Historial tab ── */}
