@@ -151,7 +151,7 @@ export function NewKeyWizard({
     return best;
   }, [coords, kiosks]);
   const canContinue =
-    (step === 0 && form.name.trim().length >= 2) ||
+    (step === 0 && form.name.trim().length >= 2 && !nameDuplicate) ||
     (step === 1 && !!form.kioskId) ||
     step === 2 ||
     step === 3;
