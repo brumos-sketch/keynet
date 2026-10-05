@@ -53,6 +53,7 @@ export function NewKeyWizard({
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const listPlanPricesFn = useServerFn(listPlanPrices);
+  const keyNameExistsFn = useServerFn(keyNameExists);
   const [open, setOpen] = useState(defaultOpen);
 
   const { data: planPrices } = useQuery({
