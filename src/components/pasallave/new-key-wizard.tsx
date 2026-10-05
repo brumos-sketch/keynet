@@ -363,8 +363,8 @@ export function NewKeyWizard({
               {(["one_use", "monthly", "pro"] as SubscriptionType[]).map((plan) => {
                 const disabled = forcePro && plan !== "pro";
                 return (
+                  <div key={plan} className="space-y-2">
                   <button
-                    key={plan}
                     type="button"
                     disabled={disabled}
                     onClick={() => setForm({ ...form, plan })}
@@ -385,16 +385,16 @@ export function NewKeyWizard({
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
+                  </button>
                     {plan === "pro" && form.plan === "pro" && (
                       <a
                         href="mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro"
-                        onClick={(e) => e.stopPropagation()}
-                        className="mt-2 inline-flex items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                                                className="mt-2 flex w-full items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                       >
                         Contactar ventas
                       </a>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
