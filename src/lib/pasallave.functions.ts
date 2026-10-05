@@ -141,6 +141,30 @@ const createKeySchema = z.object({
   subscriptionType: z.enum(["one_use", "monthly", "pro"]),
 });
 
+// ---------- key name availability (live check for the wizard) ----------
+
+export const keyNameExists = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ hostId: z.string().uuid(), name: z.string().trim().min(1).max(80) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await isAdmin(context);
+    if (!admin) {
+      const { data: myHost } = await context.supabase.rpc("my_host_id");
+      if (!myHost || myHost !== data.hostId) throw new Error("Forbidden");
+    }
+    const supabaseAdmin = await loadAdminClient();
+    const normalized = data.name.trim().toLowerCase().replace(/\s+/g, " ");
+    const { data: rows } = await supabaseAdmin
+      .from("keys")
+      .select("name")
+      .eq("host_id", data.hostId);
+    return (rows ?? []).some(
+      (k) => (k.name ?? "").trim().toLowerCase().replace(/\s+/g, " ") === normalized,
+    );
+  });
+
 export const createKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createKeySchema.parse(input))
