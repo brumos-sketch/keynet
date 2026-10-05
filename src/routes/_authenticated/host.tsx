@@ -915,9 +915,10 @@ function HostPanel() {
             />
           )}
 
-          {/* ── key cards grid — always visible ── */}
-          {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
+          {/* ── key cards grid — hidden while a key detail is open ── */}
+          {!selKey && isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
+          {!selKey && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {keyRows.map((k) => {
                   const kEx = (data?.exchanges ?? []).filter((e) => e.key_id === k.id);
@@ -971,8 +972,9 @@ function HostPanel() {
                   );
                 })}
               </div>
+          )}
 
-          {!isLoading && keyRows.length === 0 && (
+          {!selKey && !isLoading && keyRows.length === 0 && (
             <p className="text-sm text-gray-500">
               {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
             </p>
