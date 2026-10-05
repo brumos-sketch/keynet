@@ -120,6 +120,23 @@ export function NewKeyWizard({
 
   const chosenKiosk = (kiosks ?? []).find((k) => k.id === form.kioskId);
 
+  // Live duplicate-name check: debounced while typing, blocks continuing from step 0.
+  const [debouncedName, setDebouncedName] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedName(form.name), 500);
+    return () => clearTimeout(t);
+  }, [form.name]);
+  const nameToCheck = debouncedName.trim();
+  const {
+    data: nameExists,
+    isFetching: nameChecking,
+  } = useQuery({
+    queryKey: ["key-name-exists", hostId, nameToCheck.toLowerCase()],
+    enabled: open && !!hostId && nameToCheck.length >= 2,
+    queryFn: () => keyNameExistsFn({ data: { hostId: hostId!, name: nameToCheck } }),
+  });
+  const nameDuplicate = !!nameExists;
+
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const address = form.propertyName.trim();
 
