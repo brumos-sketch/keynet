@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Pill } from "@/components/pasallave/ui-bits";
 import { createKey } from "@/lib/pasallave.functions";
+import { listPlanPrices } from "@/lib/pricing.functions";
 import {
   KIOSK_CATEGORIES,
   PLAN_LABELS,
@@ -51,6 +52,19 @@ export function NewKeyWizard({
 }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
+  const listPlanPricesFn = useServerFn(listPlanPrices);
+
+  const { data: planPrices } = useQuery({
+    queryKey: ["plan-prices"],
+    enabled: open,
+    queryFn: () => listPlanPricesFn(),
+  });
+
+  const priceFor = (plan: SubscriptionType): number | null => {
+    const row = (planPrices ?? []).find((p) => p.plan === plan);
+    if (!row) return PLAN_PRICES[plan];
+    return row.amount ?? null;
+  };
   const [open, setOpen] = useState(defaultOpen);
   const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
   const [form, setForm] = useState({
