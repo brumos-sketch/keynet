@@ -282,6 +282,7 @@ function KeyDetail({
   onRenewExchange: (exId: string) => void;
   onEditKey: (k: KeyRow) => void;
   onDeleteKey: (k: KeyRow) => void;
+  onEditCodeEx: (ex: Exchange) => void;
 }) {
   const [tab, setTab] = useState<"info" | "codes" | "history">("info");
   const kEx = exchanges.filter((e) => e.key_id === k.id).sort(
@@ -516,7 +517,7 @@ function KeyDetail({
                     {isActive && (
                       <button
                         className="text-xs font-semibold text-electric hover:underline"
-                        onClick={() => onEditExchange(ex)}
+                        onClick={() => onEditCodeEx(ex)}
                       >
                         Editar
                       </button>
@@ -594,9 +595,13 @@ function HostPanel() {
   const [openExKey, setOpenExKey] = useState<string | null>(null);
   const [exchangeForm, setExchangeForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
 
-  // edit exchange
+  // edit exchange (generic — fecha/hora estadía)
   const [editEx, setEditEx] = useState<{ id: string; keyName: string; bookingRef: string } | null>(null);
   const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
+
+  // edit guest code (Editar código huésped — from Códigos tab)
+  const [editCodeEx, setEditCodeEx] = useState<{ id: string; pickupCode: string; bookingRef: string } | null>(null);
+  const [editCodeForm, setEditCodeForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", reusable: false });
 
   // renew
   const [renewId, setRenewId] = useState<string | null>(null);
@@ -912,6 +917,15 @@ function HostPanel() {
               onRenewExchange={(exId) => setRenewId(exId)}
               onEditKey={(k) => setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })}
               onDeleteKey={(k) => setDeleteKeyTarget({ id: k.id, name: k.name })}
+              onEditCodeEx={(ex) => {
+                setEditCodeForm({
+                  checkIn: ex.check_in ?? "",
+                  checkOut: ex.check_out ?? "",
+                  pickupTime: ex.pickup_time ?? "",
+                  reusable: false,
+                });
+                setEditCodeEx({ id: ex.id, pickupCode: ex.pickup_code, bookingRef: ex.booking_ref });
+              }}
             />
           )}
 
@@ -1101,6 +1115,97 @@ function HostPanel() {
             <DialogFooter>
               <Button disabled={updateKeyMutation.isPending || !(editKey?.name.trim())} onClick={() => updateKeyMutation.mutate()}>
                 Guardar cambios
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* editar código huésped (mes / pro) */}
+        <Dialog open={!!editCodeEx} onOpenChange={(open) => !open && setEditCodeEx(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle>Editar código huésped</DialogTitle>
+            </DialogHeader>
+            {editCodeEx && (
+              <div className="space-y-5">
+                {/* código */}
+                <div className="flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
+                  <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Código</span>
+                  <span className="text-xl font-black font-mono tracking-widest text-electric">{editCodeEx.pickupCode}</span>
+                  <CodeChip value={editCodeEx.bookingRef} />
+                </div>
+
+                {/* disponibilidad */}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Disponibilidad</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label>Check-in</Label>
+                      <Input
+                        type="date"
+                        value={editCodeForm.checkIn}
+                        onChange={(e) => setEditCodeForm({ ...editCodeForm, checkIn: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Check-out</Label>
+                      <Input
+                        type="date"
+                        value={editCodeForm.checkOut}
+                        onChange={(e) => setEditCodeForm({ ...editCodeForm, checkOut: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* horario de retiro */}
+                <div className="space-y-1.5">
+                  <Label>Horario de retiro</Label>
+                  <Input
+                    type="time"
+                    value={editCodeForm.pickupTime}
+                    onChange={(e) => setEditCodeForm({ ...editCodeForm, pickupTime: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-400">Hora mínima para retirar la llave</p>
+                </div>
+
+                {/* reutilizable */}
+                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <input
+                      id="ec-reusable"
+                      type="checkbox"
+                      className="mt-0.5 size-4 accent-electric cursor-pointer"
+                      checked={editCodeForm.reusable}
+                      onChange={(e) => setEditCodeForm({ ...editCodeForm, reusable: e.target.checked })}
+                    />
+                    <div>
+                      <label htmlFor="ec-reusable" className="text-sm font-bold text-navy cursor-pointer">Reutilizable</label>
+                      <p className="text-xs text-gray-400 mt-0.5">El link es permanente; el código no se consume tras cada uso</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  if (!editCodeEx) return;
+                  updateExchangeFn({
+                    data: {
+                      exchangeId: editCodeEx.id,
+                      checkIn: editCodeForm.checkIn || null,
+                      checkOut: editCodeForm.checkOut || null,
+                      pickupTime: editCodeForm.pickupTime || null,
+                    },
+                  }).then(() => {
+                    qc.invalidateQueries({ queryKey: ["host", "overview"] });
+                    toast.success("Código actualizado");
+                    setEditCodeEx(null);
+                  }).catch(() => toast.error("No se pudo guardar"));
+                }}
+              >
+                Guardar
               </Button>
             </DialogFooter>
           </DialogContent>
