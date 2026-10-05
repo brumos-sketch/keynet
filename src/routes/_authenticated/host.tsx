@@ -796,8 +796,52 @@ function HostPanel() {
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
 
-          {selKey ? (
-            // ── KEY DETAIL VIEW ──
+          {/* ── stats — always visible ── */}
+          <div className="flex flex-wrap gap-3">
+            <StatCard
+              icon={<Key className="size-4" />}
+              label="Mis llaves"
+              value={keyRows.length}
+              onClick={selKey ? () => setSelKey(null) : undefined}
+            />
+            <StatCard
+              icon={<span className="text-sm">↑</span>}
+              label="Activos"
+              value={activeCount}
+              onClick={selKey ? () => setSelKey(null) : undefined}
+            />
+            <StatCard
+              icon={<span className="text-sm">⚠</span>}
+              label="Vencidos"
+              value={overdueCount}
+              accent="var(--color-destructive)"
+              onClick={selKey ? () => setSelKey(null) : undefined}
+            />
+          </div>
+
+          {/* ── title + search — always visible ── */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-navy">Mis llaves</h1>
+              {!selKey && <p className="text-sm text-gray-500">Tocá una llave para ver su detalle.</p>}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <SearchField
+                value={query}
+                onChange={setQuery}
+                placeholder="Buscar llave…"
+              />
+              <NewKeyWizard
+                hostId={hostId ?? null}
+                preselectedKioskId={punto}
+                defaultOpen={!!punto}
+                forcePro={!!proActive}
+              />
+            </div>
+          </div>
+
+          {/* ── key detail (shown below grid when a key is selected) ── */}
+          {selKey && (
             <KeyDetail
               k={selKey}
               exchanges={data?.exchanges ?? []}
@@ -818,56 +862,12 @@ function HostPanel() {
               onEditKey={(k) => setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })}
               onDeleteKey={(k) => setDeleteKeyTarget({ id: k.id, name: k.name })}
             />
-          ) : (
-            // ── KEY LIST VIEW ──
-            <>
-              {/* stats */}
-              <div
-                className="flex flex-wrap gap-3"
-              >
-                <StatCard
-                  icon={<Key className="size-4" />}
-                  label="Mis llaves"
-                  value={keyRows.length}
-                />
-                <StatCard
-                  icon={<span className="text-sm">↑</span>}
-                  label="Activos"
-                  value={activeCount}
-                />
-                <StatCard
-                  icon={<span className="text-sm">⚠</span>}
-                  label="Vencidos"
-                  value={overdueCount}
-                  accent="var(--color-destructive)"
-                />
-              </div>
+          )}
 
-              {/* title + actions */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h1 className="text-2xl font-bold text-navy">Mis llaves</h1>
-                  <p className="text-sm text-gray-500">Tocá una llave para ver su detalle.</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <SearchField
-                    value={query}
-                    onChange={setQuery}
-                    placeholder="Buscar llave…"
-                  />
-                  <NewKeyWizard
-                    hostId={hostId ?? null}
-                    preselectedKioskId={punto}
-                    defaultOpen={!!punto}
-                    forcePro={!!proActive}
-                  />
-                </div>
-              </div>
+          {/* ── key cards grid — always visible ── */}
+          {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
-              {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
-
-              {/* key cards */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {keyRows.map((k) => {
                   const kEx = (data?.exchanges ?? []).filter((e) => e.key_id === k.id);
                   const activeEx = kEx.find((e) => ACTIVE_STATUSES.includes(e.status));
@@ -921,12 +921,10 @@ function HostPanel() {
                 })}
               </div>
 
-              {!isLoading && keyRows.length === 0 && (
-                <p className="text-sm text-gray-500">
-                  {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
-                </p>
-              )}
-            </>
+          {!isLoading && keyRows.length === 0 && (
+            <p className="text-sm text-gray-500">
+              {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
+            </p>
           )}
         </main>
 
