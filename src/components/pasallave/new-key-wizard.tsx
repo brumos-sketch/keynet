@@ -53,6 +53,7 @@ export function NewKeyWizard({
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const listPlanPricesFn = useServerFn(listPlanPrices);
+  const [open, setOpen] = useState(defaultOpen);
 
   const { data: planPrices } = useQuery({
     queryKey: ["plan-prices"],
@@ -65,7 +66,6 @@ export function NewKeyWizard({
     if (!row) return PLAN_PRICES[plan];
     return row.amount ?? null;
   };
-  const [open, setOpen] = useState(defaultOpen);
   const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
   const [form, setForm] = useState({
     name: "",
