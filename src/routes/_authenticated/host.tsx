@@ -243,7 +243,7 @@ function HistoryTimeline({
       {events.map((ev) => (
         <li key={ev.id} className="flex items-start gap-3 rounded-xl border border-gray-100 p-3">
           <span
-            className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${toneClass[ev.tone] ?? toneClass.neutral}`}
+            className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${toneClass[ev.tone] ?? toneClass["neutral"]}`}
           >
             {ev.icon}
           </span>
@@ -275,7 +275,7 @@ function KeyDetail({
   k: KeyRow;
   exchanges: Exchange[];
   accessLog: AccessLogEntry[];
-  kiosks: Array<{ id: string; name: string; address: string }>;
+  kiosks: Array<{ id: string; name: string; address: string | null }>;
   onBack: () => void;
   onCreateExchange: (keyId: string) => void;
   onEditExchange: (ex: Exchange) => void;
@@ -853,20 +853,20 @@ function HostPanel() {
               icon={<Key className="size-4" />}
               label="Mis llaves"
               value={keyRows.length}
-              onClick={selKey ? () => setSelKey(null) : undefined}
+              {...(selKey ? { onClick: () => setSelKey(null) } : {})}
             />
             <StatCard
               icon={<span className="text-sm">↑</span>}
               label="Activos"
               value={activeCount}
-              onClick={selKey ? () => setSelKey(null) : undefined}
+              {...(selKey ? { onClick: () => setSelKey(null) } : {})}
             />
             <StatCard
               icon={<span className="text-sm">⚠</span>}
               label="Vencidos"
               value={overdueCount}
               accent="var(--color-destructive)"
-              onClick={selKey ? () => setSelKey(null) : undefined}
+              {...(selKey ? { onClick: () => setSelKey(null) } : {})}
             />
           </div>
 

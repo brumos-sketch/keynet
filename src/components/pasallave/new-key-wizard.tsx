@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Pill } from "@/components/pasallave/ui-bits";
 import { createKey } from "@/lib/pasallave.functions";
+import { listPlanPrices } from "@/lib/pricing.functions";
 import {
   KIOSK_CATEGORIES,
   PLAN_LABELS,
@@ -51,7 +52,20 @@ export function NewKeyWizard({
 }) {
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
+  const listPlanPricesFn = useServerFn(listPlanPrices);
   const [open, setOpen] = useState(defaultOpen);
+
+  const { data: planPrices } = useQuery({
+    queryKey: ["plan-prices"],
+    enabled: open,
+    queryFn: () => listPlanPricesFn(),
+  });
+
+  const priceFor = (plan: SubscriptionType): number | null => {
+    const row = (planPrices ?? []).find((p) => p.plan === plan);
+    if (!row) return PLAN_PRICES[plan];
+    return row.amount ?? null;
+  };
   const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
   const [form, setForm] = useState({
     name: "",
@@ -365,12 +379,21 @@ export function NewKeyWizard({
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium text-foreground">{PLAN_LABELS[plan]}</span>
                       <span className="text-sm font-medium text-foreground">
-                        {PLAN_PRICES[plan] === null
+                        {priceFor(plan) === null
                           ? "A convenir"
-                          : formatMoney(PLAN_PRICES[plan]!)}
+                          : formatMoney(priceFor(plan)!)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
+                    {plan === "pro" && form.plan === "pro" && (
+                      <a
+                        href="mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-2 inline-flex items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Contactar ventas
+                      </a>
+                    )}
                   </button>
                 );
               })}
@@ -388,9 +411,9 @@ export function NewKeyWizard({
               <Row
                 label="Precio"
                 value={
-                  PLAN_PRICES[form.plan] === null
+                  priceFor(form.plan) === null
                     ? "A convenir con el equipo"
-                    : formatMoney(PLAN_PRICES[form.plan]!)
+                    : formatMoney(priceFor(form.plan)!)
                 }
               />
               <p className="text-xs text-gray-500">
