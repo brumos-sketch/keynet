@@ -301,7 +301,7 @@ function KeyDetail({
   const tabs = [
     { id: "info" as const, label: "Info" },
     ...(k.subscription_type === "pro" || k.subscription_type === "monthly"
-      ? [{ id: "codes" as const, label: `Códigos (${k.subscription_type === "pro" ? "Pro" : kExWithCode.length})` }]
+      ? [{ id: "codes" as const, label: k.subscription_type === "pro" ? "Códigos" : `Códigos (${kExWithCode.length})` }]
       : []),
     { id: "history" as const, label: "Historial" },
   ];
@@ -445,7 +445,7 @@ function KeyDetail({
                 )}
               </div>
               <div className="mt-3 flex gap-2 flex-wrap">
-                {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && (
+                {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && k.subscription_type !== "pro" && (
                   <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditExchange(activeEx)}>
                     Editar estadía
                   </Button>
