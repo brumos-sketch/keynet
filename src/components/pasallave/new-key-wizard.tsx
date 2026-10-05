@@ -379,12 +379,28 @@ export function NewKeyWizard({
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium text-foreground">{PLAN_LABELS[plan]}</span>
                       <span className="text-sm font-medium text-foreground">
-                        {PLAN_PRICES[plan] === null
+                        {priceFor(plan) === null
                           ? "A convenir"
-                          : formatMoney(PLAN_PRICES[plan]!)}
+                          : formatMoney(priceFor(plan)!)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
+                    {plan === "pro" && form.plan === "pro" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 rounded-xl"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(
+                            "mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro",
+                            "_blank",
+                          );
+                        }}
+                      >
+                        Contactar ventas
+                      </Button>
+                    )}
                   </button>
                 );
               })}
