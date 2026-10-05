@@ -271,6 +271,7 @@ function KeyDetail({
   onRenewExchange,
   onEditKey,
   onDeleteKey,
+  onEditCodeEx,
 }: {
   k: KeyRow;
   exchanges: Exchange[];

@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Pill } from "@/components/pasallave/ui-bits";
-import { createKey } from "@/lib/pasallave.functions";
+import { createKey, keyNameExists } from "@/lib/pasallave.functions";
 import { listPlanPrices } from "@/lib/pricing.functions";
 import {
   KIOSK_CATEGORIES,
@@ -53,6 +53,7 @@ export function NewKeyWizard({
   const qc = useQueryClient();
   const createKeyFn = useServerFn(createKey);
   const listPlanPricesFn = useServerFn(listPlanPrices);
+  const keyNameExistsFn = useServerFn(keyNameExists);
   const [open, setOpen] = useState(defaultOpen);
 
   const { data: planPrices } = useQuery({
@@ -119,6 +120,23 @@ export function NewKeyWizard({
 
   const chosenKiosk = (kiosks ?? []).find((k) => k.id === form.kioskId);
 
+  // Live duplicate-name check: debounced while typing, blocks continuing from step 0.
+  const [debouncedName, setDebouncedName] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedName(form.name), 500);
+    return () => clearTimeout(t);
+  }, [form.name]);
+  const nameToCheck = debouncedName.trim();
+  const {
+    data: nameExists,
+    isFetching: nameChecking,
+  } = useQuery({
+    queryKey: ["key-name-exists", hostId, nameToCheck.toLowerCase()],
+    enabled: open && !!hostId && nameToCheck.length >= 2,
+    queryFn: () => keyNameExistsFn({ data: { hostId: hostId!, name: nameToCheck } }),
+  });
+  const nameDuplicate = !!nameExists;
+
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const address = form.propertyName.trim();
 
@@ -133,7 +151,7 @@ export function NewKeyWizard({
     return best;
   }, [coords, kiosks]);
   const canContinue =
-    (step === 0 && form.name.trim().length >= 2) ||
+    (step === 0 && form.name.trim().length >= 2 && !nameDuplicate) ||
     (step === 1 && !!form.kioskId) ||
     step === 2 ||
     step === 3;
@@ -230,6 +248,9 @@ export function NewKeyWizard({
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
+                {nameDuplicate ? (
+                  <p className="text-sm text-destructive">Ya tenés una llave con ese nombre</p>
+                ) : null}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="w-prop">Dirección (opcional)</Label>
