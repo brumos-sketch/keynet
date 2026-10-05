@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, Menu, User } from "lucide-react";
+import { ArrowLeft, Key, Menu, Plus, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -7,12 +7,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -35,7 +29,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -75,14 +68,444 @@ export const Route = createFileRoute("/_authenticated/host")({
       { title: "Mis llaves — PASALLAVE" },
       { name: "description", content: "Gestioná tus llaves e intercambios como anfitrión." },
       { property: "og:title", content: "Panel de anfitrión PASALLAVE" },
-      {
-        property: "og:description",
-        content: "Llaves, intercambios y accesos en tus puntos asociados.",
-      },
+      { property: "og:description", content: "Llaves, intercambios y accesos en tus puntos asociados." },
     ],
   }),
   component: HostPanel,
 });
+
+// ─── types ───────────────────────────────────────────────────────────────────
+
+type Exchange = {
+  id: string;
+  key_id: string;
+  kiosk_id: string;
+  booking_ref: string;
+  locker_position: number;
+  deposit_code: string;
+  pickup_code: string;
+  return_code: string | null;
+  pickup_time: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  status: string;
+  created_at: string;
+  keys: { subscription_type: string };
+};
+
+type KeyRow = {
+  id: string;
+  name: string;
+  property_name: string | null;
+  kiosk_id: string | null;
+  deposit_code: string | null;
+  subscription_type: string;
+  locked: boolean;
+  created_at: string;
+};
+
+type AccessLogEntry = {
+  id: string;
+  key_id: string;
+  action: string | null;
+  person_name: string | null;
+  timestamp: string;
+  role: string | null;
+};
+
+// ─── stat card ───────────────────────────────────────────────────────────────
+
+function StatCard({
+  icon,
+  label,
+  value,
+  accent,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  accent?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-1 min-w-[100px] flex-col gap-1 rounded-2xl border border-gray-100 bg-white p-4 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] active:scale-95"
+    >
+      <div className="flex items-center gap-2" style={{ color: accent ?? "var(--color-electric)" }}>
+        {icon}
+        <span className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</span>
+      </div>
+      <p className="text-3xl font-black text-navy">{value}</p>
+    </button>
+  );
+}
+
+// ─── history timeline ────────────────────────────────────────────────────────
+
+function HistoryTimeline({
+  exchanges,
+  accessLog,
+  kioskName,
+}: {
+  exchanges: Exchange[];
+  accessLog: AccessLogEntry[];
+  kioskName: (id: string | null) => string;
+}) {
+  type Event = {
+    id: string;
+    date: string;
+    icon: string;
+    label: string;
+    sub: string;
+    tone: string;
+  };
+
+  const events: Event[] = [
+    ...exchanges.flatMap((ex) => {
+      const evs: Event[] = [];
+      evs.push({
+        id: `ex-created-${ex.id}`,
+        date: ex.created_at,
+        icon: "📋",
+        label: "Intercambio creado",
+        sub: `Reserva ${ex.booking_ref}`,
+        tone: "neutral",
+      });
+      if (ex.status === "deposited" || ex.status === "picked_up" || ex.status === "completed") {
+        evs.push({
+          id: `ex-deposited-${ex.id}`,
+          date: ex.created_at, // no hay deposited_at en la query, usamos created_at como proxy
+          icon: "↓",
+          label: "Llave depositada",
+          sub: `Reserva ${ex.booking_ref} · ${kioskName(ex.kiosk_id)}`,
+          tone: "info",
+        });
+      }
+      if (ex.status === "picked_up" || ex.status === "completed") {
+        evs.push({
+          id: `ex-pickup-${ex.id}`,
+          date: ex.check_in ?? ex.created_at,
+          icon: "↑",
+          label: "Llave retirada",
+          sub: `Reserva ${ex.booking_ref}`,
+          tone: "purple",
+        });
+      }
+      if (ex.status === "completed") {
+        evs.push({
+          id: `ex-completed-${ex.id}`,
+          date: ex.check_out ?? ex.created_at,
+          icon: "↻",
+          label: "Llave devuelta",
+          sub: `Reserva ${ex.booking_ref}`,
+          tone: "success",
+        });
+      }
+      if (ex.status === "expired") {
+        evs.push({
+          id: `ex-expired-${ex.id}`,
+          date: ex.check_out ?? ex.created_at,
+          icon: "⚠",
+          label: "Intercambio vencido",
+          sub: `Reserva ${ex.booking_ref}`,
+          tone: "danger",
+        });
+      }
+      return evs;
+    }),
+    ...accessLog.map((l) => ({
+      id: `log-${l.id}`,
+      date: l.timestamp,
+      icon: l.action === "picked_up" ? "↑" : "↻",
+      label: ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—",
+      sub: [l.role, l.person_name].filter(Boolean).join(" · "),
+      tone: l.action === "picked_up" ? "purple" : "success",
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const toneClass: Record<string, string> = {
+    neutral: "bg-gray-100 text-gray-600",
+    info: "bg-blue-50 text-blue-600",
+    purple: "bg-purple-50 text-purple-600",
+    success: "bg-green-50 text-green-600",
+    danger: "bg-red-50 text-red-600",
+    amber: "bg-amber-50 text-amber-600",
+  };
+
+  if (events.length === 0) {
+    return <p className="text-sm text-gray-500">Sin movimientos registrados.</p>;
+  }
+
+  return (
+    <ul className="space-y-2">
+      {events.map((ev) => (
+        <li key={ev.id} className="flex items-start gap-3 rounded-xl border border-gray-100 p-3">
+          <span
+            className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${toneClass[ev.tone] ?? toneClass.neutral}`}
+          >
+            {ev.icon}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-navy">{ev.label}</p>
+            {ev.sub && <p className="text-xs text-gray-500">{ev.sub}</p>}
+          </div>
+          <span className="shrink-0 text-xs text-gray-400">{formatDateTime(ev.date)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ─── key detail ──────────────────────────────────────────────────────────────
+
+function KeyDetail({
+  k,
+  exchanges,
+  accessLog,
+  kiosks,
+  onBack,
+  onCreateExchange,
+  onEditExchange,
+  onRenewExchange,
+  onEditKey,
+  onDeleteKey,
+}: {
+  k: KeyRow;
+  exchanges: Exchange[];
+  accessLog: AccessLogEntry[];
+  kiosks: Array<{ id: string; name: string; address: string }>;
+  onBack: () => void;
+  onCreateExchange: (keyId: string) => void;
+  onEditExchange: (ex: Exchange) => void;
+  onRenewExchange: (exId: string) => void;
+  onEditKey: (k: KeyRow) => void;
+  onDeleteKey: (k: KeyRow) => void;
+}) {
+  const [tab, setTab] = useState<"info" | "codes" | "history">("info");
+  const kEx = exchanges.filter((e) => e.key_id === k.id).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  const activeEx = kEx.find((e) =>
+    ["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status),
+  );
+  const kiosk = kiosks.find((x) => x.id === k.kiosk_id);
+  const keyLog = accessLog;
+
+  const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
+  const activeCount = exchanges.filter(
+    (e) => e.key_id === k.id && ACTIVE_STATUSES.includes(e.status),
+  ).length;
+
+  const lastLog = keyLog[0];
+
+  const tabs = [
+    { id: "info" as const, label: "Info" },
+    ...(k.subscription_type === "pro" ? [{ id: "codes" as const, label: "Códigos" }] : []),
+    { id: "history" as const, label: "Historial" },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* header */}
+      <div
+        className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)]"
+        onClick={onBack}
+      >
+        <ArrowLeft className="size-5 shrink-0 text-gray-400" />
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-electric/10">
+            <Key className="size-6 text-electric" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-bold text-navy">{k.name}</p>
+            {k.property_name && (
+              <p className="truncate text-xs text-gray-500">{k.property_name}</p>
+            )}
+            <div className="mt-1 flex items-center gap-1.5">
+              <PlanBadge plan={k.subscription_type as SubscriptionType} />
+            </div>
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-2" onClick={(e) => e.stopPropagation()}>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditKey(k)}>
+            Editar
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="rounded-xl text-destructive hover:text-destructive"
+            disabled={exchanges.some(
+              (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
+            )}
+            onClick={() => onDeleteKey(k)}
+          >
+            Eliminar
+          </Button>
+        </div>
+      </div>
+
+      {/* tabs */}
+      <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
+              tab === t.id
+                ? "bg-white text-navy shadow-[var(--shadow-card)]"
+                : "text-gray-500 hover:text-navy"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Info */}
+      {tab === "info" && (
+        <div className="space-y-4">
+          {/* estado actual */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-gray-100 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Estado</p>
+              {activeEx ? (
+                <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]} className="mt-2">
+                  {STATUS_LABELS[activeEx.status as ExchangeStatus]}
+                </Pill>
+              ) : (
+                <p className="mt-2 text-sm font-semibold text-gray-500">Sin actividad</p>
+              )}
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Punto</p>
+              <p className="mt-2 text-sm font-semibold text-navy">{kiosk?.name ?? "—"}</p>
+            </div>
+            {k.deposit_code && (
+              <div className="col-span-2 rounded-xl border border-gray-100 bg-white p-4 sm:col-span-1">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                  Cód. depósito
+                </p>
+                <div className="mt-2">
+                  <CodeChip value={k.deposit_code} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* último movimiento */}
+          {lastLog && (
+            <div className="rounded-xl border border-gray-100 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                Último movimiento
+              </p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-navy">
+                  {ACTION_LABELS[lastLog.action ?? ""] ?? lastLog.action ?? "—"}
+                  {lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
+                </p>
+                <span className="text-xs text-gray-400">{formatDateTime(lastLog.timestamp)}</span>
+              </div>
+            </div>
+          )}
+
+          {/* estadía activa */}
+          {activeEx && (
+            <div className="rounded-xl border border-electric/20 bg-electric/5 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-electric">
+                  Estadía activa
+                </p>
+                <CodeChip value={activeEx.booking_ref} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                {activeEx.pickup_code && (
+                  <div>
+                    <p className="text-xs text-gray-400">Código huésped</p>
+                    <CodeChip value={activeEx.pickup_code} />
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-gray-400">Fechas</p>
+                  <p className="font-medium text-navy">
+                    {activeEx.check_in ? formatDate(activeEx.check_in) : "—"} →{" "}
+                    {activeEx.check_out ? formatDate(activeEx.check_out) : "—"}
+                  </p>
+                </div>
+              </div>
+              {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 rounded-xl"
+                  onClick={() => onEditExchange(activeEx)}
+                >
+                  Editar estadía
+                </Button>
+              )}
+              {activeEx.status === "expired" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 rounded-xl"
+                  onClick={() => onRenewExchange(activeEx.id)}
+                >
+                  Renovar
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* nueva estadía */}
+          <Button
+            className="w-full rounded-xl"
+            onClick={() => onCreateExchange(k.id)}
+          >
+            <Plus className="size-4" /> Nueva estadía
+          </Button>
+
+          {/* historial de estadías */}
+          {kEx.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                Estadías anteriores
+              </p>
+              {kEx
+                .filter((e) => !["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status))
+                .map((ex) => (
+                  <div
+                    key={ex.id}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 p-3 text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CodeChip value={ex.booking_ref} />
+                      <Pill tone={STATUS_TONE[ex.status as ExchangeStatus] ?? "neutral"}>
+                        {STATUS_LABELS[ex.status as ExchangeStatus] ?? ex.status}
+                      </Pill>
+                    </div>
+                    <span className="text-xs text-gray-400">{formatDate(ex.created_at)}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Códigos Pro */}
+      {tab === "codes" && k.subscription_type === "pro" && (
+        <ProAccessCodes keyId={k.id} keyName={k.name} />
+      )}
+
+      {/* Historial */}
+      {tab === "history" && (
+        <HistoryTimeline exchanges={kEx} accessLog={keyLog} kioskName={(id) => kiosks.find((x) => x.id === id)?.name ?? "—"} />
+      )}
+    </div>
+  );
+}
+
+// ─── main panel ──────────────────────────────────────────────────────────────
 
 function HostPanel() {
   const { punto } = useSearch({ from: "/_authenticated/host" });
@@ -94,43 +517,30 @@ function HostPanel() {
   const updateExchangeFn = useServerFn(updateExchange);
   const updateKeyFn = useServerFn(updateKeyFnRaw);
   const deleteKeyFn = useServerFn(deleteKeyFnRaw);
-  const [editKey, setEditKey] = useState<{ id: string; name: string; property: string } | null>(
-    null,
-  );
-  const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const [openKey, setOpenKey] = useState<string | null>(null);
+  const [selKey, setSelKey] = useState<KeyRow | null>(null);
   const [query, setQuery] = useState("");
-  const [exchangeForm, setExchangeForm] = useState({
-    checkIn: "",
-    checkOut: "",
-    pickupTime: "",
-    guestName: "",
-  });
-  const [editEx, setEditEx] = useState<{ id: string; keyName: string; bookingRef: string } | null>(
-    null,
-  );
-  const [editForm, setEditForm] = useState({
-    checkIn: "",
-    checkOut: "",
-    pickupTime: "",
-    guestName: "",
-  });
-  const [renewId, setRenewId] = useState<string | null>(null);
-  const [extraDays, setExtraDays] = useState(1);
-  const [logKeyId, setLogKeyId] = useState<string | null>(null);
-  const [openCard, setOpenCard] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [selectedExchange, setSelectedExchange] = useState<{
-    id: string;
-    booking_ref: string;
-    deposit_code: string;
-    pickup_code: string;
-    return_code: string | null;
-    status: string;
-    key: { subscription_type: string };
-  } | null>(null);
+
+  // exchange form
+  const [openExKey, setOpenExKey] = useState<string | null>(null);
+  const [exchangeForm, setExchangeForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
+
+  // edit exchange
+  const [editEx, setEditEx] = useState<{ id: string; keyName: string; bookingRef: string } | null>(null);
+  const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
+
+  // renew
+  const [renewId, setRenewId] = useState<string | null>(null);
+  const [extraDays, setExtraDays] = useState(1);
+
+  // edit / delete key
+  const [editKey, setEditKey] = useState<{ id: string; name: string; property: string } | null>(null);
+  const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
+
+  // access log for selected key
+  const [logKeyId, setLogKeyId] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -142,8 +552,13 @@ function HostPanel() {
       () => qc.invalidateQueries({ queryKey: ["host", "overview"] }),
       () => undefined,
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // load access log when key selected
+  useEffect(() => {
+    if (selKey) setLogKeyId(selKey.id);
+  }, [selKey]);
 
   const { data: hostId } = useQuery({
     queryKey: ["host", "id"],
@@ -174,23 +589,8 @@ function HostPanel() {
         supabase.from("kiosks").select("id, name, address"),
       ]);
       return {
-        keys: keys.data ?? [],
-        exchanges: (exchanges.data ?? []) as unknown as Array<{
-          id: string;
-          key_id: string;
-          kiosk_id: string;
-          booking_ref: string;
-          locker_position: number;
-          deposit_code: string;
-          pickup_code: string;
-          return_code: string | null;
-          pickup_time: string | null;
-          check_in: string | null;
-          check_out: string | null;
-          status: string;
-          created_at: string;
-          keys: { subscription_type: string };
-        }>,
+        keys: (keys.data ?? []) as KeyRow[],
+        exchanges: (exchanges.data ?? []) as unknown as Exchange[],
         kiosks: kiosks.data ?? [],
       };
     },
@@ -206,63 +606,35 @@ function HostPanel() {
         .eq("key_id", logKeyId!)
         .order("timestamp", { ascending: false })
         .limit(50);
-      return rows ?? [];
+      return (rows ?? []) as AccessLogEntry[];
     },
   });
 
-  const kioskName = (id: string | null) => data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+  const kioskName = (id: string | null) =>
+    data?.kiosks.find((k) => k.id === id)?.name ?? "—";
+
+  const ACTIVE_STATUSES = ["created", "waiting_deposit", "deposited", "picked_up"];
 
   const keyRows = (data?.keys ?? []).filter((k) =>
     matchesQuery(
-      [
-        k.name,
-        k.property_name,
-        k.deposit_code,
-        kioskName(k.kiosk_id),
-        ...(data?.exchanges ?? [])
-          .filter((e) => e.key_id === k.id)
-          .flatMap((e) => [e.booking_ref, e.pickup_code, e.return_code]),
-      ],
+      [k.name, k.property_name, k.deposit_code, kioskName(k.kiosk_id)],
       query,
     ),
   );
 
-  const exchangeRows = (data?.exchanges ?? []).filter((e) =>
-    matchesQuery(
-      [
-        e.booking_ref,
-        e.deposit_code,
-        e.pickup_code,
-        e.return_code,
-        kioskName(e.kiosk_id),
-        data?.keys.find((k) => k.id === e.key_id)?.name,
-      ],
-      query,
-    ),
-  );
+  const activeCount = (data?.exchanges ?? []).filter((e) =>
+    ACTIVE_STATUSES.includes(e.status),
+  ).length;
 
+  const overdueCount = (data?.exchanges ?? []).filter((e) => e.status === "overdue").length;
 
-  const keyStatus = (keyId: string) => {
-    const list = (data?.exchanges ?? []).filter((e) => e.key_id === keyId);
-    const active = list.find((e) =>
-      ["created", "waiting_deposit", "deposited", "picked_up"].includes(e.status),
-    );
-    if (active) return { label: STATUS_LABELS[active.status as ExchangeStatus], tone: STATUS_TONE[active.status as ExchangeStatus], exchange: active };
-    const expired = list.find((e) => e.status === "expired");
-    if (expired) return { label: "Vencido", tone: "danger" as const, exchange: expired };
-    return { label: "Sin actividad", tone: "neutral" as const, exchange: null };
-  };
-
-  const deadlineFor = (createdAt: string) =>
-    new Date(new Date(createdAt).getTime() + ONE_USE_STORAGE_HOURS * 3600_000);
-
-
+  // mutations
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!openKey) throw new Error("Elegí una llave");
+      if (!openExKey) throw new Error("Elegí una llave");
       return createExchangeFn({
         data: {
-          keyId: openKey,
+          keyId: openExKey,
           checkIn: exchangeForm.checkIn || null,
           checkOut: exchangeForm.checkOut || null,
           pickupTime: exchangeForm.pickupTime || null,
@@ -272,7 +644,7 @@ function HostPanel() {
     },
     onSuccess: () => {
       toast.success("Intercambio creado");
-      setOpenKey(null);
+      setOpenExKey(null);
       setExchangeForm({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
       void qc.invalidateQueries({ queryKey: ["host", "overview"] });
     },
@@ -300,36 +672,6 @@ function HostPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-
-
-  const updateKeyMutation = useMutation({
-    mutationFn: async () => {
-      if (!editKey) throw new Error("Elegí una llave");
-      return updateKeyFn({
-        data: { keyId: editKey.id, name: editKey.name, propertyName: editKey.property || null },
-      });
-    },
-    onSuccess: () => {
-      toast.success("Llave actualizada");
-      setEditKey(null);
-      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  const deleteKeyMutation = useMutation({
-    mutationFn: async () => {
-      if (!deleteKeyTarget) throw new Error("Elegí una llave");
-      return deleteKeyFn({ data: { keyId: deleteKeyTarget.id } });
-    },
-    onSuccess: () => {
-      toast.success("Llave eliminada");
-      setDeleteKeyTarget(null);
-      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
   const renewMutation = useMutation({
     mutationFn: async () => {
       if (!renewId) throw new Error("Elegí un intercambio");
@@ -344,9 +686,46 @@ function HostPanel() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const updateKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!editKey) throw new Error("Elegí una llave");
+      return updateKeyFn({
+        data: { keyId: editKey.id, name: editKey.name, propertyName: editKey.property || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Llave actualizada");
+      setEditKey(null);
+      // update selKey if it's the same
+      setSelKey((prev) =>
+        prev?.id === editKey?.id ? { ...prev!, name: editKey!.name, property_name: editKey!.property } : prev,
+      );
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteKeyMutation = useMutation({
+    mutationFn: async () => {
+      if (!deleteKeyTarget) throw new Error("Elegí una llave");
+      return deleteKeyFn({ data: { keyId: deleteKeyTarget.id } });
+    },
+    onSuccess: () => {
+      toast.success("Llave eliminada");
+      setDeleteKeyTarget(null);
+      setSelKey(null);
+      void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deadlineFor = (createdAt: string) =>
+    new Date(new Date(createdAt).getTime() + ONE_USE_STORAGE_HOURS * 3600_000);
+
   return (
     <RoleGuard allow="host">
       <div className="min-h-screen bg-background">
+        {/* header */}
         <header className="grid h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-gray-100 bg-white px-4 sm:px-5">
           <div className="min-w-0 overflow-hidden">
             <Brand />
@@ -355,7 +734,6 @@ function HostPanel() {
             <Link
               to="/perfil"
               aria-label="Mi perfil"
-              title="Mi perfil"
               className="flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy sm:px-2"
             >
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-electric/10 text-electric">
@@ -391,14 +769,7 @@ function HostPanel() {
                     <Link to="/checkout">Pagos</Link>
                   </Button>
                   <InstallButton />
-                  <Button
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      void signOut();
-                    }}
-                  >
+                  <Button variant="ghost" className="justify-start" onClick={() => { setMenuOpen(false); void signOut(); }}>
                     Salir
                   </Button>
                 </nav>
@@ -408,532 +779,283 @@ function HostPanel() {
         </header>
 
         <main className="mx-auto max-w-5xl space-y-6 p-5 md:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-navy">Mis llaves</h1>
-              <p className="text-sm text-gray-500">
-                Llaves activas y sus puntos de intercambio.
-              </p>
-            </div>
-            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-              <SearchField
-                value={query}
-                onChange={setQuery}
-                placeholder="Buscar por llave, reserva o código…"
-              />
-              <NewKeyWizard
-                hostId={hostId ?? null}
-                preselectedKioskId={punto}
-                defaultOpen={!!punto}
-                forcePro={!!proActive}
-              />
-            </div>
-          </div>
 
-          {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
-
-          <div className="space-y-3">
-            {keyRows.map((k) => {
-              const st = keyStatus(k.id);
-              const oneUseActive =
-                k.subscription_type === "one_use" &&
-                st.exchange &&
-                ["created", "waiting_deposit", "deposited"].includes(st.exchange.status)
-                  ? deadlineFor(st.exchange.created_at)
-                  : null;
-              return (
-              <Collapsible
-                key={k.id}
-                open={openCard === k.id}
-                onOpenChange={(o) => setOpenCard(o ? k.id : null)}
-                className="glass-card px-5 py-4"
+          {selKey ? (
+            // ── KEY DETAIL VIEW ──
+            <KeyDetail
+              k={selKey}
+              exchanges={data?.exchanges ?? []}
+              accessLog={accessLog ?? []}
+              kiosks={data?.kiosks ?? []}
+              onBack={() => setSelKey(null)}
+              onCreateExchange={(keyId) => setOpenExKey(keyId)}
+              onEditExchange={(ex) => {
+                setEditForm({
+                  checkIn: ex.check_in ?? "",
+                  checkOut: ex.check_out ?? "",
+                  pickupTime: ex.pickup_time ?? "",
+                  guestName: "",
+                });
+                setEditEx({ id: ex.id, keyName: selKey.name, bookingRef: ex.booking_ref });
+              }}
+              onRenewExchange={(exId) => setRenewId(exId)}
+              onEditKey={(k) => setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })}
+              onDeleteKey={(k) => setDeleteKeyTarget({ id: k.id, name: k.name })}
+            />
+          ) : (
+            // ── KEY LIST VIEW ──
+            <>
+              {/* stats */}
+              <div
+                className="flex flex-wrap gap-3"
               >
-                <CollapsibleTrigger className="group flex w-full items-start gap-3 text-left">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <h2 className="break-words font-bold text-navy">{k.name}</h2>
-                    <p className="break-words text-xs text-gray-500">{k.property_name ?? "—"}</p>
-                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                      <PlanBadge plan={k.subscription_type} />
-                      <Pill tone={st.tone ?? "neutral"}>{st.label}</Pill>
-                      {k.locked && <Pill tone="danger">Bloqueada</Pill>}
-                    </div>
-                  </div>
-                  <ChevronDown className="mt-1 size-5 shrink-0 text-gray-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none">
-                {oneUseActive && (
-                  <p className="mt-3 text-xs text-gray-500">
-                    {oneUseActive.getTime() > now.getTime()
-                      ? `Vence en ${formatCountdown(oneUseActive.getTime() - now.getTime())} (guardado ${ONE_USE_STORAGE_HOURS} h)`
-                      : "Guardado vencido: renová para recuperar la llave"}
-                  </p>
-                )}
+                <StatCard
+                  icon={<Key className="size-4" />}
+                  label="Mis llaves"
+                  value={keyRows.length}
+                />
+                <StatCard
+                  icon={<span className="text-sm">↑</span>}
+                  label="Activos"
+                  value={activeCount}
+                />
+                <StatCard
+                  icon={<span className="text-sm">⚠</span>}
+                  label="Vencidos"
+                  value={overdueCount}
+                  accent="var(--color-destructive)"
+                />
+              </div>
 
-
-                <div className="mt-4 space-y-2 text-sm text-gray-500">
-                  <p>Punto: {kioskName(k.kiosk_id)}</p>
-                  {k.deposit_code && (
-                    <div className="flex items-center gap-2">
-                      <span>Código de depósito:</span>
-                      <CodeChip value={k.deposit_code} />
-                    </div>
-                  )}
+              {/* title + actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl font-bold text-navy">Mis llaves</h1>
+                  <p className="text-sm text-gray-500">Tocá una llave para ver su detalle.</p>
                 </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <SearchField
+                    value={query}
+                    onChange={setQuery}
+                    placeholder="Buscar llave…"
+                  />
+                  <NewKeyWizard
+                    hostId={hostId ?? null}
+                    preselectedKioskId={punto}
+                    defaultOpen={!!punto}
+                    forcePro={!!proActive}
+                  />
+                </div>
+              </div>
 
-                {st.exchange && (
-                  <div className="mt-4 rounded-xl border border-gray-100 p-3 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-gray-500">Estadía</span>
-                      <CodeChip value={st.exchange.booking_ref} />
-                    </div>
-                    <div className="mt-2 flex items-center gap-2 text-gray-500">
-                      <span>Código de retiro/devolución:</span>
-                      <CodeChip value={st.exchange.pickup_code ?? "—"} />
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      {st.exchange.check_in || st.exchange.check_out
-                        ? `${st.exchange.check_in ? formatDate(st.exchange.check_in) : "—"} → ${st.exchange.check_out ? formatDate(st.exchange.check_out) : "—"}${st.exchange.pickup_time ? ` · retiro ${st.exchange.pickup_time}` : ""}`
-                        : "Faltan fechas: completá check-in, check-out y horario."}
-                    </p>
-                    {["created", "waiting_deposit", "deposited"].includes(st.exchange.status) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-3 rounded-xl"
-                        onClick={() => {
-                          setEditForm({
-                            checkIn: st.exchange?.check_in ?? "",
-                            checkOut: st.exchange?.check_out ?? "",
-                            pickupTime: st.exchange?.pickup_time ?? "",
-                            guestName: "",
-                          });
-                          setEditEx({
-                            id: st.exchange!.id,
-                            keyName: k.name,
-                            bookingRef: st.exchange!.booking_ref,
-                          });
-                        }}
-                      >
-                        Editar estadía
-                      </Button>
-                    )}
-                  </div>
-                )}
+              {isLoading && <p className="text-sm text-gray-500">Cargando…</p>}
 
-                <div className="mt-4 flex justify-end">
-                  <Dialog
-                    open={openKey === k.id}
-                    onOpenChange={(open) => {
-                      setOpenKey(open ? k.id : null);
-                      if (!open) setExchangeForm({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="rounded-xl">
-                        Nueva estadía
+              {/* key cards */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {keyRows.map((k) => {
+                  const kEx = (data?.exchanges ?? []).filter((e) => e.key_id === k.id);
+                  const activeEx = kEx.find((e) => ACTIVE_STATUSES.includes(e.status));
+                  const expiredEx = !activeEx && kEx.find((e) => e.status === "expired");
+                  const oneUseDeadline =
+                    k.subscription_type === "one_use" && activeEx &&
+                    ["created", "waiting_deposit", "deposited"].includes(activeEx.status)
+                      ? deadlineFor(activeEx.created_at)
+                      : null;
 
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="rounded-2xl sm:max-w-[480px]">
-                      <DialogHeader>
-                        <DialogTitle>Nuevo intercambio · {k.name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-1.5">
-                            <Label htmlFor="h-checkin">Check-in</Label>
-                            <Input
-                              id="h-checkin"
-                              type="date"
-                              value={exchangeForm.checkIn}
-                              onChange={(e) => setExchangeForm({ ...exchangeForm, checkIn: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label htmlFor="h-checkout">Check-out</Label>
-                            <Input
-                              id="h-checkout"
-                              type="date"
-                              value={exchangeForm.checkOut}
-                              onChange={(e) => setExchangeForm({ ...exchangeForm, checkOut: e.target.value })}
-                            />
-                          </div>
+                  return (
+                    <button
+                      key={k.id}
+                      onClick={() => setSelKey(k)}
+                      className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5 text-left shadow-[var(--shadow-card)] transition-all hover:border-electric/30 hover:shadow-[var(--shadow-elevated)] active:scale-[0.98]"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-electric/10">
+                          <Key className="size-5 text-electric" />
                         </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="h-pickup">Horario de retiro</Label>
-                          <Input
-                            id="h-pickup"
-                            type="time"
-                            value={exchangeForm.pickupTime}
-                            onChange={(e) => setExchangeForm({ ...exchangeForm, pickupTime: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="h-guest">Nombre del huésped</Label>
-                          <Input
-                            id="h-guest"
-                            maxLength={80}
-                            value={exchangeForm.guestName}
-                            onChange={(e) => setExchangeForm({ ...exchangeForm, guestName: e.target.value })}
-                          />
-                        </div>
+                        <PlanBadge plan={k.subscription_type as SubscriptionType} />
                       </div>
-                      <DialogFooter>
-                        <Button
-                          disabled={createMutation.isPending}
-                          onClick={() => createMutation.mutate()}
-                        >
-                          Crear intercambio
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setLogKeyId(logKeyId === k.id ? null : k.id)}
-                  >
-                    {logKeyId === k.id ? "Ocultar actividad" : "Ver actividad"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })
-                    }
-                  >
-                    Editar llave
-                  </Button>
-                  {(() => {
-                    const deposited = (data?.exchanges ?? []).some(
-                      (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
-                    );
-                    return (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        disabled={deposited}
-                        title={
-                          deposited ? "La llave está depositada en un punto" : "Eliminar llave"
-                        }
-                        onClick={() => setDeleteKeyTarget({ id: k.id, name: k.name })}
-                      >
-                        Eliminar
-                      </Button>
-                    );
-                  })()}
-                </div>
-
-
-                {k.subscription_type === "pro" && (
-                  <ProAccessCodes keyId={k.id} keyName={k.name} />
-                )}
-
-                {logKeyId === k.id && (
-                  <ul className="mt-4 space-y-1.5 rounded-xl border border-gray-100 p-3">
-                    {(accessLog ?? []).map((l) => (
-                      <li key={l.id} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-foreground">
-                          {ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—"}
-                          {l.person_name ? ` · ${l.person_name}` : ""}
-                        </span>
-                        <span className="text-gray-500">{formatDateTime(l.timestamp)}</span>
-                      </li>
-                    ))}
-                    {(accessLog ?? []).length === 0 && (
-                      <li className="text-xs text-gray-500">Sin movimientos.</li>
-                    )}
-                  </ul>
-                )}
-                </CollapsibleContent>
-              </Collapsible>
-              );
-            })}
-            {!isLoading && keyRows.length === 0 && (
-              <p className="text-sm text-gray-500">
-                {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
-              </p>
-            )}
-          </div>
-
-          <section className="space-y-3">
-            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Intercambios</h2>
-            <div className="overflow-x-auto glass-card">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Reserva</th>
-                    <th className="px-4 py-3 font-medium">Llave</th>
-                    <th className="px-4 py-3 font-medium">Punto</th>
-                    <th className="px-4 py-3 font-medium">Plan</th>
-                    <th className="px-4 py-3 font-medium">Estado</th>
-                    <th className="px-4 py-3 font-medium">Creado</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {exchangeRows.map((e) => (
-                    <tr key={e.id}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <CodeChip value={e.booking_ref} />
-                          <Link
-                            to="/pase/$ref"
-                            params={{ ref: e.booking_ref }}
-                            target="_blank"
-                            className="text-xs text-electric underline"
-                          >
-                            Pase
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-foreground">
-                        {data?.keys.find((k) => k.id === e.key_id)?.name ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
-                      <td className="px-4 py-3">
-                        <PlanBadge plan={e.keys.subscription_type} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>
-                          {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
-                        </Pill>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(e.created_at)}</td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedExchange(e as unknown as typeof selectedExchange)}
-                        >
-                          Ver códigos
-                        </Button>
-                        {e.status === "expired" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setRenewId(e.id)}
-                          >
-                            Renovar
-                          </Button>
+                      <div>
+                        <p className="font-bold text-navy">{k.name}</p>
+                        {k.property_name && (
+                          <p className="text-xs text-gray-500">{k.property_name}</p>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                  {exchangeRows.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-gray-500">
-                        {query ? `Sin resultados para "${query}".` : "Sin intercambios todavía."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                        <p className="text-xs text-gray-400">{kioskName(k.kiosk_id)}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {activeEx ? (
+                          <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]}>
+                            {STATUS_LABELS[activeEx.status as ExchangeStatus]}
+                          </Pill>
+                        ) : expiredEx ? (
+                          <Pill tone="danger">Vencido</Pill>
+                        ) : (
+                          <Pill tone="neutral">Sin actividad</Pill>
+                        )}
+                        {k.locked && <Pill tone="danger">Bloqueada</Pill>}
+                      </div>
+                      {oneUseDeadline && (
+                        <p className="text-xs text-amber-600">
+                          {oneUseDeadline.getTime() > now.getTime()
+                            ? `Vence en ${formatCountdown(oneUseDeadline.getTime() - now.getTime())}`
+                            : "Guardado vencido"}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-          {/* Renew dialog */}
-          <Dialog open={!!renewId} onOpenChange={() => setRenewId(null)}>
-            <DialogContent className="rounded-2xl sm:max-w-[400px]">
-              <DialogHeader>
-                <DialogTitle>Renovar intercambio</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Días extra</Label>
-                  <Select
-                    value={String(extraDays)}
-                    onValueChange={(v) => setExtraDays(Number(v))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                        <SelectItem key={d} value={String(d)}>
-                          {d} día{d > 1 ? "s" : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {!isLoading && keyRows.length === 0 && (
                 <p className="text-sm text-gray-500">
-                  Se agregarán ${extraDays * EXTRA_DAY_PRICE} al próximo resumen de facturación.
+                  {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
                 </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  disabled={renewMutation.isPending}
-                  onClick={() => renewMutation.mutate()}
-                >
-                  Renovar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Codes dialog */}
-          <Dialog open={!!selectedExchange} onOpenChange={() => setSelectedExchange(null)}>
-            <DialogContent className="rounded-2xl sm:max-w-[440px]">
-              <DialogHeader>
-                <DialogTitle>Códigos de la reserva</DialogTitle>
-              </DialogHeader>
-              {selectedExchange && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">Reserva:</span>
-                    <CodeChip value={selectedExchange.booking_ref} />
-                  </div>
-                  <div className="rounded-xl border border-gray-100 p-4">
-                    <p className="text-xs text-gray-500 uppercase">
-                      Depósito (fijo de la llave)
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
-                      {selectedExchange.deposit_code}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-gray-100 p-4">
-                    <p className="text-xs text-gray-500 uppercase">
-                      Código del huésped (retiro y devolución)
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tracking-widest text-foreground">
-                      {selectedExchange.pickup_code}
-                    </p>
-                  </div>
-
-                  <p className="text-sm text-gray-500">
-                    Estado: {STATUS_LABELS[selectedExchange.status as ExchangeStatus]}
-                  </p>
-                </div>
               )}
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={!!editEx} onOpenChange={(open) => !open && setEditEx(null)}>
-            <DialogContent className="rounded-2xl sm:max-w-[480px]">
-              <DialogHeader>
-                <DialogTitle>Editar estadía · {editEx?.keyName}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="e-checkin">Check-in</Label>
-                    <Input
-                      id="e-checkin"
-                      type="date"
-                      value={editForm.checkIn}
-                      onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="e-checkout">Check-out</Label>
-                    <Input
-                      id="e-checkout"
-                      type="date"
-                      value={editForm.checkOut}
-                      onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="e-pickup">Horario de retiro</Label>
-                  <Input
-                    id="e-pickup"
-                    type="time"
-                    value={editForm.pickupTime}
-                    onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="e-guest">Nombre del huésped</Label>
-                  <Input
-                    id="e-guest"
-                    maxLength={80}
-                    value={editForm.guestName}
-                    onChange={(e) => setEditForm({ ...editForm, guestName: e.target.value })}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button disabled={editMutation.isPending} onClick={() => editMutation.mutate()}>
-                  Guardar cambios
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={!!editKey} onOpenChange={(open) => !open && setEditKey(null)}>
-            <DialogContent className="rounded-2xl sm:max-w-[480px]">
-              <DialogHeader>
-                <DialogTitle>Editar llave</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="k-name">Nombre de la llave</Label>
-                  <Input
-                    id="k-name"
-                    maxLength={80}
-                    value={editKey?.name ?? ""}
-                    onChange={(e) =>
-                      setEditKey((prev) => (prev ? { ...prev, name: e.target.value } : prev))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="k-prop">Dirección</Label>
-                  <Input
-                    id="k-prop"
-                    maxLength={300}
-                    value={editKey?.property ?? ""}
-                    onChange={(e) =>
-                      setEditKey((prev) => (prev ? { ...prev, property: e.target.value } : prev))
-                    }
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  El punto asociado no se puede cambiar.
-                </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  disabled={updateKeyMutation.isPending || !(editKey?.name.trim())}
-                  onClick={() => updateKeyMutation.mutate()}
-                >
-                  Guardar cambios
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog
-            open={!!deleteKeyTarget}
-            onOpenChange={(open) => !open && setDeleteKeyTarget(null)}
-          >
-            <DialogContent className="rounded-2xl sm:max-w-[420px]">
-              <DialogHeader>
-                <DialogTitle>Eliminar llave</DialogTitle>
-              </DialogHeader>
-              <p className="text-sm text-gray-500">
-                ¿Seguro que querés eliminar «{deleteKeyTarget?.name}»? Se borran también sus
-                estadías y códigos de acceso. Esta acción no se puede deshacer.
-              </p>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setDeleteKeyTarget(null)}>
-                  Cancelar
-                </Button>
-                <Button
-                  variant="destructive"
-                  disabled={deleteKeyMutation.isPending}
-                  onClick={() => deleteKeyMutation.mutate()}
-                >
-                  Eliminar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
+            </>
+          )}
         </main>
+
+        {/* ── dialogs ── */}
+
+        {/* nueva estadía */}
+        <Dialog open={!!openExKey} onOpenChange={(open) => { if (!open) { setOpenExKey(null); setExchangeForm({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" }); } }}>
+          <DialogContent className="rounded-2xl sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle>Nueva estadía · {selKey?.name ?? ""}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="h-checkin">Check-in</Label>
+                  <Input id="h-checkin" type="date" value={exchangeForm.checkIn} onChange={(e) => setExchangeForm({ ...exchangeForm, checkIn: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="h-checkout">Check-out</Label>
+                  <Input id="h-checkout" type="date" value={exchangeForm.checkOut} onChange={(e) => setExchangeForm({ ...exchangeForm, checkOut: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="h-pickup">Horario de retiro</Label>
+                <Input id="h-pickup" type="time" value={exchangeForm.pickupTime} onChange={(e) => setExchangeForm({ ...exchangeForm, pickupTime: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="h-guest">Nombre del huésped</Label>
+                <Input id="h-guest" maxLength={80} value={exchangeForm.guestName} onChange={(e) => setExchangeForm({ ...exchangeForm, guestName: e.target.value })} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button disabled={createMutation.isPending} onClick={() => createMutation.mutate()}>
+                Crear intercambio
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* editar estadía */}
+        <Dialog open={!!editEx} onOpenChange={(open) => !open && setEditEx(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle>Editar estadía · {editEx?.keyName}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Check-in</Label>
+                  <Input type="date" value={editForm.checkIn} onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Check-out</Label>
+                  <Input type="date" value={editForm.checkOut} onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Horario de retiro</Label>
+                <Input type="time" value={editForm.pickupTime} onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Nombre del huésped</Label>
+                <Input maxLength={80} value={editForm.guestName} onChange={(e) => setEditForm({ ...editForm, guestName: e.target.value })} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button disabled={editMutation.isPending} onClick={() => editMutation.mutate()}>
+                Guardar cambios
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* renovar */}
+        <Dialog open={!!renewId} onOpenChange={() => setRenewId(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle>Renovar intercambio</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Días extra</Label>
+                <Select value={String(extraDays)} onValueChange={(v) => setExtraDays(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[1,2,3,4,5,6,7].map((d) => (
+                      <SelectItem key={d} value={String(d)}>{d} día{d > 1 ? "s" : ""}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-sm text-gray-500">
+                Se agregarán ${extraDays * EXTRA_DAY_PRICE} al próximo resumen de facturación.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button disabled={renewMutation.isPending} onClick={() => renewMutation.mutate()}>
+                Renovar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* editar llave */}
+        <Dialog open={!!editKey} onOpenChange={(open) => !open && setEditKey(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle>Editar llave</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Nombre de la llave</Label>
+                <Input maxLength={80} value={editKey?.name ?? ""} onChange={(e) => setEditKey((prev) => prev ? { ...prev, name: e.target.value } : prev)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Dirección</Label>
+                <Input maxLength={300} value={editKey?.property ?? ""} onChange={(e) => setEditKey((prev) => prev ? { ...prev, property: e.target.value } : prev)} />
+              </div>
+              <p className="text-xs text-gray-500">El punto asociado no se puede cambiar.</p>
+            </div>
+            <DialogFooter>
+              <Button disabled={updateKeyMutation.isPending || !(editKey?.name.trim())} onClick={() => updateKeyMutation.mutate()}>
+                Guardar cambios
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* eliminar llave */}
+        <Dialog open={!!deleteKeyTarget} onOpenChange={(open) => !open && setDeleteKeyTarget(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-[420px]">
+            <DialogHeader>
+              <DialogTitle>Eliminar llave</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-500">
+              ¿Seguro que querés eliminar «{deleteKeyTarget?.name}»? Se borran también sus estadías y códigos de acceso. Esta acción no se puede deshacer.
+            </p>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteKeyTarget(null)}>Cancelar</Button>
+              <Button variant="destructive" disabled={deleteKeyMutation.isPending} onClick={() => deleteKeyMutation.mutate()}>
+                Eliminar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </RoleGuard>
