@@ -248,6 +248,9 @@ export function NewKeyWizard({
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
+                {nameDuplicate ? (
+                  <p className="text-sm text-destructive">Ya tenés una llave con ese nombre</p>
+                ) : null}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="w-prop">Dirección (opcional)</Label>
