@@ -386,20 +386,13 @@ export function NewKeyWizard({
                     </div>
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
                     {plan === "pro" && form.plan === "pro" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2 rounded-xl"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(
-                            "mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro",
-                            "_blank",
-                          );
-                        }}
+                      <a
+                        href="mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-2 inline-flex items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                       >
                         Contactar ventas
-                      </Button>
+                      </a>
                     )}
                   </button>
                 );
