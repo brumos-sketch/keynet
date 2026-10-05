@@ -972,8 +972,9 @@ function HostPanel() {
                   );
                 })}
               </div>
+          )}
 
-          {!isLoading && keyRows.length === 0 && (
+          {!selKey && !isLoading && keyRows.length === 0 && (
             <p className="text-sm text-gray-500">
               {query ? `Sin resultados para "${query}".` : "Todavía no tenés llaves cargadas."}
             </p>
