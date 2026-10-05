@@ -411,9 +411,9 @@ export function NewKeyWizard({
               <Row
                 label="Precio"
                 value={
-                  PLAN_PRICES[form.plan] === null
+                  priceFor(form.plan) === null
                     ? "A convenir con el equipo"
-                    : formatMoney(PLAN_PRICES[form.plan]!)
+                    : formatMoney(priceFor(form.plan)!)
                 }
               />
               <p className="text-xs text-gray-500">
