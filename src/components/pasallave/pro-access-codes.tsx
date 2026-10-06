@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { Check, Copy, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,34 @@ export function ProAccessCodes({
   const [open, setOpen] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState<{ id: string; code: string; personName: string | null; role: string | null } | null>(null);
   const [editCode, setEditCode] = useState<{ id: string; code: string; personName: string | null; role: string | null; reusable: boolean; validFrom: string | null; validTo: string | null; timeFrom: string | null; timeTo: string | null } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleShareCode = async (codeId: string, code: string, personName: string | null) => {
+    const label = personName ? `${personName}: ${code}` : `Código de acceso: ${code}`;
+    const text = `${label}\n${keyName} · PASALLAVE`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `Código PASALLAVE`, text });
+      } else {
+        await navigator.clipboard.writeText(text);
+        setCopiedId(codeId);
+        setTimeout(() => setCopiedId(null), 2000);
+        toast.success("Código copiado");
+      }
+    } catch {
+      /* noop */
+    }
+  };
+
+  const handleCopyCode = async (codeId: string, code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedId(codeId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      /* noop */
+    }
+  };
   const [editForm, setEditForm] = useState({ personName: "", role: "guest", validFrom: "", validTo: "", timeFrom: "", timeTo: "" });
 
   const [form, setForm] = useState({
@@ -288,12 +317,38 @@ export function ProAccessCodes({
 
             {/* acciones */}
             {!isRevoked ? (
-              <button
-                className="text-xs font-semibold text-destructive hover:underline"
-                onClick={() => setConfirmRevoke({ id: c.id, code: c.code, personName: c.person_name, role: c.role })}
-              >
-                Revocar
-              </button>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl h-7 px-3 gap-1.5 text-xs"
+                    onClick={() => void handleCopyCode(c.id, c.code)}
+                  >
+                    {copiedId === c.id ? (
+                      <Check className="size-3 text-success" />
+                    ) : (
+                      <Copy className="size-3" />
+                    )}
+                    {copiedId === c.id ? "¡Copiado!" : "Copiar"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl h-7 px-3 gap-1.5 text-xs"
+                    onClick={() => void handleShareCode(c.id, c.code, c.person_name)}
+                  >
+                    <Share2 className="size-3" />
+                    Compartir
+                  </Button>
+                </div>
+                <button
+                  className="text-xs font-semibold text-destructive hover:underline"
+                  onClick={() => setConfirmRevoke({ id: c.id, code: c.code, personName: c.person_name, role: c.role })}
+                >
+                  Revocar
+                </button>
+              </div>
             ) : (
               <Button
                 variant="ghost"
