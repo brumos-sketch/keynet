@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -54,6 +55,9 @@ function Perfil() {
   const [notifyPush, setNotifyPush] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [payoutAlias, setPayoutAlias] = useState("");
+  const { role } = useAuth();
+  const isAssociate = role === "associate";
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -64,6 +68,7 @@ function Perfil() {
     setNotifyPush(data.notifyPush);
     setName(data.name ?? "");
     setPhone(data.phone ?? "");
+    setPayoutAlias(data.payoutAlias ?? "");
   }, [data]);
 
   const save = useMutation({
@@ -77,7 +82,9 @@ function Perfil() {
   });
 
   const saveInfo = useMutation({
-    mutationFn: async () => saveInfoFn({ data: { name, phone } }),
+    mutationFn: async () => saveInfoFn({
+        data: { name, phone, ...(isAssociate ? { payoutAlias } : {}) },
+      }),
     onSuccess: () => {
       toast.success("Datos actualizados");
       void qc.invalidateQueries({ queryKey: ["profile", "prefs"] });
@@ -181,6 +188,22 @@ function Perfil() {
               Lo usaremos más adelante para enviarte avisos por WhatsApp.
             </p>
           </div>
+
+          {isAssociate ? (
+            <div className="space-y-2">
+              <Label htmlFor="profile-alias">Alias de cobro</Label>
+              <Input
+                id="profile-alias"
+                value={payoutAlias}
+                onChange={(e) => setPayoutAlias(e.target.value)}
+                placeholder="mi.alias.mp"
+                maxLength={80}
+              />
+              <p className="text-xs text-gray-500">
+                Alias o CBU/CVU donde te transferimos tus comisiones.
+              </p>
+            </div>
+          ) : null}
 
           <Button
             className="rounded-xl"
