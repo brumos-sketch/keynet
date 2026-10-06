@@ -1,6 +1,6 @@
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Copy, Key, Menu, Plus, Share2, User } from "lucide-react";
+import { ArrowLeft, Check, Copy, KeyRound as Key, Menu, Plus, Share2, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
