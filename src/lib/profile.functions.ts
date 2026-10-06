@@ -8,7 +8,7 @@ export const getNotificationPrefs = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("profiles")
-      .select("name, email, phone, notify_email, notify_push")
+      .select("name, email, phone, payout_alias, notify_email, notify_push")
       .eq("id", context.userId)
       .maybeSingle();
 
@@ -16,6 +16,7 @@ export const getNotificationPrefs = createServerFn({ method: "GET" })
       name: data?.name ?? null,
       email: data?.email ?? null,
       phone: data?.phone ?? null,
+      payoutAlias: data?.payout_alias ?? null,
       notifyEmail: data?.notify_email ?? true,
       notifyPush: data?.notify_push ?? true,
     };
@@ -29,13 +30,18 @@ export const saveProfileInfo = createServerFn({ method: "POST" })
       .object({
         name: z.string().trim().min(1, "Ingresá tu nombre").max(120),
         phone: z.string().trim().max(30).optional().nullable(),
+        payoutAlias: z.string().trim().max(80).optional().nullable(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("profiles")
-      .update({ name: data.name, phone: data.phone?.trim() || null })
+      .update({
+        name: data.name,
+        phone: data.phone?.trim() || null,
+        ...(data.payoutAlias !== undefined ? { payout_alias: data.payoutAlias?.trim() || null } : {}),
+      })
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };

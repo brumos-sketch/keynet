@@ -52,6 +52,7 @@ type EditingUser = {
   name: string;
   email: string;
   phone: string;
+  payoutAlias: string;
   password: string;
   role: AppRole;
   kioskId: string | null;
@@ -78,7 +79,7 @@ function AdminUsers() {
       const [profiles, roles, kiosks, hosts, associates] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, name, email, kiosk_id, created_at")
+          .select("id, name, email, kiosk_id, created_at, payout_alias")
           .order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("kiosks").select("id, name"),
@@ -129,6 +130,7 @@ function AdminUsers() {
           name: vars.name,
           email: vars.email,
           phone: vars.phone || null,
+          payoutAlias: vars.role === "associate" ? vars.payoutAlias || null : undefined,
           password: vars.password ? vars.password : null,
           role: vars.role,
           kioskId: vars.role === "kiosk" ? vars.kioskId : null,
@@ -306,6 +308,7 @@ function AdminUsers() {
                         name: u.name ?? "",
                         email: u.email ?? "",
                         phone: u.phone ?? "",
+                        payoutAlias: u.payout_alias ?? "",
                         password: "",
                         role: u.role,
                         kioskId: u.kiosk_id,
@@ -364,6 +367,18 @@ function AdminUsers() {
                   onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
                 />
               </div>
+              {editing.role === "associate" ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-alias">Alias de cobro</Label>
+                  <Input
+                    id="e-alias"
+                    value={editing.payoutAlias}
+                    maxLength={80}
+                    placeholder="Alias o CBU/CVU"
+                    onChange={(e) => setEditing({ ...editing, payoutAlias: e.target.value })}
+                  />
+                </div>
+              ) : null}
               <div className="space-y-1.5">
                 <Label htmlFor="e-pass">Nueva contraseña</Label>
                 <Input

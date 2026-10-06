@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,7 +92,16 @@ function AssociatePanel() {
         <header className="flex h-20 items-center justify-between border-b border-gray-100 bg-white px-5">
           <Brand />
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-gray-500 sm:inline">{name}</span>
+            <Link
+              to="/profile"
+              aria-label="Mi perfil"
+              className="flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy sm:px-2"
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-electric/10 text-electric">
+                <User className="size-4" />
+              </span>
+              <span className="hidden max-w-[9rem] truncate sm:inline">{name}</span>
+            </Link>
             <Button variant="ghost" size="sm" onClick={() => void signOut()} className="text-gray-500 hover:text-navy">
               Salir
             </Button>
