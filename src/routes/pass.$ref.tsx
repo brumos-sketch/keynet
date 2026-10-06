@@ -273,7 +273,7 @@ function BoardingPassPage() {
 
   if (!pass) return <Fallback message="No encontramos ese pase. Revisá el código de reserva." />;
 
-  const sc = STATUS_CONFIG[pass.status] ?? STATUS_CONFIG.deposited;
+  const sc = (STATUS_CONFIG[pass.status] ?? STATUS_CONFIG["deposited"])!;
 
   const mapUrl =
     pass.kiosk_lat && pass.kiosk_lng
