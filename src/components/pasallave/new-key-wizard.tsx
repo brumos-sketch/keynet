@@ -74,6 +74,20 @@ export function NewKeyWizard({
     plan: (forcePro ? "pro" : "one_use") as SubscriptionType,
   });
 
+  // Recupera la dirección que el usuario escribió en /search antes del login.
+  useEffect(() => {
+    if (!preselectedKioskId) return;
+    try {
+      const saved = localStorage.getItem("search_address");
+      if (saved) {
+        setForm((f) => (f.propertyName ? f : { ...f, propertyName: saved }));
+        localStorage.removeItem("search_address");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [preselectedKioskId]);
+
   const { data: kiosks } = useQuery({
     queryKey: ["host", "kiosks"],
     enabled: open,
@@ -386,12 +400,7 @@ export function NewKeyWizard({
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
                   </button>
                     {plan === "pro" && form.plan === "pro" && (
-                      <a
-                        href="mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro"
-                                                className="mt-2 flex w-full items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Contactar ventas
-                      </a>
+                      <SalesContact onDone={() => { setOpen(false); reset(); }} />
                     )}
                   </div>
                 );
