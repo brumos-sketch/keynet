@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureUserBootstrap } from "@/lib/account.functions";
 import type { AppRole } from "@/lib/pasallave";
@@ -20,6 +21,7 @@ export type AuthState = {
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -94,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(null);
         setName(null);
         setKioskId(null);
+        bootstrapped.current = null;
+        navigate({ to: "/" });
       },
     }),
     [loading, session, role, name, kioskId],
