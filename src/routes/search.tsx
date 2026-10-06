@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -127,6 +127,16 @@ function SearchPage() {
         k.name.toLowerCase().includes(q) || (k.address ?? "").toLowerCase().includes(q),
     );
   }, [kiosks, query, origin, preselectedId]);
+
+  // Al fijar un origen (dirección escrita o "usar mi ubicación"), seleccionar
+  // automáticamente el punto más cercano (filtered ya viene ordenado por distancia).
+  useEffect(() => {
+    const nearest = filtered[0];
+    if (origin && nearest) {
+      setSelected(nearest.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origin]);
 
   const current = filtered.find((k) => k.id === selected) ?? filtered[0] ?? null;
 
