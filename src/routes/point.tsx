@@ -200,6 +200,18 @@ function PointPage() {
       .finally(() => setBooted(true));
   }, [login]);
 
+  const ping = useServerFn(pointPing);
+  useEffect(() => {
+    if (!point) return;
+    const beat = () => {
+      const accessCode = window.localStorage.getItem(STORAGE_KEY);
+      if (accessCode) ping({ data: { accessCode } }).catch(() => {});
+    };
+    beat();
+    const t = setInterval(beat, 45000);
+    return () => clearInterval(t);
+  }, [point, ping]);
+
   if (!booted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

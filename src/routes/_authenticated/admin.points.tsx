@@ -1,3 +1,4 @@
+import { OnlineBadge } from "@/components/pasallave/online-badge";
 import { formatAddress } from "@/lib/pasallave";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -499,6 +500,7 @@ function AdminKiosks() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-lg font-bold text-navy">{k.name}</h2>
+<OnlineBadge lastSeenAt={k.last_seen_at} />
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Pill tone="info">
                       {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
