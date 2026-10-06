@@ -79,9 +79,11 @@ function AssociatePanel() {
   const allKiosks = overview?.kiosks ?? [];
   const kioskName = (id: string | null) => allKiosks.find((k) => k.id === id)?.name ?? "—";
   const kiosks = allKiosks.filter((k) => matchesQuery([k.name, k.address], query));
-  const exchangeRows = (overview?.exchanges ?? []).filter((e) =>
-    matchesQuery([e.booking_ref, e.keyName, kioskName(e.kiosk_id)], query),
-  );
+  const nextPayout = filtered
+    .filter((c) => c.status !== "paid")
+    .map((c) => c.period ?? "")
+    .filter(Boolean)
+    .sort()[0];
 
   return (
     <RoleGuard allow="associate">
@@ -101,14 +103,14 @@ function AssociatePanel() {
             <div>
               <h1 className="text-2xl font-bold text-navy">Panel asociado</h1>
               <p className="text-sm text-gray-500">
-                Tus puntos, ocupación y comisiones.
+                Tus puntos, comisiones y próximos pagos. Las comisiones de cada mes se pagan del 1 al 5 del mes siguiente.
               </p>
             </div>
             <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
               <SearchField
                 value={query}
                 onChange={setQuery}
-                placeholder="Buscar punto o reserva…"
+                placeholder="Buscar punto…"
               />
               <div className="w-[180px]">
                 <Select value={period} onValueChange={setPeriod}>
@@ -130,9 +132,12 @@ function AssociatePanel() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="glass-card p-5">
-              <p className="text-xs text-gray-500 uppercase">Pendiente</p>
+              <p className="text-xs text-gray-500 uppercase">Próximo pago</p>
               <p className="mt-2 text-2xl font-bold text-navy">
                 {formatMoney(totalPending)}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {nextPayout ? `Se paga ${payoutWindow(nextPayout)}` : "Sin pagos pendientes"}
               </p>
             </div>
             <div className="glass-card p-5">
@@ -195,6 +200,7 @@ function AssociatePanel() {
                     <th className="px-4 py-3 font-medium">Punto</th>
                     <th className="px-4 py-3 font-medium">Facturado</th>
                     <th className="px-4 py-3 font-medium">Comisión</th>
+                    <th className="px-4 py-3 font-medium">Fecha de pago</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
                   </tr>
                 </thead>
@@ -212,16 +218,23 @@ function AssociatePanel() {
                           ({c.commission_percent}%)
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {c.status === "paid" && c.paid_at
+                          ? formatDate(c.paid_at)
+                          : c.period
+                            ? payoutWindow(c.period)
+                            : "—"}
+                      </td>
                       <td className="px-4 py-3">
                         <Pill tone={c.status === "paid" ? "success" : "warning"}>
-                          {c.status === "paid" ? "Pagado" : "Pendiente"}
+                          {c.status === "paid" ? "Pagado" : "Próximo pago"}
                         </Pill>
                       </td>
                     </tr>
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-gray-500">
+                      <td colSpan={6} className="px-4 py-6 text-gray-500">
                         Sin comisiones registradas.
                       </td>
                     </tr>
@@ -231,52 +244,17 @@ function AssociatePanel() {
             </div>
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-sm font-bold text-navy uppercase tracking-wide">Últimos intercambios</h2>
-            <div className="overflow-x-auto glass-card">
-              <table className="w-full min-w-[560px] text-sm">
-                <thead className="border-b border-gray-100 text-left text-xs tracking-wide text-gray-500 uppercase">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Reserva</th>
-                    <th className="px-4 py-3 font-medium">Punto</th>
-                    <th className="px-4 py-3 font-medium">Llave</th>
-                    <th className="px-4 py-3 font-medium">Estado</th>
-                    <th className="px-4 py-3 font-medium">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {exchangeRows.map((e) => (
-                    <tr key={e.id}>
-                      <td className="px-4 py-3">
-                        <CodeChip value={e.booking_ref} />
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">{kioskName(e.kiosk_id)}</td>
-                      <td className="px-4 py-3 text-gray-500">
-                        <span className="inline-flex items-center gap-2">
-                          {e.keyName} <PlanBadge plan={e.plan} />
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Pill tone={STATUS_TONE[e.status as ExchangeStatus] ?? "neutral"}>
-                          {STATUS_LABELS[e.status as ExchangeStatus] ?? e.status}
-                        </Pill>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(e.created_at)}</td>
-                    </tr>
-                  ))}
-                  {exchangeRows.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-6 text-gray-500">
-                        {query ? `Sin resultados para "${query}".` : "Sin intercambios."}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
         </main>
       </div>
     </RoleGuard>
   );
+}
+
+/** Commissions for period YYYY-MM are paid between the 1st and 5th of the following month. */
+function payoutWindow(period: string) {
+  const [y, m] = period.split("-").map(Number);
+  if (!y || !m) return "—";
+  const ny = m === 12 ? y + 1 : y;
+  const nm = String(m === 12 ? 1 : m + 1).padStart(2, "0");
+  return `del 01/${nm} al 05/${nm}/${ny}`;
 }
