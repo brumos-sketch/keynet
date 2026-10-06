@@ -66,7 +66,7 @@ export function NewKeyWizard({
     if (!row) return PLAN_PRICES[plan];
     return row.amount ?? null;
   };
-  const [step, setStep] = useState(preselectedKioskId ? 2 : 0);
+  const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     name: "",
     propertyName: "",
@@ -87,7 +87,7 @@ export function NewKeyWizard({
 
   const reset = () => {
     setStep(0);
-    setForm({ name: "", propertyName: "", kioskId: "", plan: forcePro ? "pro" : "one_use" });
+    setForm({ name: "", propertyName: "", kioskId: preselectedKioskId ?? "", plan: forcePro ? "pro" : "one_use" });
   };
 
   const mutation = useMutation({
@@ -135,8 +135,7 @@ export function NewKeyWizard({
   const canContinue =
     (step === 0 && form.name.trim().length >= 2) ||
     (step === 1 && !!form.kioskId) ||
-    step === 2 ||
-    step === 3;
+    (step >= 2 && form.name.trim().length >= 2 && !!form.kioskId);
 
   const handleContinue = () => {
     if (step === 0) {
@@ -444,7 +443,7 @@ export function NewKeyWizard({
           ) : (
             <Button
               className="rounded-xl"
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || form.name.trim().length < 2 || !form.kioskId}
               onClick={() => mutation.mutate()}
             >
               Confirmar alta

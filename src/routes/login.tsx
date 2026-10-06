@@ -101,7 +101,7 @@ function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { name }, emailRedirectTo: window.location.origin },
+          options: { data: { name }, emailRedirectTo: `${window.location.origin}/login` },
         });
         if (error) throw error;
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -124,11 +124,8 @@ function LoginPage() {
 
   const handleGoogle = async () => {
     setBusy(true);
-    if (punto) {
-      sessionStorage.setItem("login_redirect_punto", punto);
-    }
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/login`,
     });
     if (result.error) {
       toast.error("No pudimos iniciar sesión con Google");
