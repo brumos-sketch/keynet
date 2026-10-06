@@ -286,3 +286,25 @@ export const ACTION_LABELS: Record<string, string> = {
   exchange_created: "Intercambio creado",
   exchange_updated: "Estadía editada",
 };
+
+/** Dirección corta y homogénea para mostrar: "Calle 123, Barrio". */
+export function formatAddress(address: string | null | undefined): string {
+  if (!address) return "";
+  const drop = /^(argentina|caba|buenos aires|comuna \d+|c(iu)?dad\.? aut[oó]noma de buenos aires)$/i;
+  let parts = address
+    .split(",")
+    .map((p) =>
+      p
+        .replace(/\b[A-Z]\d{4}[A-Z]{0,3}\b/g, "")
+        .replace(/c(iu)?dad\.? aut[oó]noma de buenos aires/gi, "")
+        .replace(/\bAvenida\b/g, "Av.")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter((p) => p && !drop.test(p));
+  if (parts.length >= 2 && /^\d+$/.test(parts[0]!)) {
+    parts = [`${parts[1]} ${parts[0]}`, ...parts.slice(2)];
+  }
+  const out = parts.slice(0, 2).join(", ");
+  return out || address;
+}

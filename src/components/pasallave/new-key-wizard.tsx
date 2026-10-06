@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -273,7 +274,7 @@ export function NewKeyWizard({
                         <span className="font-medium text-foreground">{nearest.kiosk.name}</span>
                         <Pill tone="info">{formatDistance(nearest.km)}</Pill>
                       </div>
-                      <p className="text-sm text-gray-500">{nearest.kiosk.address ?? "—"}</p>
+                      <p className="text-sm text-gray-500">{formatAddress(nearest.kiosk.address) || "—"}</p>
                       <p className="text-xs text-gray-500">
                         {describeSchedule(
                           nearest.kiosk.is_24h,
@@ -305,7 +306,7 @@ export function NewKeyWizard({
                       Punto elegido
                     </p>
                     <p className="font-medium text-foreground">{chosenKiosk.name}</p>
-                    <p className="text-sm text-gray-500">{chosenKiosk.address ?? "—"}</p>
+                    <p className="text-sm text-gray-500">{formatAddress(chosenKiosk.address) || "—"}</p>
                   </div>
                   {coords && chosenKiosk.lat != null && chosenKiosk.lng != null && (
                     <Pill tone="info">
@@ -346,7 +347,7 @@ export function NewKeyWizard({
                             k.category}
                         </Pill>
                       </div>
-                      <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                      <p className="text-sm text-gray-500">{formatAddress(k.address) || "—"}</p>
                       <p className="text-xs text-gray-500">
                         {describeSchedule(k.is_24h, (k.schedule as KioskSchedule | null) ?? null)} ·{" "}
                         {k.free_positions} posiciones libres de {k.positions}
@@ -414,7 +415,7 @@ export function NewKeyWizard({
               <Row label="Llave" value={form.name} />
               <Row label="Dirección" value={form.propertyName || "—"} />
               <Row label="Punto" value={chosenKiosk?.name ?? "—"} />
-              <Row label="Dirección" value={chosenKiosk?.address ?? "—"} />
+              <Row label="Dirección" value={formatAddress(chosenKiosk?.address) || "—"} />
               <Row label="Plan" value={PLAN_LABELS[form.plan]} />
               <Row
                 label="Precio"

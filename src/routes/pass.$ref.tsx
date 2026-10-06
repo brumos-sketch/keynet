@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy, Share2 } from "lucide-react";
@@ -398,7 +399,7 @@ function BoardingPassPage() {
                 <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4 text-left">
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">{t.kioskLabel}</p>
                   <p className="font-bold text-navy">{pass.kiosk_name ?? "—"}</p>
-                  <p className="text-sm text-gray-500">{pass.kiosk_address ?? ""}</p>
+                  <p className="text-sm text-gray-500">{formatAddress(pass.kiosk_address)}</p>
                   {mapUrl && (
                     <a
                       href={mapUrl}
@@ -473,7 +474,7 @@ function KioskSection({
       <div>
         <p className="text-xs tracking-wide text-gray-500 uppercase">{t["point"]}</p>
         <p className="mt-1 font-bold text-navy">{pass.kiosk_name ?? "—"}</p>
-        <p className="text-sm text-gray-500">{pass.kiosk_address ?? "—"}</p>
+        <p className="text-sm text-gray-500">{formatAddress(pass.kiosk_address) || "—"}</p>
       </div>
 
       {pass.kiosk_is_24h ? (

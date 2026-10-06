@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -520,7 +521,7 @@ function AdminKiosks() {
                       </span>
                     )}
                     <span className="text-sm text-gray-500">
-                      {k.address ?? "Sin dirección"}
+                      {formatAddress(k.address) || "Sin dirección"}
                     </span>
                   </div>
                 </div>
