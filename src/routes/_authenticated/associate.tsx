@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
@@ -171,7 +172,7 @@ function AssociatePanel() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-bold text-navy">{k.name}</h3>
-                        <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                        <p className="text-sm text-gray-500">{formatAddress(k.address) || "—"}</p>
                       </div>
                       <Pill tone="neutral">
                         {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ?? k.category}

@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Copy, Key, Menu, Plus, Share2, User } from "lucide-react";
 import {
@@ -384,7 +385,7 @@ function KeyDetail({
               {k.locked && <span className="text-xs font-bold text-red-600">BLOQUEADA</span>}
             </div>
             <p className="mt-1 ml-5 text-sm text-gray-500">
-              {kiosk?.name ?? "—"}{kiosk?.address ? ` · ${kiosk.address}` : ""}
+              {kiosk?.name ?? "—"}{kiosk?.address ? ` · ${formatAddress(kiosk.address)}` : ""}
             </p>
             {(k.subscription_type === "monthly" || k.subscription_type === "pro") && k.deposit_code && (
               <div className="mt-3 ml-5 inline-flex items-center gap-2 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">

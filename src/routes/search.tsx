@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/pasallave";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
@@ -325,7 +326,7 @@ function SearchPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-bold text-navy">{k.name}</p>
-                      <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
+                      <p className="text-sm text-gray-500">{formatAddress(k.address) || "—"}</p>
                     </div>
                     <Pill tone={state.open ? "success" : "danger"}>
                       {k.is_24h ? "24 HS" : state.open ? "Abierto" : "Cerrado"}
@@ -410,7 +411,7 @@ function SearchPage() {
                       <MapPin className="mt-0.5 h-4 w-4 text-electric" />
                       <div>
                         <p className="text-sm font-bold text-navy">{current?.name}</p>
-                        <p className="text-xs text-gray-500">{current?.address}</p>
+                        <p className="text-xs text-gray-500">{formatAddress(current?.address)}</p>
                       </div>
                     </div>
                     <a
