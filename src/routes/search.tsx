@@ -291,17 +291,22 @@ function SearchPage() {
               const state = kioskOpenState(k.is_24h, k.schedule as KioskSchedule | null);
               const active = current?.id === k.id;
               return (
-                <button
+                <div
                   key={k.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelected(k.id)}
-                  className={`w-full rounded-2xl border bg-white p-4 text-left transition-all ${
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSelected(k.id);
+                  }}
+                  className={`w-full cursor-pointer rounded-2xl border bg-white p-4 text-left transition-all ${
                     active
                       ? "border-electric shadow-glow"
                       : "border-gray-100 hover:border-gray-200 hover:shadow-card"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-bold text-navy">{k.name}</p>
                       <p className="text-sm text-gray-500">{k.address ?? "—"}</p>
                     </div>
@@ -322,12 +327,50 @@ function SearchPage() {
                       {k.free_positions} de {k.positions} posiciones libres
                     </span>
                   </div>
-                </button>
+                  {active && (
+                    <div
+                      className="mt-4 space-y-3 border-t border-gray-100 pt-4 lg:hidden"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ActionButton current={k} session={session} role={role} />
+                      <div className="flex items-center justify-between text-sm font-bold">
+                        <a
+                          href={
+                            origin
+                              ? `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${k.lat},${k.lng}`
+                              : `https://www.google.com/maps/dir/?api=1&destination=${k.lat},${k.lng}`
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-electric hover:underline"
+                        >
+                          Cómo llegar
+                        </a>
+                        {k.lat != null && k.lng != null && (
+                          <button
+                            type="button"
+                            className="text-gray-500 hover:underline"
+                            onClick={() =>
+                              document
+                                .getElementById("search-map")
+                                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                            }
+                          >
+                            Ver en el mapa
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card lg:sticky lg:top-8 lg:self-start">
+          <div
+            id="search-map"
+            className="scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-card lg:sticky lg:top-8 lg:self-start"
+          >
             {mapPoints.length > 0 || origin ? (
               <>
                 <ClientOnly
