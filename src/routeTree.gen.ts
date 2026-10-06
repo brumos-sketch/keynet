@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminExchangesRouteImport } from './routes/_authenticated/admin.exchanges'
 import { Route as AuthenticatedAdminHostsRouteImport } from './routes/_authenticated/admin.hosts'
 import { Route as AuthenticatedAdminKeysRouteImport } from './routes/_authenticated/admin.keys'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminPointsRouteImport } from './routes/_authenticated/admin.points'
 import { Route as AuthenticatedAdminProRouteImport } from './routes/_authenticated/admin.pro'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -146,6 +147,11 @@ const AuthenticatedAdminKeysRoute = AuthenticatedAdminKeysRouteImport.update({
   path: '/keys',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminPointsRoute =
   AuthenticatedAdminPointsRouteImport.update({
     id: '/points',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
   '/admin/hosts': typeof AuthenticatedAdminHostsRoute
   '/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/points': typeof AuthenticatedAdminPointsRoute
   '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
   '/admin/hosts': typeof AuthenticatedAdminHostsRoute
   '/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/admin/points': typeof AuthenticatedAdminPointsRoute
   '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
   '/_authenticated/admin/hosts': typeof AuthenticatedAdminHostsRoute
   '/_authenticated/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/admin/points': typeof AuthenticatedAdminPointsRoute
   '/_authenticated/admin/pro': typeof AuthenticatedAdminProRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin/exchanges'
     | '/admin/hosts'
     | '/admin/keys'
+    | '/admin/leads'
     | '/admin/points'
     | '/admin/pro'
     | '/admin/users'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/admin/exchanges'
     | '/admin/hosts'
     | '/admin/keys'
+    | '/admin/leads'
     | '/admin/points'
     | '/admin/pro'
     | '/admin/users'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/exchanges'
     | '/_authenticated/admin/hosts'
     | '/_authenticated/admin/keys'
+    | '/_authenticated/admin/leads'
     | '/_authenticated/admin/points'
     | '/_authenticated/admin/pro'
     | '/_authenticated/admin/users'
@@ -493,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminKeysRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/points': {
       id: '/_authenticated/admin/points'
       path: '/points'
@@ -522,6 +541,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminExchangesRoute: typeof AuthenticatedAdminExchangesRoute
   AuthenticatedAdminHostsRoute: typeof AuthenticatedAdminHostsRoute
   AuthenticatedAdminKeysRoute: typeof AuthenticatedAdminKeysRoute
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminPointsRoute: typeof AuthenticatedAdminPointsRoute
   AuthenticatedAdminProRoute: typeof AuthenticatedAdminProRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -533,6 +553,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminExchangesRoute: AuthenticatedAdminExchangesRoute,
   AuthenticatedAdminHostsRoute: AuthenticatedAdminHostsRoute,
   AuthenticatedAdminKeysRoute: AuthenticatedAdminKeysRoute,
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminPointsRoute: AuthenticatedAdminPointsRoute,
   AuthenticatedAdminProRoute: AuthenticatedAdminProRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
