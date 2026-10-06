@@ -51,7 +51,7 @@ type ExchangeRow = {
   returned_at: string | null;
 };
 
-export const Route = createFileRoute("/_authenticated/admin/intercambios")({
+export const Route = createFileRoute("/_authenticated/admin/exchanges")({
   head: () => ({
     meta: [
       { title: "Intercambios — PASALLAVE Admin" },

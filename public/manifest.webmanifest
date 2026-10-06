@@ -31,7 +31,7 @@
       "name": "Buscar punto",
       "short_name": "Buscar",
       "description": "Encontrá el punto más cercano para dejar tu llave",
-      "url": "/buscar",
+      "url": "/search",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {

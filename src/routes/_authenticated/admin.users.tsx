@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 
 
-export const Route = createFileRoute("/_authenticated/admin/usuarios")({
+export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
       { title: "Usuarios — PASALLAVE Admin" },

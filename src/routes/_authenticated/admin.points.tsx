@@ -38,7 +38,7 @@ import {
   type KioskSchedule,
 } from "@/lib/pasallave";
 
-export const Route = createFileRoute("/_authenticated/admin/puntos")({
+export const Route = createFileRoute("/_authenticated/admin/points")({
   head: () => ({
     meta: [
       { title: "Puntos — PASALLAVE Admin" },
