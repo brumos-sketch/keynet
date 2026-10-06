@@ -297,11 +297,12 @@ function KeyDetail({
   const lastLog = keyLog[0];
 
   const kExWithCode = kEx.filter((e) => e.pickup_code);
+  const [proCodeCount, setProCodeCount] = useState(0);
 
   const tabs = [
     { id: "info" as const, label: "Info" },
     ...(k.subscription_type === "pro" || k.subscription_type === "monthly"
-      ? [{ id: "codes" as const, label: k.subscription_type === "pro" ? "Códigos" : `Códigos (${kExWithCode.length})` }]
+      ? [{ id: "codes" as const, label: k.subscription_type === "pro" ? `Códigos (${proCodeCount})` : `Códigos (${kExWithCode.length})` }]
       : []),
     { id: "history" as const, label: "Historial" },
   ];
@@ -493,7 +494,7 @@ function KeyDetail({
 
       {/* ── Códigos Pro ── */}
       {tab === "codes" && k.subscription_type === "pro" && (
-        <ProAccessCodes keyId={k.id} keyName={k.name} />
+        <ProAccessCodes keyId={k.id} keyName={k.name} onCountChange={setProCodeCount} />
       )}
 
       {/* ── Códigos Mensual ── */}
