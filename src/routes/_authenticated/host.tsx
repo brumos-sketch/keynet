@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Key, Menu, Plus, User } from "lucide-react";
+import { ArrowLeft, Check, Copy, Key, Menu, Plus, Share2, User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -298,6 +298,31 @@ function KeyDetail({
 
   const kExWithCode = kEx.filter((e) => e.pickup_code);
   const [proCodeCount, setProCodeCount] = useState(0);
+  const [copiedRef, setCopiedRef] = useState<string | null>(null);
+
+  const handleCopyPassLink = async (bookingRef: string) => {
+    const url = `${window.location.origin}/pase/${bookingRef}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedRef(bookingRef);
+      setTimeout(() => setCopiedRef(null), 2000);
+    } catch { /* noop */ }
+  };
+
+  const handleSharePass = async (bookingRef: string, keyName: string) => {
+    const url = `${window.location.origin}/pase/${bookingRef}`;
+    const text = `Tarjeta de embarque · ${bookingRef}\n${keyName} · PASALLAVE`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Tarjeta de embarque PASALLAVE", text, url });
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setCopiedRef(bookingRef);
+        setTimeout(() => setCopiedRef(null), 2000);
+        toast.success("Link copiado");
+      }
+    } catch { /* noop */ }
+  };
 
   const tabs = [
     { id: "info" as const, label: "Info" },
@@ -456,6 +481,28 @@ function KeyDetail({
                     Renovar
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl gap-1.5"
+                  onClick={() => void handleCopyPassLink(activeEx.booking_ref)}
+                >
+                  {copiedRef === activeEx.booking_ref ? (
+                    <Check className="size-3.5 text-success" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
+                  {copiedRef === activeEx.booking_ref ? "¡Copiado!" : "Copiar link"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl gap-1.5"
+                  onClick={() => void handleSharePass(activeEx.booking_ref, k.name)}
+                >
+                  <Share2 className="size-3.5" />
+                  Compartir
+                </Button>
               </div>
             </div>
           ) : (
@@ -535,9 +582,30 @@ function KeyDetail({
                     : "Sin fechas (libre)"}
                   {ex.pickup_time ? ` · Retiro desde ${ex.pickup_time}` : ""}
                 </p>
-                <Button size="sm" className="rounded-xl">
-                  Copiar link
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl gap-1.5"
+                    onClick={() => void handleCopyPassLink(ex.booking_ref)}
+                  >
+                    {copiedRef === ex.booking_ref ? (
+                      <Check className="size-3.5 text-success" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                    {copiedRef === ex.booking_ref ? "¡Copiado!" : "Copiar link"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl gap-1.5"
+                    onClick={() => void handleSharePass(ex.booking_ref, k.name)}
+                  >
+                    <Share2 className="size-3.5" />
+                    Compartir
+                  </Button>
+                </div>
               </div>
             );
           })}
