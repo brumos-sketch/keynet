@@ -96,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRole(null);
         setName(null);
         setKioskId(null);
+        bootstrapped.current = null;
+        navigate({ to: "/" });
       },
     }),
     [loading, session, role, name, kioskId],
