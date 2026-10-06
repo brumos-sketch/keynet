@@ -165,8 +165,8 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-12 lg:flex-row">
             <div className="flex-1 text-center lg:text-left">
-              <h1 className="mb-6 text-5xl leading-tight font-bold text-navy lg:text-6xl">
-                Simplificá tu check-in <br />
+              <h1 className="mb-6 text-4xl leading-tight font-bold text-navy sm:text-5xl lg:text-[2.75rem] xl:text-6xl">
+                <span className="whitespace-nowrap">Simplificá tu check-in</span> <br />
                 <span className="text-electric">sin coordinar horarios</span>
               </h1>
               <p className="mx-auto mb-10 max-w-xl text-xl text-gray-600 lg:mx-0">
