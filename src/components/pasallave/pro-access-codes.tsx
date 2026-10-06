@@ -47,28 +47,30 @@ export function ProAccessCodes({
   const [editCode, setEditCode] = useState<{ id: string; code: string; personName: string | null; role: string | null; reusable: boolean; validFrom: string | null; validTo: string | null; timeFrom: string | null; timeTo: string | null } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleShareCode = async (codeId: string, code: string, personName: string | null) => {
-    const label = personName ? `${personName}: ${code}` : `Código de acceso: ${code}`;
-    const text = `${label}\n${keyName} · PASALLAVE`;
+  const handleCopyLink = async (codeId: string) => {
+    const url = `${window.location.origin}/pass/${codeId}`;
     try {
-      if (navigator.share) {
-        await navigator.share({ title: `Código PASALLAVE`, text });
-      } else {
-        await navigator.clipboard.writeText(text);
-        setCopiedId(codeId);
-        setTimeout(() => setCopiedId(null), 2000);
-        toast.success("Código copiado");
-      }
+      await navigator.clipboard.writeText(url);
+      setCopiedId(codeId);
+      setTimeout(() => setCopiedId(null), 2000);
     } catch {
       /* noop */
     }
   };
 
-  const handleCopyCode = async (codeId: string, code: string) => {
+  const handleShareLink = async (codeId: string, personName: string | null) => {
+    const url = `${window.location.origin}/pass/${codeId}`;
+    const label = personName ? `Código de acceso · ${personName}` : `Código de acceso`;
+    const text = `${label}\n${keyName} · PASALLAVE`;
     try {
-      await navigator.clipboard.writeText(code);
-      setCopiedId(codeId);
-      setTimeout(() => setCopiedId(null), 2000);
+      if (navigator.share) {
+        await navigator.share({ title: `Código PASALLAVE`, text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopiedId(codeId);
+        setTimeout(() => setCopiedId(null), 2000);
+        toast.success("Link copiado");
+      }
     } catch {
       /* noop */
     }
@@ -323,20 +325,20 @@ export function ProAccessCodes({
                     variant="outline"
                     size="sm"
                     className="rounded-xl h-7 px-3 gap-1.5 text-xs"
-                    onClick={() => void handleCopyCode(c.id, c.code)}
+                    onClick={() => void handleCopyLink(c.id)}
                   >
                     {copiedId === c.id ? (
                       <Check className="size-3 text-success" />
                     ) : (
                       <Copy className="size-3" />
                     )}
-                    {copiedId === c.id ? "¡Copiado!" : "Copiar"}
+                    {copiedId === c.id ? "¡Copiado!" : "Copiar link"}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     className="rounded-xl h-7 px-3 gap-1.5 text-xs"
-                    onClick={() => void handleShareCode(c.id, c.code, c.person_name)}
+                    onClick={() => void handleShareLink(c.id, c.person_name)}
                   >
                     <Share2 className="size-3" />
                     Compartir
