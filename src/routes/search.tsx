@@ -131,8 +131,9 @@ function SearchPage() {
   // Al fijar un origen (dirección escrita o "usar mi ubicación"), seleccionar
   // automáticamente el punto más cercano (filtered ya viene ordenado por distancia).
   useEffect(() => {
-    if (origin && filtered.length > 0) {
-      setSelected(filtered[0].id);
+    const nearest = filtered[0];
+    if (origin && nearest) {
+      setSelected(nearest.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin]);
