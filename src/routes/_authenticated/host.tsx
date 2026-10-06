@@ -301,7 +301,7 @@ function KeyDetail({
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
   const handleCopyPassLink = async (bookingRef: string) => {
-    const url = `${window.location.origin}/pase/${bookingRef}`;
+    const url = `${window.location.origin}/pass/${bookingRef}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedRef(bookingRef);
@@ -310,7 +310,7 @@ function KeyDetail({
   };
 
   const handleSharePass = async (bookingRef: string, keyName: string) => {
-    const url = `${window.location.origin}/pase/${bookingRef}`;
+    const url = `${window.location.origin}/pass/${bookingRef}`;
     const text = `Tarjeta de embarque · ${bookingRef}\n${keyName} · PASALLAVE`;
     try {
       if (navigator.share) {
@@ -874,7 +874,7 @@ function HostPanel() {
           </div>
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link
-              to="/perfil"
+              to="/profile"
               aria-label="Mi perfil"
               className="flex shrink-0 items-center gap-2 rounded-xl px-1.5 py-1.5 text-sm text-gray-500 hover:bg-muted hover:text-navy sm:px-2"
             >
@@ -905,7 +905,7 @@ function HostPanel() {
                 </SheetHeader>
                 <nav className="mt-6 flex flex-col gap-2">
                   <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
-                    <Link to="/perfil">Mi perfil</Link>
+                    <Link to="/profile">Mi perfil</Link>
                   </Button>
                   <Button asChild variant="ghost" className="justify-start" onClick={() => setMenuOpen(false)}>
                     <Link to="/checkout">Pagos</Link>

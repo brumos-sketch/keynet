@@ -14,7 +14,7 @@ import { PlanPriceEditor } from "@/components/pasallave/plan-price-editor";
 
 const currentPeriod = () => new Date().toISOString().slice(0, 7);
 
-export const Route = createFileRoute("/_authenticated/admin/facturacion")({
+export const Route = createFileRoute("/_authenticated/admin/billing")({
   head: () => ({
     meta: [
       { title: "Facturación — PASALLAVE Admin" },

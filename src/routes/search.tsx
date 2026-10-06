@@ -30,7 +30,7 @@ const PointsMap = lazy(() => import("@/components/pasallave/points-map"));
 const categoryLabel = (value: string) =>
   KIOSK_CATEGORIES.find((c) => c.value === value)?.label ?? value;
 
-export const Route = createFileRoute("/buscar")({
+export const Route = createFileRoute("/search")({
   validateSearch: (search: Record<string, unknown>): { punto?: string } =>
     typeof search['punto'] === "string" ? { punto: search['punto'] } : {},
   loader: () => listPublicKiosks(),

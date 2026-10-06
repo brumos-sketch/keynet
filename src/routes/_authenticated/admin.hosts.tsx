@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SearchField } from "@/components/pasallave/ui-bits";
 import { formatDate, matchesQuery } from "@/lib/pasallave";
 
-export const Route = createFileRoute("/_authenticated/admin/anfitriones")({
+export const Route = createFileRoute("/_authenticated/admin/hosts")({
   head: () => ({
     meta: [
       { title: "Anfitriones — PASALLAVE Admin" },

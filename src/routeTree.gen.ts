@@ -11,26 +11,26 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PointRouteImport } from './routes/point'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
-import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
-import { Route as PaseRefRouteImport } from './routes/pase.$ref'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as PassRefRouteImport } from './routes/pass.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as AuthenticatedAdminAnfitrionesRouteImport } from './routes/_authenticated/admin.anfitriones'
-import { Route as AuthenticatedAdminFacturacionRouteImport } from './routes/_authenticated/admin.facturacion'
-import { Route as AuthenticatedAdminIntercambiosRouteImport } from './routes/_authenticated/admin.intercambios'
-import { Route as AuthenticatedAdminLlavesRouteImport } from './routes/_authenticated/admin.llaves'
+import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
+import { Route as AuthenticatedAdminExchangesRouteImport } from './routes/_authenticated/admin.exchanges'
+import { Route as AuthenticatedAdminHostsRouteImport } from './routes/_authenticated/admin.hosts'
+import { Route as AuthenticatedAdminKeysRouteImport } from './routes/_authenticated/admin.keys'
+import { Route as AuthenticatedAdminPointsRouteImport } from './routes/_authenticated/admin.points'
 import { Route as AuthenticatedAdminProRouteImport } from './routes/_authenticated/admin.pro'
-import { Route as AuthenticatedAdminPuntosRouteImport } from './routes/_authenticated/admin.puntos'
-import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin.usuarios'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,11 +39,6 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BuscarRoute = BuscarRouteImport.update({
-  id: '/buscar',
-  path: '/buscar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -64,6 +59,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   id: '/robots.txt',
   path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -91,14 +91,14 @@ const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   path: '/host',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const PaseRefRoute = PaseRefRouteImport.update({
-  id: '/pase/$ref',
-  path: '/pase/$ref',
+const PassRefRoute = PassRefRouteImport.update({
+  id: '/pass/$ref',
+  path: '/pass/$ref',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -106,28 +106,32 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminAnfitrionesRoute =
-  AuthenticatedAdminAnfitrionesRouteImport.update({
-    id: '/anfitriones',
-    path: '/anfitriones',
+const AuthenticatedAdminBillingRoute =
+  AuthenticatedAdminBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminFacturacionRoute =
-  AuthenticatedAdminFacturacionRouteImport.update({
-    id: '/facturacion',
-    path: '/facturacion',
+const AuthenticatedAdminExchangesRoute =
+  AuthenticatedAdminExchangesRouteImport.update({
+    id: '/exchanges',
+    path: '/exchanges',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminIntercambiosRoute =
-  AuthenticatedAdminIntercambiosRouteImport.update({
-    id: '/intercambios',
-    path: '/intercambios',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminLlavesRoute =
-  AuthenticatedAdminLlavesRouteImport.update({
-    id: '/llaves',
-    path: '/llaves',
+const AuthenticatedAdminHostsRoute = AuthenticatedAdminHostsRouteImport.update({
+  id: '/hosts',
+  path: '/hosts',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminKeysRoute = AuthenticatedAdminKeysRouteImport.update({
+  id: '/keys',
+  path: '/keys',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminPointsRoute =
+  AuthenticatedAdminPointsRouteImport.update({
+    id: '/points',
+    path: '/points',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminProRoute = AuthenticatedAdminProRouteImport.update({
@@ -135,171 +139,164 @@ const AuthenticatedAdminProRoute = AuthenticatedAdminProRouteImport.update({
   path: '/pro',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminPuntosRoute =
-  AuthenticatedAdminPuntosRouteImport.update({
-    id: '/puntos',
-    path: '/puntos',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminUsuariosRoute =
-  AuthenticatedAdminUsuariosRouteImport.update({
-    id: '/usuarios',
-    path: '/usuarios',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/perfil': typeof AuthenticatedPerfilRoute
-  '/pase/$ref': typeof PaseRefRoute
-  '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
-  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
-  '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
-  '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/pass/$ref': typeof PassRefRoute
+  '/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
+  '/admin/hosts': typeof AuthenticatedAdminHostsRoute
+  '/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/admin/points': typeof AuthenticatedAdminPointsRoute
   '/admin/pro': typeof AuthenticatedAdminProRoute
-  '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
-  '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
-  '/perfil': typeof AuthenticatedPerfilRoute
-  '/pase/$ref': typeof PaseRefRoute
-  '/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
-  '/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
-  '/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
-  '/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/pass/$ref': typeof PassRefRoute
+  '/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
+  '/admin/hosts': typeof AuthenticatedAdminHostsRoute
+  '/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/admin/points': typeof AuthenticatedAdminPointsRoute
   '/admin/pro': typeof AuthenticatedAdminProRoute
-  '/admin/puntos': typeof AuthenticatedAdminPuntosRoute
-  '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
-  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
-  '/pase/$ref': typeof PaseRefRoute
-  '/_authenticated/admin/anfitriones': typeof AuthenticatedAdminAnfitrionesRoute
-  '/_authenticated/admin/facturacion': typeof AuthenticatedAdminFacturacionRoute
-  '/_authenticated/admin/intercambios': typeof AuthenticatedAdminIntercambiosRoute
-  '/_authenticated/admin/llaves': typeof AuthenticatedAdminLlavesRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/pass/$ref': typeof PassRefRoute
+  '/_authenticated/admin/billing': typeof AuthenticatedAdminBillingRoute
+  '/_authenticated/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
+  '/_authenticated/admin/hosts': typeof AuthenticatedAdminHostsRoute
+  '/_authenticated/admin/keys': typeof AuthenticatedAdminKeysRoute
+  '/_authenticated/admin/points': typeof AuthenticatedAdminPointsRoute
   '/_authenticated/admin/pro': typeof AuthenticatedAdminProRoute
-  '/_authenticated/admin/puntos': typeof AuthenticatedAdminPuntosRoute
-  '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
     | '/robots.txt'
+    | '/search'
     | '/sitemap.xml'
     | '/admin'
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/perfil'
-    | '/pase/$ref'
-    | '/admin/anfitriones'
-    | '/admin/facturacion'
-    | '/admin/intercambios'
-    | '/admin/llaves'
+    | '/profile'
+    | '/pass/$ref'
+    | '/admin/billing'
+    | '/admin/exchanges'
+    | '/admin/hosts'
+    | '/admin/keys'
+    | '/admin/points'
     | '/admin/pro'
-    | '/admin/puntos'
-    | '/admin/usuarios'
+    | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
     | '/robots.txt'
+    | '/search'
     | '/sitemap.xml'
     | '/associate'
     | '/checkout'
     | '/host'
-    | '/perfil'
-    | '/pase/$ref'
-    | '/admin/anfitriones'
-    | '/admin/facturacion'
-    | '/admin/intercambios'
-    | '/admin/llaves'
+    | '/profile'
+    | '/pass/$ref'
+    | '/admin/billing'
+    | '/admin/exchanges'
+    | '/admin/hosts'
+    | '/admin/keys'
+    | '/admin/points'
     | '/admin/pro'
-    | '/admin/puntos'
-    | '/admin/usuarios'
+    | '/admin/users'
     | '/admin'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
     | '/robots.txt'
+    | '/search'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
     | '/_authenticated/host'
-    | '/_authenticated/perfil'
-    | '/pase/$ref'
-    | '/_authenticated/admin/anfitriones'
-    | '/_authenticated/admin/facturacion'
-    | '/_authenticated/admin/intercambios'
-    | '/_authenticated/admin/llaves'
+    | '/_authenticated/profile'
+    | '/pass/$ref'
+    | '/_authenticated/admin/billing'
+    | '/_authenticated/admin/exchanges'
+    | '/_authenticated/admin/hosts'
+    | '/_authenticated/admin/keys'
+    | '/_authenticated/admin/points'
     | '/_authenticated/admin/pro'
-    | '/_authenticated/admin/puntos'
-    | '/_authenticated/admin/usuarios'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  BuscarRoute: typeof BuscarRoute
   LoginRoute: typeof LoginRoute
   PointRoute: typeof PointRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  PaseRefRoute: typeof PaseRefRoute
+  PassRefRoute: typeof PassRefRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -316,13 +313,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/buscar': {
-      id: '/buscar'
-      path: '/buscar'
-      fullPath: '/buscar'
-      preLoaderRoute: typeof BuscarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -351,6 +341,13 @@ declare module '@tanstack/react-router' {
       path: '/robots.txt'
       fullPath: '/robots.txt'
       preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -388,18 +385,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/perfil': {
-      id: '/_authenticated/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/pase/$ref': {
-      id: '/pase/$ref'
-      path: '/pase/$ref'
-      fullPath: '/pase/$ref'
-      preLoaderRoute: typeof PaseRefRouteImport
+    '/pass/$ref': {
+      id: '/pass/$ref'
+      path: '/pass/$ref'
+      fullPath: '/pass/$ref'
+      preLoaderRoute: typeof PassRefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -409,32 +406,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/anfitriones': {
-      id: '/_authenticated/admin/anfitriones'
-      path: '/anfitriones'
-      fullPath: '/admin/anfitriones'
-      preLoaderRoute: typeof AuthenticatedAdminAnfitrionesRouteImport
+    '/_authenticated/admin/billing': {
+      id: '/_authenticated/admin/billing'
+      path: '/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AuthenticatedAdminBillingRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/facturacion': {
-      id: '/_authenticated/admin/facturacion'
-      path: '/facturacion'
-      fullPath: '/admin/facturacion'
-      preLoaderRoute: typeof AuthenticatedAdminFacturacionRouteImport
+    '/_authenticated/admin/exchanges': {
+      id: '/_authenticated/admin/exchanges'
+      path: '/exchanges'
+      fullPath: '/admin/exchanges'
+      preLoaderRoute: typeof AuthenticatedAdminExchangesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/intercambios': {
-      id: '/_authenticated/admin/intercambios'
-      path: '/intercambios'
-      fullPath: '/admin/intercambios'
-      preLoaderRoute: typeof AuthenticatedAdminIntercambiosRouteImport
+    '/_authenticated/admin/hosts': {
+      id: '/_authenticated/admin/hosts'
+      path: '/hosts'
+      fullPath: '/admin/hosts'
+      preLoaderRoute: typeof AuthenticatedAdminHostsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/llaves': {
-      id: '/_authenticated/admin/llaves'
-      path: '/llaves'
-      fullPath: '/admin/llaves'
-      preLoaderRoute: typeof AuthenticatedAdminLlavesRouteImport
+    '/_authenticated/admin/keys': {
+      id: '/_authenticated/admin/keys'
+      path: '/keys'
+      fullPath: '/admin/keys'
+      preLoaderRoute: typeof AuthenticatedAdminKeysRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/points': {
+      id: '/_authenticated/admin/points'
+      path: '/points'
+      fullPath: '/admin/points'
+      preLoaderRoute: typeof AuthenticatedAdminPointsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/pro': {
@@ -444,42 +448,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/puntos': {
-      id: '/_authenticated/admin/puntos'
-      path: '/puntos'
-      fullPath: '/admin/puntos'
-      preLoaderRoute: typeof AuthenticatedAdminPuntosRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/usuarios': {
-      id: '/_authenticated/admin/usuarios'
-      path: '/usuarios'
-      fullPath: '/admin/usuarios'
-      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
-  AuthenticatedAdminAnfitrionesRoute: typeof AuthenticatedAdminAnfitrionesRoute
-  AuthenticatedAdminFacturacionRoute: typeof AuthenticatedAdminFacturacionRoute
-  AuthenticatedAdminIntercambiosRoute: typeof AuthenticatedAdminIntercambiosRoute
-  AuthenticatedAdminLlavesRoute: typeof AuthenticatedAdminLlavesRoute
+  AuthenticatedAdminBillingRoute: typeof AuthenticatedAdminBillingRoute
+  AuthenticatedAdminExchangesRoute: typeof AuthenticatedAdminExchangesRoute
+  AuthenticatedAdminHostsRoute: typeof AuthenticatedAdminHostsRoute
+  AuthenticatedAdminKeysRoute: typeof AuthenticatedAdminKeysRoute
+  AuthenticatedAdminPointsRoute: typeof AuthenticatedAdminPointsRoute
   AuthenticatedAdminProRoute: typeof AuthenticatedAdminProRoute
-  AuthenticatedAdminPuntosRoute: typeof AuthenticatedAdminPuntosRoute
-  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminAnfitrionesRoute: AuthenticatedAdminAnfitrionesRoute,
-  AuthenticatedAdminFacturacionRoute: AuthenticatedAdminFacturacionRoute,
-  AuthenticatedAdminIntercambiosRoute: AuthenticatedAdminIntercambiosRoute,
-  AuthenticatedAdminLlavesRoute: AuthenticatedAdminLlavesRoute,
+  AuthenticatedAdminBillingRoute: AuthenticatedAdminBillingRoute,
+  AuthenticatedAdminExchangesRoute: AuthenticatedAdminExchangesRoute,
+  AuthenticatedAdminHostsRoute: AuthenticatedAdminHostsRoute,
+  AuthenticatedAdminKeysRoute: AuthenticatedAdminKeysRoute,
+  AuthenticatedAdminPointsRoute: AuthenticatedAdminPointsRoute,
   AuthenticatedAdminProRoute: AuthenticatedAdminProRoute,
-  AuthenticatedAdminPuntosRoute: AuthenticatedAdminPuntosRoute,
-  AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -491,7 +488,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
-  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -499,7 +496,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
-  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -508,13 +505,13 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  BuscarRoute: BuscarRoute,
   LoginRoute: LoginRoute,
   PointRoute: PointRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  PaseRefRoute: PaseRefRoute,
+  PassRefRoute: PassRefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

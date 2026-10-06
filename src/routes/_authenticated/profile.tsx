@@ -18,7 +18,7 @@ import {
   saveProfileInfo,
 } from "@/lib/profile.functions";
 
-export const Route = createFileRoute("/_authenticated/perfil")({
+export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
       { title: "Mi perfil — PASALLAVE" },

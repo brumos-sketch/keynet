@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate, WEEKDAYS, type KioskSchedule } from "@/lib/pasallave";
 import { getBoardingPass } from "@/lib/pasallave.functions";
 
-export const Route = createFileRoute("/pase/$ref")({
+export const Route = createFileRoute("/pass/$ref")({
   loader: ({ params }) => getBoardingPass({ data: { ref: params.ref } }),
   head: ({ params }) => ({
     meta: [
@@ -447,7 +447,7 @@ function BoardingPassPage() {
 
         <div className="text-center">
           <Button asChild variant="link" size="sm">
-            <Link to="/buscar">PASALLAVE</Link>
+            <Link to="/search">PASALLAVE</Link>
           </Button>
         </div>
 

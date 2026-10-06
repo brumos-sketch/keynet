@@ -27,7 +27,7 @@ import { PlanBadge } from "@/components/pasallave/status-badge";
 import { PLAN_LABELS, formatDate, matchesQuery, type SubscriptionType } from "@/lib/pasallave";
 import { createKey } from "@/lib/pasallave.functions";
 
-export const Route = createFileRoute("/_authenticated/admin/llaves")({
+export const Route = createFileRoute("/_authenticated/admin/keys")({
   head: () => ({
     meta: [
       { title: "Llaves — PASALLAVE Admin" },

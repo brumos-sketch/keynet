@@ -178,7 +178,7 @@ function Landing() {
 
               <div className="mb-12 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
                 <Link
-                  to="/buscar"
+                  to="/search"
                   className="rounded-full bg-electric px-8 py-4 text-lg font-bold text-white shadow-xl shadow-blue-200 transition-all hover:bg-blue-700"
                 >
                   Encontrar punto cercano

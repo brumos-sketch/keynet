@@ -96,7 +96,7 @@ export function PhoneMockup({ points = [] }: { points?: PhonePoint[] }) {
               </p>
               {current ? (
                 <Link
-                  to="/buscar"
+                  to="/search"
                   search={{ punto: current.id }}
                   className="block w-full rounded-xl bg-navy py-3 text-center text-xs font-bold text-white"
                 >
@@ -104,7 +104,7 @@ export function PhoneMockup({ points = [] }: { points?: PhonePoint[] }) {
                 </Link>
               ) : (
                 <Link
-                  to="/buscar"
+                  to="/search"
                   className="block w-full rounded-xl bg-navy py-3 text-center text-xs font-bold text-white"
                 >
                   Dejar llave aquí
