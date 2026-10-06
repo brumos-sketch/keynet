@@ -9,6 +9,7 @@ import {
   Store,
   Receipt,
   Crown,
+  Handshake,
   LogOut,
   Menu,
   UserCog,
