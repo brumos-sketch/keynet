@@ -34,3 +34,14 @@ export const pointValidateCode = createServerFn({ method: "POST" })
     const { runCodeValidation } = await import("@/lib/exchange.server");
     return runCodeValidation(supabaseAdmin, kiosk.id, data.code);
   });
+
+/** Heartbeat from an open point terminal; marks the point as online. */
+export const pointPing = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => accessSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { resolveKioskByAccessCode } = await import("@/lib/point.server");
+    const kiosk = await resolveKioskByAccessCode(data.accessCode);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("kiosks").update({ last_seen_at: new Date().toISOString() }).eq("id", kiosk.id);
+    return { ok: true };
+  });
