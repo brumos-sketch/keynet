@@ -618,7 +618,7 @@ export const associateOverview = createServerFn({ method: "POST" })
 
     const { data: kiosks } = await supabaseAdmin
       .from("kiosks")
-      .select("id, name, category, positions, commission_percent, address")
+      .select("id, name, category, positions, commission_percent, address, last_seen_at")
       .eq("associate_id", associateId)
       .order("name");
 

@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Brand, CodeChip } from "@/components/pasallave/ui-bits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { pointLogin, pointValidateCode } from "@/lib/point.functions";
+import { pointPing, pointLogin, pointValidateCode } from "@/lib/point.functions";
 import { formatCountdown, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import {
   AlertTriangle,
@@ -199,6 +199,18 @@ function PointPage() {
       .catch(() => window.localStorage.removeItem(STORAGE_KEY))
       .finally(() => setBooted(true));
   }, [login]);
+
+  const ping = useServerFn(pointPing);
+  useEffect(() => {
+    if (!point) return;
+    const beat = () => {
+      const accessCode = window.localStorage.getItem(STORAGE_KEY);
+      if (accessCode) ping({ data: { accessCode } }).catch(() => {});
+    };
+    beat();
+    const t = setInterval(beat, 45000);
+    return () => clearInterval(t);
+  }, [point, ping]);
 
   if (!booted) {
     return (

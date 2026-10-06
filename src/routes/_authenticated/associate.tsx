@@ -1,3 +1,4 @@
+import { OnlineBadge } from "@/components/pasallave/online-badge";
 import { formatAddress } from "@/lib/pasallave";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -172,6 +173,7 @@ function AssociatePanel() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="font-bold text-navy">{k.name}</h3>
+<OnlineBadge lastSeenAt={k.last_seen_at} />
                         <p className="text-sm text-gray-500">{formatAddress(k.address) || "—"}</p>
                       </div>
                       <Pill tone="neutral">

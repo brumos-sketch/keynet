@@ -389,6 +389,7 @@ export type Database = {
           custom_category: string | null
           id: string
           is_24h: boolean
+          last_seen_at: string | null
           lat: number | null
           lng: number | null
           name: string
@@ -408,6 +409,7 @@ export type Database = {
           custom_category?: string | null
           id?: string
           is_24h?: boolean
+          last_seen_at?: string | null
           lat?: number | null
           lng?: number | null
           name: string
@@ -427,6 +429,7 @@ export type Database = {
           custom_category?: string | null
           id?: string
           is_24h?: boolean
+          last_seen_at?: string | null
           lat?: number | null
           lng?: number | null
           name?: string
