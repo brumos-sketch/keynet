@@ -32,6 +32,7 @@ const NAV = [
   { to: "/admin/exchanges", label: "Intercambios", icon: ArrowLeftRight, exact: false },
   { to: "/admin/points", label: "Puntos", icon: Store, exact: false },
   { to: "/admin/pro", label: "Acuerdos Pro", icon: Crown, exact: false },
+  { to: "/admin/leads", label: "Ventas", icon: Handshake, exact: false },
   { to: "/admin/billing", label: "Facturación", icon: Receipt, exact: false },
   { to: "/profile", label: "Mi perfil", icon: UserCog, exact: false },
 ] as const;
