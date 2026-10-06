@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PointRouteImport } from './routes/point'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -21,7 +22,9 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAssociateRouteImport } from './routes/_authenticated/associate'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as PaseRefRouteImport } from './routes/pase.$ref'
 import { Route as PassRefRouteImport } from './routes/pass.$ref'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBillingRouteImport } from './routes/_authenticated/admin.billing'
@@ -39,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuscarRoute = BuscarRouteImport.update({
+  id: '/buscar',
+  path: '/buscar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -91,10 +99,20 @@ const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
   path: '/host',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const PaseRefRoute = PaseRefRouteImport.update({
+  id: '/pase/$ref',
+  path: '/pase/$ref',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PassRefRoute = PassRefRouteImport.update({
   id: '/pass/$ref',
@@ -147,6 +165,7 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -157,7 +176,9 @@ export interface FileRoutesByFullPath {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/pass/$ref': typeof PassRefRoute
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
@@ -170,6 +191,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -179,7 +201,9 @@ export interface FileRoutesByTo {
   '/associate': typeof AuthenticatedAssociateRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/host': typeof AuthenticatedHostRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/pass/$ref': typeof PassRefRoute
   '/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
@@ -194,6 +218,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/buscar': typeof BuscarRoute
   '/login': typeof LoginRoute
   '/point': typeof PointRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -204,7 +229,9 @@ export interface FileRoutesById {
   '/_authenticated/associate': typeof AuthenticatedAssociateRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/pase/$ref': typeof PaseRefRoute
   '/pass/$ref': typeof PassRefRoute
   '/_authenticated/admin/billing': typeof AuthenticatedAdminBillingRoute
   '/_authenticated/admin/exchanges': typeof AuthenticatedAdminExchangesRoute
@@ -219,6 +246,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
@@ -229,7 +257,9 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
+    | '/perfil'
     | '/profile'
+    | '/pase/$ref'
     | '/pass/$ref'
     | '/admin/billing'
     | '/admin/exchanges'
@@ -242,6 +272,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
@@ -251,7 +282,9 @@ export interface FileRouteTypes {
     | '/associate'
     | '/checkout'
     | '/host'
+    | '/perfil'
     | '/profile'
+    | '/pase/$ref'
     | '/pass/$ref'
     | '/admin/billing'
     | '/admin/exchanges'
@@ -265,6 +298,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/buscar'
     | '/login'
     | '/point'
     | '/reset-password'
@@ -275,7 +309,9 @@ export interface FileRouteTypes {
     | '/_authenticated/associate'
     | '/_authenticated/checkout'
     | '/_authenticated/host'
+    | '/_authenticated/perfil'
     | '/_authenticated/profile'
+    | '/pase/$ref'
     | '/pass/$ref'
     | '/_authenticated/admin/billing'
     | '/_authenticated/admin/exchanges'
@@ -290,12 +326,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  BuscarRoute: typeof BuscarRoute
   LoginRoute: typeof LoginRoute
   PointRoute: typeof PointRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  PaseRefRoute: typeof PaseRefRoute
   PassRefRoute: typeof PassRefRoute
 }
 
@@ -313,6 +351,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buscar': {
+      id: '/buscar'
+      path: '/buscar'
+      fullPath: '/buscar'
+      preLoaderRoute: typeof BuscarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -385,12 +430,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/pase/$ref': {
+      id: '/pase/$ref'
+      path: '/pase/$ref'
+      fullPath: '/pase/$ref'
+      preLoaderRoute: typeof PaseRefRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/pass/$ref': {
       id: '/pass/$ref'
@@ -488,6 +547,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssociateRoute: typeof AuthenticatedAssociateRoute
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
@@ -496,6 +556,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssociateRoute: AuthenticatedAssociateRoute,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 
@@ -505,12 +566,14 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  BuscarRoute: BuscarRoute,
   LoginRoute: LoginRoute,
   PointRoute: PointRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  PaseRefRoute: PaseRefRoute,
   PassRefRoute: PassRefRoute,
 }
 export const routeTree = rootRouteImport
