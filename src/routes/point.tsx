@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Brand, CodeChip } from "@/components/pasallave/ui-bits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { pointLogin, pointValidateCode } from "@/lib/point.functions";
+import { pointPing, pointLogin, pointValidateCode } from "@/lib/point.functions";
 import { formatCountdown, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import {
   AlertTriangle,
