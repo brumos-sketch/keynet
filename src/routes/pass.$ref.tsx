@@ -406,7 +406,7 @@ function BoardingPassPage() {
                       rel="noreferrer"
                       className="mt-2 inline-block text-sm font-bold text-electric hover:underline"
                     >
-                      {t.map}
+                      {t["map"]}
                     </a>
                   )}
                 </div>
@@ -471,13 +471,13 @@ function KioskSection({
   return (
     <>
       <div>
-        <p className="text-xs tracking-wide text-gray-500 uppercase">{t.point}</p>
+        <p className="text-xs tracking-wide text-gray-500 uppercase">{t["point"]}</p>
         <p className="mt-1 font-bold text-navy">{pass.kiosk_name ?? "—"}</p>
         <p className="text-sm text-gray-500">{pass.kiosk_address ?? "—"}</p>
       </div>
 
       {pass.kiosk_is_24h ? (
-        <Pill tone="success">{t.open24}</Pill>
+        <Pill tone="success">{t["open24"]}</Pill>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {WEEKDAYS.map((d) => {
@@ -517,7 +517,7 @@ function KioskSection({
           rel="noreferrer"
           className="inline-block text-sm font-bold text-electric hover:underline"
         >
-          {t.map}
+          {t["map"]}
         </a>
       )}
     </>
