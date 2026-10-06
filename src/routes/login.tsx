@@ -57,19 +57,15 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [storedPunto, setStoredPunto] = useState<string | null>(null);
-
+  // Guardamos el punto elegido para no perderlo durante login, registro o Google.
   useEffect(() => {
+    if (!punto) return;
     try {
-      const saved = sessionStorage.getItem("login_redirect_punto");
-      if (saved) {
-        setStoredPunto(saved);
-        sessionStorage.removeItem("login_redirect_punto");
-      }
+      localStorage.setItem("login_redirect_punto", punto);
     } catch {
       // ignore
     }
-  }, []);
+  }, [punto]);
 
   useEffect(() => {
     if (loading || !session || !role) return;
@@ -78,14 +74,21 @@ function LoginPage() {
       void signOut();
       return;
     }
-    const redirectPunto = punto || storedPunto;
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem("login_redirect_punto");
+      localStorage.removeItem("login_redirect_punto");
+    } catch {
+      // ignore
+    }
+    const redirectPunto = punto || stored;
     const target = ROLE_HOME[role as AppRole];
     if (role === "host" && redirectPunto) {
       void navigate({ to: target, search: { punto: redirectPunto }, replace: true });
     } else {
       void navigate({ to: target, replace: true });
     }
-  }, [loading, session, role, navigate, signOut, punto, storedPunto]);
+  }, [loading, session, role, navigate, signOut, punto]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -98,7 +101,7 @@ function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { name }, emailRedirectTo: window.location.origin },
+          options: { data: { name }, emailRedirectTo: `${window.location.origin}/login` },
         });
         if (error) throw error;
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -121,11 +124,8 @@ function LoginPage() {
 
   const handleGoogle = async () => {
     setBusy(true);
-    if (punto) {
-      sessionStorage.setItem("login_redirect_punto", punto);
-    }
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/login`,
     });
     if (result.error) {
       toast.error("No pudimos iniciar sesión con Google");
