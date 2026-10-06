@@ -183,15 +183,12 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     subKey: "waitingSub",
   },
   picked_up: {
-    accent: "#6b21a8",
-    showCode: false,
-    showKiosk: false,
-    showSteps: false,
-    icon: "✓",
-    iconBg: "#f3e8ff",
-    iconColor: "#6b21a8",
-    titleKey: "pickedTitle",
-    subKey: "pickedSub",
+    accent: "#1a237e",   // navy — el huésped sigue necesitando el código para devolver
+    showCode: true,
+    showKiosk: true,
+    showSteps: true,
+    titleKey: "label",
+    subKey: "stay",
   },
   completed: {
     accent: "#166534",
