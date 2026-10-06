@@ -612,6 +612,7 @@ export type Database = {
           name: string | null
           notify_email: boolean
           notify_push: boolean
+          payout_alias: string | null
           phone: string | null
         }
         Insert: {
@@ -622,6 +623,7 @@ export type Database = {
           name?: string | null
           notify_email?: boolean
           notify_push?: boolean
+          payout_alias?: string | null
           phone?: string | null
         }
         Update: {
@@ -632,6 +634,7 @@ export type Database = {
           name?: string | null
           notify_email?: boolean
           notify_push?: boolean
+          payout_alias?: string | null
           phone?: string | null
         }
         Relationships: [
