@@ -196,7 +196,14 @@ function SearchPage() {
             setQuery(value);
             setOrigin(null);
           }}
-          onSelect={(s) => setOrigin({ lat: s.lat, lng: s.lng, label: s.label })}
+          onSelect={(s) => {
+            setOrigin({ lat: s.lat, lng: s.lng, label: s.label });
+            try {
+              localStorage.setItem("search_address", s.label);
+            } catch {
+              /* ignore */
+            }
+          }}
           placeholder="Escribí una dirección, barrio o el nombre del punto"
           ariaLabel="Buscar puntos"
           inputClassName="h-12 rounded-2xl border-gray-200 pl-11"

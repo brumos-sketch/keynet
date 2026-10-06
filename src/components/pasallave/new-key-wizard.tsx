@@ -74,6 +74,20 @@ export function NewKeyWizard({
     plan: (forcePro ? "pro" : "one_use") as SubscriptionType,
   });
 
+  // Recupera la dirección que el usuario escribió en /search antes del login.
+  useEffect(() => {
+    if (!preselectedKioskId) return;
+    try {
+      const saved = localStorage.getItem("search_address");
+      if (saved) {
+        setForm((f) => (f.propertyName ? f : { ...f, propertyName: saved }));
+        localStorage.removeItem("search_address");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [preselectedKioskId]);
+
   const { data: kiosks } = useQuery({
     queryKey: ["host", "kiosks"],
     enabled: open,
@@ -386,12 +400,7 @@ export function NewKeyWizard({
                     <p className="text-sm text-gray-500">{PLAN_DETAILS[plan]}</p>
                   </button>
                     {plan === "pro" && form.plan === "pro" && (
-                      <a
-                        href="mailto:ventas@pasallave.com?subject=Consulta%20plan%20Pro"
-                                                className="mt-2 flex w-full items-center justify-center rounded-xl border border-input bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Contactar ventas
-                      </a>
+                      <SalesContact onDone={() => { setOpen(false); reset(); }} />
                     )}
                   </div>
                 );
@@ -461,6 +470,99 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-3">
       <span className="text-gray-500">{label}</span>
       <span className="text-right font-medium text-foreground">{value}</span>
+    </div>
+  );
+}
+
+function SalesContact({ onDone }: { onDone: () => void }) {
+  const [show, setShow] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [data, setData] = useState({ name: "", email: "", phone: "", message: "" });
+
+  useEffect(() => {
+    if (!show) return;
+    void (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      const user = u.user;
+      if (!user) return;
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("name, email, phone")
+        .eq("id", user.id)
+        .maybeSingle();
+      const meta = user.user_metadata as Record<string, string | undefined>;
+      setData((d) => ({
+        ...d,
+        name: d.name || p?.name || meta["full_name"] || meta["name"] || "",
+        email: d.email || p?.email || user.email || "",
+        phone: d.phone || p?.phone || "",
+      }));
+    })();
+  }, [show]);
+
+  const submit = async () => {
+    if (data.name.trim().length < 2 || !/\S+@\S+\.\S+/.test(data.email)) {
+      toast.error("Completá tu nombre y un email válido.");
+      return;
+    }
+    setBusy(true);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("sales_leads").insert({
+      user_id: u.user?.id ?? null,
+      name: data.name.trim(),
+      email: data.email.trim(),
+      phone: data.phone.trim() || null,
+      message: data.message.trim() || null,
+      plan: "pro",
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("No pudimos enviar tu solicitud. Probá de nuevo.");
+      return;
+    }
+    setSent(true);
+  };
+
+  if (!show)
+    return (
+      <Button type="button" variant="outline" className="mt-2 w-full" onClick={() => setShow(true)}>
+        Contactar ventas
+      </Button>
+    );
+
+  if (sent)
+    return (
+      <div className="mt-2 space-y-3 rounded-xl border border-electric/30 bg-electric/5 p-4 text-center">
+        <Check className="mx-auto h-8 w-8 text-electric" />
+        <p className="font-medium text-foreground">¡Listo! Nuestro equipo de ventas te va a contactar a la brevedad.</p>
+        <Button type="button" className="w-full" onClick={onDone}>
+          Continuar
+        </Button>
+      </div>
+    );
+
+  return (
+    <div className="mt-2 space-y-3 rounded-xl border border-gray-100 p-4">
+      <div className="space-y-1">
+        <Label htmlFor="sl-name">Nombre</Label>
+        <Input id="sl-name" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="sl-email">Email</Label>
+        <Input id="sl-email" type="email" value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="sl-phone">Teléfono</Label>
+        <Input id="sl-phone" type="tel" value={data.phone} onChange={(e) => setData({ ...data, phone: e.target.value })} />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="sl-msg">Comentario (opcional)</Label>
+        <Input id="sl-msg" placeholder="Ej.: administro 10 propiedades" value={data.message} onChange={(e) => setData({ ...data, message: e.target.value })} />
+      </div>
+      <Button type="button" className="w-full" disabled={busy} onClick={submit}>
+        {busy ? "Enviando…" : "Quiero que me contacte ventas"}
+      </Button>
     </div>
   );
 }
