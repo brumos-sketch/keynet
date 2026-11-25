@@ -719,6 +719,27 @@ export type Database = {
         }
         Relationships: []
       }
+      security_throttle: {
+        Row: {
+          failures: number
+          key: string
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          failures?: number
+          key: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          failures?: number
+          key?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -13,6 +13,13 @@ export function json(body: unknown, status = 200) {
 }
 
 export function errorJson(err: unknown, status = 400) {
+  if (err instanceof Error && err.name === "ThrottledError") {
+    const retryAfter = (err as Error & { retryAfter: number }).retryAfter;
+    return Response.json({ ok: false, error: err.message, locked: true, retryAfter }, {
+      status: 429,
+      headers: { ...CORS_HEADERS, "Retry-After": String(retryAfter) },
+    });
+  }
   if (err instanceof z.ZodError) return json({ ok: false, error: "Datos inválidos" }, 400);
   const message = err instanceof Error ? err.message : "Error inesperado";
   return json({ ok: false, error: message }, status);

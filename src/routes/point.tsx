@@ -244,8 +244,9 @@ function AccessScreen({ onEnter }: { onEnter: (point: PointInfo, code: string) =
   const mutation = useMutation({
     mutationFn: async () => login({ data: { accessCode: code } }),
     onSuccess: (info) => onEnter(info as PointInfo, code),
-    onError: () => {
-      setError("Código de acceso incorrecto");
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "";
+      setError(msg.startsWith("Demasiados") ? msg : "Código de acceso incorrecto");
       setCode("");
       setShake(true);
       setTimeout(() => setShake(false), 450);

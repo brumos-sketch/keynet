@@ -14,11 +14,13 @@ export const Route = createFileRoute("/api/public/locker/validate")({
       POST: async ({ request }) => {
         try {
           const data = bodySchema.parse(await request.json());
-          const { resolveKioskByAccessCode } = await import("@/lib/point.server");
-          const kiosk = await resolveKioskByAccessCode(data.accessCode);
+          const { guardedResolveKiosk } = await import("@/lib/guard.server");
+          const { clientIp } = await import("@/lib/throttle.server");
+          const ip = clientIp(request.headers);
+          const kiosk = await guardedResolveKiosk(data.accessCode, ip);
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { runCodeValidation } = await import("@/lib/exchange.server");
-          const result = await runCodeValidation(supabaseAdmin, kiosk.id, data.code);
+          const { guardedValidateCode } = await import("@/lib/guard.server");
+          const result = await guardedValidateCode(kiosk.id, data.code, ip);
           await supabaseAdmin.from("kiosks").update({ last_seen_at: new Date().toISOString() }).eq("id", kiosk.id);
           const action = result.action.includes("pick") ? "pickup" : result.action.includes("depos") ? "deposit" : result.action;
           const message =
