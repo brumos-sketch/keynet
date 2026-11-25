@@ -1,3 +1,4 @@
+import { formatCode } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -124,7 +125,7 @@ export function ProAccessCodes({
         },
       }),
     onSuccess: (res) => {
-      toast.success(`Código creado: ${res.code}`);
+      toast.success(`Código creado: ${formatCode(res.code)}`);
       setOpen(false);
       setForm({ personName: "", role: "guest", usage: "once", hasValidity: false, validFrom: "", validTo: "", timeFrom: "", timeTo: "" });
       void qc.invalidateQueries({ queryKey: ["host", "access-codes", keyId] });
@@ -307,7 +308,7 @@ export function ProAccessCodes({
 
             {/* código grande */}
             <p className={`text-2xl font-black font-mono tracking-widest mb-1 ${isRevoked ? "text-gray-400 line-through" : "text-electric"}`}>
-              {c.code}
+              {formatCode(c.code)}
             </p>
 
             {/* fechas */}
@@ -376,7 +377,7 @@ export function ProAccessCodes({
             <div className="space-y-4">
               <div className="flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
                 <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Código</span>
-                <span className="text-xl font-black font-mono tracking-widest text-electric">{editCode.code}</span>
+                <span className="text-xl font-black font-mono tracking-widest text-electric">{formatCode(editCode.code)}</span>
               </div>
               <div className="space-y-1.5">
                 <Label>Nombre (opcional)</Label>

@@ -1,3 +1,4 @@
+import { formatCode } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Copy, KeyRound as Key, Menu, Plus, Share2, User } from "lucide-react";
@@ -575,7 +576,7 @@ function KeyDetail({
                   </div>
                 </div>
                 <p className="text-2xl font-black font-mono tracking-widest text-electric mb-1">
-                  {ex.pickup_code}
+                  {formatCode(ex.pickup_code)}
                 </p>
                 <p className="text-xs text-gray-400 mb-3">
                   {ex.check_in && ex.check_out
@@ -1202,7 +1203,7 @@ function HostPanel() {
                 {/* código */}
                 <div className="flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
                   <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Código</span>
-                  <span className="text-xl font-black font-mono tracking-widest text-electric">{editCodeEx.pickupCode}</span>
+                  <span className="text-xl font-black font-mono tracking-widest text-electric">{formatCode(editCodeEx.pickupCode)}</span>
                   <CodeChip value={editCodeEx.bookingRef} />
                 </div>
 

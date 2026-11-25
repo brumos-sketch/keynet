@@ -135,9 +135,17 @@ function pick(source: string, length: number): string {
   return out;
 }
 
-/** Código de intercambio: XXX-XXX */
+/** Código de intercambio crudo: 6 dígitos (se muestra como XXX-XXX con formatCode). */
 export function generateExchangeCode(): string {
-  return `${pick(DIGITS, 3)}-${pick(DIGITS, 3)}`;
+  return pick(DIGITS, 6);
+}
+
+/** Muestra un código de 6 dígitos como 123-456; otros valores se devuelven igual. */
+export function formatCode(value: string | null | undefined): string {
+  if (!value) return "";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 6 && /^[\d\s-]+$/.test(value)) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return value;
 }
 
 /** Referencia de reserva: ABC-123 */

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
@@ -158,15 +159,18 @@ function CodeDisplay({
   return (
     <div
       className={cn("mb-5 grid gap-2 sm:gap-3", shake && "animate-shake")}
-      style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: length === 6 ? "repeat(3, minmax(0, 1fr)) auto repeat(3, minmax(0, 1fr))" : `repeat(${length}, minmax(0, 1fr))` }}
       aria-label={`Código de ${length} dígitos`}
     >
       {Array.from({ length }, (_, i) => {
         const char = digits[i];
         const isCursor = i === digits.length;
         return (
+          <Fragment key={i}>
+          {length === 6 && i === 3 && (
+            <div aria-hidden className="flex items-center justify-center text-3xl font-semibold text-gray-400">-</div>
+          )}
           <div
-            key={i}
             className={cn(
               "code-chip flex h-16 items-center justify-center rounded-xl border text-3xl font-semibold sm:h-20 sm:text-4xl",
               char
@@ -177,6 +181,7 @@ function CodeDisplay({
           >
             {char ?? ""}
           </div>
+          </Fragment>
         );
       })}
     </div>

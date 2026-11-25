@@ -1,3 +1,4 @@
+import { formatCode } from "@/lib/pasallave";
 import { Search, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function CodeChip({
         className,
       )}
     >
-      {value}
+      {formatCode(value)}
     </span>
   );
 }

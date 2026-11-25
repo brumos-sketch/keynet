@@ -1,3 +1,4 @@
+import { formatCode } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -282,7 +283,7 @@ function BoardingPassPage() {
 
   const schedule = (pass.kiosk_schedule ?? {}) as KioskSchedule;
 
-  const shareText = `${t.label} · ${pass.booking_ref}${pass.pickup_code ? ` · ${t.accessCode}: ${pass.pickup_code}` : ""}`;
+  const shareText = `${t.label} · ${pass.booking_ref}${pass.pickup_code ? ` · ${t.accessCode}: ${formatCode(pass.pickup_code)}` : ""}`;
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const handleCopy = async () => {
@@ -346,7 +347,7 @@ function BoardingPassPage() {
               <div className="border-b border-dashed border-gray-200 px-6 py-7 text-center">
                 <p className="text-xs tracking-widest text-gray-500 uppercase">{t.accessCode}</p>
                 <p className="mt-2 font-mono text-5xl font-bold tracking-[0.08em] text-navy">
-                  {pass.pickup_code ?? "—"}
+                  {pass.pickup_code ? formatCode(pass.pickup_code) : "—"}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">{t.bidirectional}</p>
                 {pass.pickup_time && (

@@ -1,3 +1,4 @@
+import { formatCode } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -292,8 +293,8 @@ function AdminExchanges() {
                 <Info label="Check-in" value={formatDate(detail.check_in)} />
                 <Info label="Check-out" value={formatDate(detail.check_out)} />
                 <Info label="Retiro previsto" value={detail.pickup_time ?? "—"} />
-                <Info label="Depósito" value={detail.deposit_code} />
-                <Info label="Retiro" value={detail.pickup_code ?? "—"} />
+                <Info label="Depósito" value={formatCode(detail.deposit_code)} />
+                <Info label="Retiro" value={detail.pickup_code ? formatCode(detail.pickup_code) : "—"} />
                 <Info label="Devolución" value={detail.return_code ?? "—"} />
               </div>
 
