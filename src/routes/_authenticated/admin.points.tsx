@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Clock, Lock, Pencil, Plus } from "lucide-react";
+import { Clock, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
+import { Pill, SearchField } from "@/components/pasallave/ui-bits";
 import {
   KIOSK_CATEGORIES,
   TIME_SLOTS,
@@ -126,21 +126,6 @@ function AdminKiosks() {
     },
   });
 
-
-  const regenerate = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("kiosks")
-        .update({ access_code: generateKioskCode() })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Código de acceso regenerado");
-      void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
 
   const [newKey, setNewKey] = useState<{ name: string; key: string } | null>(null);
   const genKeyFn = useServerFn(generateLockerKey);
@@ -621,34 +606,6 @@ function AdminKiosks() {
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm">
                 <span className="font-medium text-foreground">{k.contact_name ?? "Sin contacto"}</span>
                 <span className="text-gray-500">{k.contact_phone ?? "—"}</span>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-electric/5 px-4 py-3">
-                <span className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-electric" />
-                  <CodeChip value={k.access_code} />
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Código de acceso</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(k.access_code);
-                      toast.success("Código copiado");
-                    }}
-                  >
-                    Copiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={regenerate.isPending}
-                    onClick={() => regenerate.mutate(k.id)}
-                  >
-                    Regenerar
-                  </Button>
-                </span>
               </div>
 
               {k.point_type === "locker" && (

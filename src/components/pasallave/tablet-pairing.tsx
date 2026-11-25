@@ -74,6 +74,7 @@ export function TabletPairing({ onEnter }: { onEnter: (point: PointInfo) => void
           const data = await request("start", { deviceSecret: secret });
           current = pointEnrollmentSchema.parse({ ...data, deviceSecret: secret });
           localStorage.setItem(POINT_ENROLLMENT_KEY, JSON.stringify(current));
+          setNow(Date.now());
           setEnrollment(current);
           setExpired(false);
         }
@@ -99,7 +100,7 @@ export function TabletPairing({ onEnter }: { onEnter: (point: PointInfo) => void
           current = null;
           setEnrollment(null);
         }
-        setError(err instanceof Error ? err.message : "Sin conexión. Reintentando…");
+        setError(isRevokedDevice(err) ? "Dispositivo desvinculado. Se requiere una nueva aprobación." : err instanceof Error ? err.message : "Sin conexión. Reintentando…");
       }
       if (!controller.signal.aborted) timer = setTimeout(tick, 3000);
     };
