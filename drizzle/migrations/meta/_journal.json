@@ -15,6 +15,13 @@
       "when": 1795643746429,
       "tag": "0001_kiosk_type_locker_key",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795644934059,
+      "tag": "0002_locker_device_enrollment",
+      "breakpoints": true
     }
   ]
 }

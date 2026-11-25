@@ -1,4 +1,5 @@
 import { OnlineBadge } from "@/components/pasallave/online-badge";
+import { LockerPairing } from "@/components/pasallave/locker-pairing";
 import { formatAddress } from "@/lib/pasallave";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -46,6 +47,10 @@ export const Route = createFileRoute("/_authenticated/admin/points")({
     meta: [
       { title: "Puntos — PASALLAVE Admin" },
       { name: "description", content: "Alta y administración de puntos asociados PASALLAVE." },
+      { property: "og:title", content: "Puntos — PASALLAVE Admin" },
+      { property: "og:description", content: "Administración y vinculación de puntos y lockers PASALLAVE." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminKiosks,
@@ -665,6 +670,7 @@ function AdminKiosks() {
                   >
                     {k.api_key_prefix ? "Regenerar API key" : "Generar API key"}
                   </Button>
+                  <LockerPairing kioskId={k.id} name={k.name} hasKey={!!k.api_key_prefix} />
                 </div>
               )}
 

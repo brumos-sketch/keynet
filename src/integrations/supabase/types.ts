@@ -456,6 +456,53 @@ export type Database = {
           },
         ]
       }
+      locker_enrollments: {
+        Row: {
+          acknowledged_at: string | null
+          approved_at: string | null
+          approved_by: string | null
+          claim_code: string
+          created_at: string
+          device_secret_hash: string
+          expires_at: string
+          id: string
+          issued_key_hash: string | null
+          kiosk_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          claim_code: string
+          created_at?: string
+          device_secret_hash: string
+          expires_at?: string
+          id?: string
+          issued_key_hash?: string | null
+          kiosk_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          claim_code?: string
+          created_at?: string
+          device_secret_hash?: string
+          expires_at?: string
+          id?: string
+          issued_key_hash?: string | null
+          kiosk_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locker_enrollments_kiosk_id_fkey"
+            columns: ["kiosk_id"]
+            isOneToOne: false
+            referencedRelation: "kiosks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           booking_ref: string | null
@@ -823,6 +870,20 @@ export type Database = {
           status: string
         }[]
       }
+      claim_locker_enrollment: {
+        Args: { _claim_code: string; _kiosk_id: string }
+        Returns: string
+      }
+      deliver_locker_enrollment: {
+        Args: {
+          _ack: boolean
+          _id: string
+          _key_hash: string
+          _prefix: string
+          _secret_hash: string
+        }
+        Returns: string
+      }
       expire_one_use_exchanges: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -832,6 +893,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      locker_enrollment_limit: {
+        Args: { _key: string; _limit: number; _seconds: number }
+        Returns: boolean
+      }
       my_associate_id: { Args: never; Returns: string }
       my_host_id: { Args: never; Returns: string }
       my_kiosk_id: { Args: never; Returns: string }

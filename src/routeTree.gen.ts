@@ -38,6 +38,9 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as ApiPublicLockerInfoRouteImport } from './routes/api/public/locker/info'
 import { Route as ApiPublicLockerPingRouteImport } from './routes/api/public/locker/ping'
 import { Route as ApiPublicLockerValidateRouteImport } from './routes/api/public/locker/validate'
+import { Route as ApiPublicLockerEnrollAckRouteImport } from './routes/api/public/locker/enroll/ack'
+import { Route as ApiPublicLockerEnrollPollRouteImport } from './routes/api/public/locker/enroll/poll'
+import { Route as ApiPublicLockerEnrollStartRouteImport } from './routes/api/public/locker/enroll/start'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -186,6 +189,24 @@ const ApiPublicLockerValidateRoute = ApiPublicLockerValidateRouteImport.update({
   path: '/api/public/locker/validate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLockerEnrollAckRoute =
+  ApiPublicLockerEnrollAckRouteImport.update({
+    id: '/api/public/locker/enroll/ack',
+    path: '/api/public/locker/enroll/ack',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLockerEnrollPollRoute =
+  ApiPublicLockerEnrollPollRouteImport.update({
+    id: '/api/public/locker/enroll/poll',
+    path: '/api/public/locker/enroll/poll',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLockerEnrollStartRoute =
+  ApiPublicLockerEnrollStartRouteImport.update({
+    id: '/api/public/locker/enroll/start',
+    path: '/api/public/locker/enroll/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -216,6 +237,9 @@ export interface FileRoutesByFullPath {
   '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
   '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
   '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
+  '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
+  '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
+  '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -245,6 +269,9 @@ export interface FileRoutesByTo {
   '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
   '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
   '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
+  '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
+  '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
+  '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -277,6 +304,9 @@ export interface FileRoutesById {
   '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
   '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
   '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
+  '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
+  '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
+  '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -309,6 +339,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/info'
     | '/api/public/locker/ping'
     | '/api/public/locker/validate'
+    | '/api/public/locker/enroll/ack'
+    | '/api/public/locker/enroll/poll'
+    | '/api/public/locker/enroll/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -338,6 +371,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/info'
     | '/api/public/locker/ping'
     | '/api/public/locker/validate'
+    | '/api/public/locker/enroll/ack'
+    | '/api/public/locker/enroll/poll'
+    | '/api/public/locker/enroll/start'
   id:
     | '__root__'
     | '/'
@@ -369,6 +405,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/info'
     | '/api/public/locker/ping'
     | '/api/public/locker/validate'
+    | '/api/public/locker/enroll/ack'
+    | '/api/public/locker/enroll/poll'
+    | '/api/public/locker/enroll/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -386,6 +425,9 @@ export interface RootRouteChildren {
   ApiPublicLockerInfoRoute: typeof ApiPublicLockerInfoRoute
   ApiPublicLockerPingRoute: typeof ApiPublicLockerPingRoute
   ApiPublicLockerValidateRoute: typeof ApiPublicLockerValidateRoute
+  ApiPublicLockerEnrollAckRoute: typeof ApiPublicLockerEnrollAckRoute
+  ApiPublicLockerEnrollPollRoute: typeof ApiPublicLockerEnrollPollRoute
+  ApiPublicLockerEnrollStartRoute: typeof ApiPublicLockerEnrollStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -593,6 +635,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLockerValidateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/locker/enroll/ack': {
+      id: '/api/public/locker/enroll/ack'
+      path: '/api/public/locker/enroll/ack'
+      fullPath: '/api/public/locker/enroll/ack'
+      preLoaderRoute: typeof ApiPublicLockerEnrollAckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/locker/enroll/poll': {
+      id: '/api/public/locker/enroll/poll'
+      path: '/api/public/locker/enroll/poll'
+      fullPath: '/api/public/locker/enroll/poll'
+      preLoaderRoute: typeof ApiPublicLockerEnrollPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/locker/enroll/start': {
+      id: '/api/public/locker/enroll/start'
+      path: '/api/public/locker/enroll/start'
+      fullPath: '/api/public/locker/enroll/start'
+      preLoaderRoute: typeof ApiPublicLockerEnrollStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -659,6 +722,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLockerInfoRoute: ApiPublicLockerInfoRoute,
   ApiPublicLockerPingRoute: ApiPublicLockerPingRoute,
   ApiPublicLockerValidateRoute: ApiPublicLockerValidateRoute,
+  ApiPublicLockerEnrollAckRoute: ApiPublicLockerEnrollAckRoute,
+  ApiPublicLockerEnrollPollRoute: ApiPublicLockerEnrollPollRoute,
+  ApiPublicLockerEnrollStartRoute: ApiPublicLockerEnrollStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
