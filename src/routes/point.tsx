@@ -6,7 +6,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Brand, CodeChip } from "@/components/pasallave/ui-bits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { pointPing, pointLogin, pointValidateCode } from "@/lib/point.functions";
+import { TabletPairing } from "@/components/pasallave/tablet-pairing";
+import { POINT_DEVICE_KEY, POINT_ENROLLMENT_KEY, isRevokedDevice, type PointInfo } from "@/lib/point-device";
+import { pointPing, pointValidateCode } from "@/lib/point.functions";
 import { formatCountdown, kioskOpenState, type KioskSchedule } from "@/lib/pasallave";
 import {
   AlertTriangle,
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/point")({
       { title: "Panel del punto — PASALLAVE" },
       {
         name: "description",
-        content: "Ingresá el código de acceso del punto y validá depósitos, retiros y devoluciones.",
+        content: "Vinculá tu tablet y validá depósitos, retiros y devoluciones de llaves.",
       },
       { property: "og:title", content: "Panel del punto — PASALLAVE" },
       {
@@ -40,17 +42,6 @@ export const Route = createFileRoute("/point")({
   }),
   component: PointPage,
 });
-
-const STORAGE_KEY = "pasallave.point.code";
-
-type PointInfo = {
-  id: string;
-  name: string;
-  address: string | null;
-  is24h: boolean;
-  schedule: unknown;
-  positions: number;
-};
 
 const ACTION_META: Record<
   string,
@@ -190,109 +181,35 @@ function CodeDisplay({
 
 function PointPage() {
   const [point, setPoint] = useState<PointInfo | null>(null);
-  const [booted, setBooted] = useState(false);
-  const login = useServerFn(pointLogin);
-
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
-    if (!stored) {
-      setBooted(true);
-      return;
-    }
-    login({ data: { accessCode: stored } })
-      .then((info) => setPoint(info as PointInfo))
-      .catch(() => window.localStorage.removeItem(STORAGE_KEY))
-      .finally(() => setBooted(true));
-  }, [login]);
-
   const ping = useServerFn(pointPing);
   useEffect(() => {
+    // Retire the numeric terminal credential; paired tablets use a secret key.
+    localStorage.removeItem("pasallave.point.code");
     if (!point) return;
     const beat = () => {
-      const accessCode = window.localStorage.getItem(STORAGE_KEY);
-      if (accessCode) ping({ data: { accessCode } }).catch(() => {});
+      const apiKey = localStorage.getItem(POINT_DEVICE_KEY);
+      if (apiKey) ping({ data: { apiKey } }).catch((error: unknown) => {
+        if (isRevokedDevice(error)) {
+          localStorage.removeItem(POINT_DEVICE_KEY);
+          localStorage.removeItem(POINT_ENROLLMENT_KEY);
+          setPoint(null);
+        }
+      });
     };
     beat();
     const t = setInterval(beat, 45000);
     return () => clearInterval(t);
   }, [point, ping]);
 
-  if (!booted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-gray-500">Cargando…</p>
-      </div>
-    );
-  }
-
-  if (!point) {
-    return <AccessScreen onEnter={(info, code) => {
-      window.localStorage.setItem(STORAGE_KEY, code);
-      setPoint(info);
-    }} />;
-  }
-
-  return <PointPanel point={point} />;
+  if (!point) return <TabletPairing onEnter={setPoint} />;
+  return <PointPanel point={point} onRevoked={() => {
+    localStorage.removeItem(POINT_DEVICE_KEY);
+    localStorage.removeItem(POINT_ENROLLMENT_KEY);
+    setPoint(null);
+  }} />;
 }
 
-function AccessScreen({ onEnter }: { onEnter: (point: PointInfo, code: string) => void }) {
-  const login = useServerFn(pointLogin);
-  const [code, setCode] = useState("");
-  const [shake, setShake] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const mutation = useMutation({
-    mutationFn: async () => login({ data: { accessCode: code } }),
-    onSuccess: (info) => onEnter(info as PointInfo, code),
-    onError: (err) => {
-      const msg = err instanceof Error ? err.message : "";
-      setError(msg.startsWith("Demasiados") ? msg : "Código de acceso incorrecto");
-      setCode("");
-      setShake(true);
-      setTimeout(() => setShake(false), 450);
-    },
-  });
-
-  const digits = code.replace(/\D/g, "");
-
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="glass-card w-full max-w-md p-6">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <Brand />
-          <p className="text-sm text-gray-500">Ingresá el código de acceso del punto</p>
-        </div>
-
-        <CodeDisplay digits={digits} length={6} shake={shake} active />
-
-        {error ? (
-          <p className="mb-4 text-center text-sm font-medium text-destructive">{error}</p>
-        ) : null}
-
-        <Keypad
-          onDigit={(d) =>
-            setCode((prev) => {
-              setError(null);
-              return prev.replace(/\D/g, "").length >= 6 ? prev : prev + d;
-            })
-          }
-          onClear={() => setCode("")}
-          onBackspace={() => setCode((p) => p.slice(0, -1))}
-        />
-
-        <Button
-          className="mt-4 h-14 w-full rounded-2xl text-lg font-bold shadow-blue"
-          disabled={digits.length < 6 || mutation.isPending}
-          onClick={() => mutation.mutate()}
-        >
-          {mutation.isPending ? "Verificando…" : "Ingresar"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function PointPanel({ point }: { point: PointInfo }) {
+function PointPanel({ point, onRevoked }: { point: PointInfo; onRevoked: () => void }) {
   const validate = useServerFn(pointValidateCode);
   const [code, setCode] = useState("");
   const [shake, setShake] = useState(false);
@@ -312,8 +229,8 @@ function PointPanel({ point }: { point: PointInfo }) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const accessCode = window.localStorage.getItem(STORAGE_KEY) ?? "";
-      return validate({ data: { accessCode, code } });
+      const apiKey = window.localStorage.getItem(POINT_DEVICE_KEY) ?? "";
+      return validate({ data: { apiKey, code } });
     },
     onSuccess: (result) => {
       setScreen({
@@ -325,6 +242,7 @@ function PointPanel({ point }: { point: PointInfo }) {
       setCode("");
     },
     onError: (error: Error) => {
+      if (isRevokedDevice(error)) { onRevoked(); return; }
       const message = error.message || "No pudimos validar el código";
       const isSchedule = /horario|válido aún|aún no es válido/i.test(message);
       if (isSchedule) {

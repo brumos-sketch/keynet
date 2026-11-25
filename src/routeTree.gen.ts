@@ -41,6 +41,9 @@ import { Route as ApiPublicLockerValidateRouteImport } from './routes/api/public
 import { Route as ApiPublicLockerEnrollAckRouteImport } from './routes/api/public/locker/enroll/ack'
 import { Route as ApiPublicLockerEnrollPollRouteImport } from './routes/api/public/locker/enroll/poll'
 import { Route as ApiPublicLockerEnrollStartRouteImport } from './routes/api/public/locker/enroll/start'
+import { Route as ApiPublicPointEnrollAckRouteImport } from './routes/api/public/point/enroll/ack'
+import { Route as ApiPublicPointEnrollPollRouteImport } from './routes/api/public/point/enroll/poll'
+import { Route as ApiPublicPointEnrollStartRouteImport } from './routes/api/public/point/enroll/start'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -207,6 +210,23 @@ const ApiPublicLockerEnrollStartRoute =
     path: '/api/public/locker/enroll/start',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPointEnrollAckRoute = ApiPublicPointEnrollAckRouteImport.update({
+  id: '/api/public/point/enroll/ack',
+  path: '/api/public/point/enroll/ack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPointEnrollPollRoute =
+  ApiPublicPointEnrollPollRouteImport.update({
+    id: '/api/public/point/enroll/poll',
+    path: '/api/public/point/enroll/poll',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPointEnrollStartRoute =
+  ApiPublicPointEnrollStartRouteImport.update({
+    id: '/api/public/point/enroll/start',
+    path: '/api/public/point/enroll/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -240,6 +260,9 @@ export interface FileRoutesByFullPath {
   '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
   '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
   '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
+  '/api/public/point/enroll/ack': typeof ApiPublicPointEnrollAckRoute
+  '/api/public/point/enroll/poll': typeof ApiPublicPointEnrollPollRoute
+  '/api/public/point/enroll/start': typeof ApiPublicPointEnrollStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -272,6 +295,9 @@ export interface FileRoutesByTo {
   '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
   '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
   '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
+  '/api/public/point/enroll/ack': typeof ApiPublicPointEnrollAckRoute
+  '/api/public/point/enroll/poll': typeof ApiPublicPointEnrollPollRoute
+  '/api/public/point/enroll/start': typeof ApiPublicPointEnrollStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -307,6 +333,9 @@ export interface FileRoutesById {
   '/api/public/locker/enroll/ack': typeof ApiPublicLockerEnrollAckRoute
   '/api/public/locker/enroll/poll': typeof ApiPublicLockerEnrollPollRoute
   '/api/public/locker/enroll/start': typeof ApiPublicLockerEnrollStartRoute
+  '/api/public/point/enroll/ack': typeof ApiPublicPointEnrollAckRoute
+  '/api/public/point/enroll/poll': typeof ApiPublicPointEnrollPollRoute
+  '/api/public/point/enroll/start': typeof ApiPublicPointEnrollStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -342,6 +371,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/enroll/ack'
     | '/api/public/locker/enroll/poll'
     | '/api/public/locker/enroll/start'
+    | '/api/public/point/enroll/ack'
+    | '/api/public/point/enroll/poll'
+    | '/api/public/point/enroll/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -374,6 +406,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/enroll/ack'
     | '/api/public/locker/enroll/poll'
     | '/api/public/locker/enroll/start'
+    | '/api/public/point/enroll/ack'
+    | '/api/public/point/enroll/poll'
+    | '/api/public/point/enroll/start'
   id:
     | '__root__'
     | '/'
@@ -408,6 +443,9 @@ export interface FileRouteTypes {
     | '/api/public/locker/enroll/ack'
     | '/api/public/locker/enroll/poll'
     | '/api/public/locker/enroll/start'
+    | '/api/public/point/enroll/ack'
+    | '/api/public/point/enroll/poll'
+    | '/api/public/point/enroll/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -428,6 +466,9 @@ export interface RootRouteChildren {
   ApiPublicLockerEnrollAckRoute: typeof ApiPublicLockerEnrollAckRoute
   ApiPublicLockerEnrollPollRoute: typeof ApiPublicLockerEnrollPollRoute
   ApiPublicLockerEnrollStartRoute: typeof ApiPublicLockerEnrollStartRoute
+  ApiPublicPointEnrollAckRoute: typeof ApiPublicPointEnrollAckRoute
+  ApiPublicPointEnrollPollRoute: typeof ApiPublicPointEnrollPollRoute
+  ApiPublicPointEnrollStartRoute: typeof ApiPublicPointEnrollStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -656,6 +697,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLockerEnrollStartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/point/enroll/ack': {
+      id: '/api/public/point/enroll/ack'
+      path: '/api/public/point/enroll/ack'
+      fullPath: '/api/public/point/enroll/ack'
+      preLoaderRoute: typeof ApiPublicPointEnrollAckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/point/enroll/poll': {
+      id: '/api/public/point/enroll/poll'
+      path: '/api/public/point/enroll/poll'
+      fullPath: '/api/public/point/enroll/poll'
+      preLoaderRoute: typeof ApiPublicPointEnrollPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/point/enroll/start': {
+      id: '/api/public/point/enroll/start'
+      path: '/api/public/point/enroll/start'
+      fullPath: '/api/public/point/enroll/start'
+      preLoaderRoute: typeof ApiPublicPointEnrollStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -725,6 +787,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLockerEnrollAckRoute: ApiPublicLockerEnrollAckRoute,
   ApiPublicLockerEnrollPollRoute: ApiPublicLockerEnrollPollRoute,
   ApiPublicLockerEnrollStartRoute: ApiPublicLockerEnrollStartRoute,
+  ApiPublicPointEnrollAckRoute: ApiPublicPointEnrollAckRoute,
+  ApiPublicPointEnrollPollRoute: ApiPublicPointEnrollPollRoute,
+  ApiPublicPointEnrollStartRoute: ApiPublicPointEnrollStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

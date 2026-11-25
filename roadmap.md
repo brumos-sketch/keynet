@@ -1,4 +1,5 @@
-# Locker pairing
-- [x] Add protected temporary enrollment, admin approval and credential acknowledgement.
-- [x] Add device pairing controls to Admin → Points.
-- [x] Document the ESP32 protocol and verify the complete pairing flow with a temporary admin and locker.
+# Device pairing
+- [ ] Generate random LK-ABC-123 / PT-ABC-123 codes with ten-minute approval.
+- [ ] Extend secure enrollment and admin revocation to assisted points.
+- [ ] Persist tablet pairing and reopen directly to the keypad.
+- [ ] Test pairing, reopening, revocation and document device setup.

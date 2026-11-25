@@ -670,9 +670,13 @@ function AdminKiosks() {
                   >
                     {k.api_key_prefix ? "Regenerar API key" : "Generar API key"}
                   </Button>
-                  <LockerPairing kioskId={k.id} name={k.name} hasKey={!!k.api_key_prefix} />
                 </div>
               )}
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3">
+                <span className="text-sm text-muted-foreground">{k.api_key_hash ? "Dispositivo autorizado" : "Sin dispositivo vinculado"}</span>
+                <LockerPairing kioskId={k.id} name={k.name} hasKey={!!k.api_key_hash} pointType={k.point_type === "locker" ? "locker" : "point"} />
+              </div>
 
 
               <div className="mt-3 rounded-xl bg-gray-50 px-4 py-3">

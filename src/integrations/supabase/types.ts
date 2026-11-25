@@ -464,6 +464,7 @@ export type Database = {
           claim_code: string
           created_at: string
           device_secret_hash: string
+          device_type: string
           expires_at: string
           id: string
           issued_key_hash: string | null
@@ -476,6 +477,7 @@ export type Database = {
           claim_code: string
           created_at?: string
           device_secret_hash: string
+          device_type?: string
           expires_at?: string
           id?: string
           issued_key_hash?: string | null
@@ -488,6 +490,7 @@ export type Database = {
           claim_code?: string
           created_at?: string
           device_secret_hash?: string
+          device_type?: string
           expires_at?: string
           id?: string
           issued_key_hash?: string | null
@@ -900,6 +903,7 @@ export type Database = {
       my_associate_id: { Args: never; Returns: string }
       my_host_id: { Args: never; Returns: string }
       my_kiosk_id: { Args: never; Returns: string }
+      revoke_point_device: { Args: { _kiosk_id: string }; Returns: undefined }
       search_kiosks_public: {
         Args: never
         Returns: {

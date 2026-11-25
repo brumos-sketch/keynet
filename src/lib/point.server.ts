@@ -22,6 +22,10 @@ export async function resolveKioskByAccessCode(accessCode: string) {
 
 /** Finds the locker that owns the Bearer API key in the request, or throws. */
 export async function resolveLockerByBearer(headers: Headers) {
+  return resolveDeviceByBearer(headers, "locker");
+}
+
+export async function resolveDeviceByBearer(headers: Headers, type: "locker" | "point") {
   const auth = headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
   if (!token || token === auth) throw new Error("Falta la API key del locker");
@@ -29,7 +33,7 @@ export async function resolveLockerByBearer(headers: Headers) {
   const { data: kiosk } = await supabaseAdmin
     .from("kiosks")
     .select("id, name, address, positions, is_24h, schedule, access_code")
-    .eq("point_type", "locker")
+    .eq("point_type", type)
     .eq("api_key_hash", await hashLockerKey(token))
     .maybeSingle();
   if (!kiosk) throw new Error("API key inválida o revocada");

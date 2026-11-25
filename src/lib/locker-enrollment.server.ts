@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { hashLockerKey } from "./locker-key";
-import { deriveEnrollmentKey, deviceSecretSchema, enrollmentRequestSchema, ENROLLMENT_SECONDS, POLL_SECONDS } from "./locker-enrollment";
+import { deriveEnrollmentKey, deviceSecretSchema, enrollmentRequestSchema, generateClaimCode, ENROLLMENT_SECONDS, POLL_SECONDS } from "./locker-enrollment";
 import { json, errorJson } from "./locker-api.server";
 import { clientIp, ThrottledError } from "./throttle.server";
 
-export async function enrollmentHandler(request: Request, action: "start" | "poll" | "ack") {
+export async function enrollmentHandler(request: Request, action: "start" | "poll" | "ack", deviceType: "locker" | "point" = "locker") {
   try {
     if (Number(request.headers.get("content-length") ?? 0) > 2048) return json({ ok: false, error: "Datos inválidos" }, 413);
     const text = await request.text();
@@ -15,22 +15,25 @@ export async function enrollmentHandler(request: Request, action: "start" | "pol
       : enrollmentRequestSchema.parse(body);
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: allowed, error: limitError } = await db.rpc("locker_enrollment_limit", {
-      _key: `enroll:${action}:${clientIp(request.headers)}`, _limit: action === "start" ? 5 : 120,
+      _key: `enroll:${deviceType}:${action}:${clientIp(request.headers)}`, _limit: action === "start" ? 5 : 120,
       _seconds: action === "start" ? 600 : 60,
     });
     if (limitError) throw new Error("No se pudo iniciar la vinculación");
     if (!allowed) throw new ThrottledError(action === "start" ? 600 : 60);
     const secretHash = await hashLockerKey(input.deviceSecret);
     if (action === "start") {
-      const bytes = crypto.getRandomValues(new Uint8Array(4));
-      const claimCode = "LK-" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
       const expiresAt = new Date(Date.now() + ENROLLMENT_SECONDS * 1000).toISOString();
-      const { data, error } = await db.from("locker_enrollments").insert({ claim_code: claimCode, device_secret_hash: secretHash, expires_at: expiresAt }).select("id").single();
-      if (error || !data) throw new Error("No se pudo iniciar la vinculación. Probá de nuevo");
-      return json({ ok: true, enrollmentId: data.id, claimCode, expiresAt, pollAfter: POLL_SECONDS });
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const claimCode = generateClaimCode(deviceType);
+        const { data, error } = await db.from("locker_enrollments").insert({ claim_code: claimCode, device_type: deviceType, device_secret_hash: secretHash, expires_at: expiresAt }).select("id").single();
+        if (error?.code === "23505") continue;
+        if (error || !data) throw new Error("No se pudo iniciar la vinculación. Probá de nuevo");
+        return json({ ok: true, enrollmentId: data.id, claimCode, expiresAt, pollAfter: POLL_SECONDS });
+      }
+      throw new Error("No se pudo iniciar la vinculación. Probá de nuevo");
     }
     const parsed = enrollmentRequestSchema.parse(input);
-    const { data: enrollment, error } = await db.from("locker_enrollments").select("kiosk_id, expires_at").eq("id", parsed.enrollmentId).eq("device_secret_hash", secretHash).maybeSingle();
+    const { data: enrollment, error } = await db.from("locker_enrollments").select("kiosk_id, expires_at").eq("id", parsed.enrollmentId).eq("device_secret_hash", secretHash).eq("device_type", deviceType).maybeSingle();
     if (error) throw new Error("No se pudo consultar la vinculación");
     if (!enrollment) return json({ ok: false, error: "Vinculación inválida" }, 401);
     if (new Date(enrollment.expires_at).getTime() <= Date.now()) return json({ ok: false, status: "expired", error: "Iniciá una nueva vinculación" }, 410);

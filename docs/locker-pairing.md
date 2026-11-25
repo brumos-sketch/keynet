@@ -13,7 +13,7 @@ Este protocolo requiere incorporarse al firmware del ESP32; no instala ni actual
 { "deviceSecret": "<64 caracteres hexadecimales aleatorios>" }
 ```
 
-Respuesta: `ok`, `enrollmentId`, `claimCode` (por ejemplo `LK-A1B2C3D4`), `expiresAt` y `pollAfter: 3`. Guardar el identificador y mostrar el código en la pantalla. Vence a los 10 minutos. Nunca mostrar ni registrar el secreto.
+Respuesta: `ok`, `enrollmentId`, `claimCode` (por ejemplo `LK-ABC-123`), `expiresAt` y `pollAfter: 3`. El servidor genera aleatoriamente tres letras y tres números. Guardar el identificador y mostrar el código en la pantalla. Vence a los 10 minutos. Nunca mostrar ni registrar el secreto.
 
 4. En Admin → Puntos, elegir el locker automático, pulsar **Vincular dispositivo** e ingresar ese código. Solo el administrador puede aprobarlo. Si reemplaza un dispositivo, su clave anterior deja de funcionar cuando el nuevo recibe la suya.
 5. Cada 3 segundos enviar `POST /api/public/locker/enroll/poll`:
@@ -46,3 +46,13 @@ La vinculación no acciona relés: el firmware sigue siendo responsable del coma
 - El código visible solo permite solicitar aprobación: por sí solo no permite obtener la API key. El servidor guarda únicamente hashes; la clave es entregada al dispositivo mediante HTTPS y no al administrador.
 
 No se usa Web Push: la consulta breve produce la vinculación automática sin depender de un servicio de notificaciones.
+
+## Tablets de puntos asistidos
+
+Abrir `/point` en el navegador, PWA o aplicación de la tablet. La pantalla genera el secreto automáticamente y solicita un código `PT-ABC-123` al servidor. En **Admin → Puntos**, pulsar **Vincular tablet** en el punto asistido correspondiente e ingresar el código.
+
+La tablet usa el mismo protocolo seguro en `/api/public/point/enroll/start`, `/poll` y `/ack`. La aprobación solo admite códigos del tipo de punto elegido. La credencial se guarda en el almacenamiento persistente del mismo navegador y origen; cada operación verifica su hash en el servidor. Al cerrar y volver a abrir, reiniciar o cortar la luz, se vuelve directamente al teclado sin otro código de acceso.
+
+Si se borran los datos del navegador, se cambia de navegador o dirección del sitio, se usa modo incógnito o el administrador desvincula el dispositivo, será necesaria una nueva aprobación. Un corte de red no borra la credencial ni permite operar sin validación. Para la instalación definitiva usar siempre la dirección publicada, no la de vista previa.
+
+**Desvincular** revoca inmediatamente la credencial e invalida entregas pendientes. La pantalla vuelve a vinculación cuando detecta la revocación (en el siguiente control, cada 45 segundos, o al intentar operar). Reemplazar un dispositivo autoriza solo la nueva credencial; cada punto tiene un dispositivo autorizado a la vez.

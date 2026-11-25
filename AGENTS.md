@@ -9,4 +9,5 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Locker API (/api/public/locker/*) authenticates by Bearer API key; only its SHA-256 hash is stored on kiosks, shown once on generation. Why: a DB leak must not expose usable keys.
-- Locker enrollment uses admin-approved ten-minute claim codes and a device-generated 256-bit secret; derive credentials using HMAC, persist hashes only, deliver retryably until acknowledgement, and serialize approval/delivery with database locks. Why: pairing must survive lost responses without exposing keys or allowing replay after revocation.
+- Device enrollment for lockers and assisted tablets uses type-bound, admin-approved ten-minute claim codes and a device-generated 256-bit secret; derive credentials using HMAC, persist hashes only, deliver retryably until acknowledgement, and serialize approval/delivery/revocation with database locks. Why: pairing must survive lost responses without exposing keys or allowing replay after revocation.
+- Assisted terminals persist their device credential in browser storage and revalidate it on reopening and every operation; retain it on network errors, discard it on confirmed revocation, and never fall back to a numeric point login. Why: closing the browser must not require pairing again or bypass administrator revocation.
