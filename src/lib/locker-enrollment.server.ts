@@ -30,10 +30,14 @@ export async function enrollmentHandler(request: Request, action: "start" | "pol
       return json({ ok: true, enrollmentId: data.id, claimCode, expiresAt, pollAfter: POLL_SECONDS });
     }
     const parsed = enrollmentRequestSchema.parse(input);
-    const { data: enrollment, error } = await db.from("locker_enrollments").select("kiosk_id").eq("id", parsed.enrollmentId).eq("device_secret_hash", secretHash).maybeSingle();
+    const { data: enrollment, error } = await db.from("locker_enrollments").select("kiosk_id, expires_at").eq("id", parsed.enrollmentId).eq("device_secret_hash", secretHash).maybeSingle();
     if (error) throw new Error("No se pudo consultar la vinculación");
     if (!enrollment) return json({ ok: false, error: "Vinculación inválida" }, 401);
-    const key = enrollment.kiosk_id ? await deriveEnrollmentKey(input.deviceSecret, parsed.enrollmentId, enrollment.kiosk_id) : "";
+    if (new Date(enrollment.expires_at).getTime() <= Date.now()) return json({ ok: false, status: "expired", error: "Iniciá una nueva vinculación" }, 410);
+    // Approval may happen between this read and delivery. Never issue a key
+    // derived from an unapproved/null locker; wait for the next poll instead.
+    if (!enrollment.kiosk_id) return json({ ok: true, status: "pending", pollAfter: POLL_SECONDS });
+    const key = await deriveEnrollmentKey(input.deviceSecret, parsed.enrollmentId, enrollment.kiosk_id);
     const { data: status, error: deliveryError } = await db.rpc("deliver_locker_enrollment", {
       _id: parsed.enrollmentId, _secret_hash: secretHash, _key_hash: await hashLockerKey(key), _prefix: key.slice(0, 13), _ack: action === "ack",
     });
