@@ -380,6 +380,8 @@ export type Database = {
         Row: {
           access_code: string
           address: string | null
+          api_key_hash: string | null
+          api_key_prefix: string | null
           associate_id: string | null
           category: string
           commission_percent: number
@@ -394,12 +396,15 @@ export type Database = {
           lng: number | null
           name: string
           photo_url: string | null
+          point_type: string
           positions: number
           schedule: Json
         }
         Insert: {
           access_code: string
           address?: string | null
+          api_key_hash?: string | null
+          api_key_prefix?: string | null
           associate_id?: string | null
           category?: string
           commission_percent?: number
@@ -414,12 +419,15 @@ export type Database = {
           lng?: number | null
           name: string
           photo_url?: string | null
+          point_type?: string
           positions?: number
           schedule?: Json
         }
         Update: {
           access_code?: string
           address?: string | null
+          api_key_hash?: string | null
+          api_key_prefix?: string | null
           associate_id?: string | null
           category?: string
           commission_percent?: number
@@ -434,6 +442,7 @@ export type Database = {
           lng?: number | null
           name?: string
           photo_url?: string | null
+          point_type?: string
           positions?: number
           schedule?: Json
         }

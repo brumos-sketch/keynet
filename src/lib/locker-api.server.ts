@@ -3,7 +3,7 @@ import { z } from "zod";
 export const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
 export const accessCodeSchema = z.string().trim().min(3).max(20);
@@ -22,6 +22,7 @@ export function errorJson(err: unknown, status = 400) {
   }
   if (err instanceof z.ZodError) return json({ ok: false, error: "Datos inválidos" }, 400);
   const message = err instanceof Error ? err.message : "Error inesperado";
+  if (/API key/.test(message)) return json({ ok: false, error: message }, 401);
   return json({ ok: false, error: message }, status);
 }
 

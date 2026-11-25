@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { accessCodeSchema, errorJson, json, preflight } from "@/lib/locker-api.server";
+import { errorJson, json, preflight } from "@/lib/locker-api.server";
 
 const bodySchema = z.object({
-  accessCode: accessCodeSchema,
   code: z.string().trim().min(3).max(12),
 });
 
@@ -14,10 +13,10 @@ export const Route = createFileRoute("/api/public/locker/validate")({
       POST: async ({ request }) => {
         try {
           const data = bodySchema.parse(await request.json());
-          const { guardedResolveKiosk } = await import("@/lib/guard.server");
+          const { guardedResolveLocker } = await import("@/lib/guard.server");
           const { clientIp } = await import("@/lib/throttle.server");
           const ip = clientIp(request.headers);
-          const kiosk = await guardedResolveKiosk(data.accessCode, ip);
+          const kiosk = await guardedResolveLocker(request.headers, ip);
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { guardedValidateCode } = await import("@/lib/guard.server");
           const result = await guardedValidateCode(kiosk.id, data.code, ip);

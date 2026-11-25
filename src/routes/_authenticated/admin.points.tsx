@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddressAutocomplete } from "@/components/pasallave/address-autocomplete";
 import { geocodeAddress } from "@/lib/geo.functions";
+import { generateLockerKey } from "@/lib/locker-key.functions";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -77,6 +78,7 @@ const blankForm = {
   contactPhone: "",
   associateId: "",
   is24h: false,
+  pointType: "point" as "point" | "locker",
   schedule: emptySchedule as KioskSchedule,
 };
 
@@ -135,6 +137,20 @@ function AdminKiosks() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [newKey, setNewKey] = useState<{ name: string; key: string } | null>(null);
+  const genKeyFn = useServerFn(generateLockerKey);
+  const genKey = useMutation({
+    mutationFn: async (k: { id: string; name: string }) => {
+      const { key } = await genKeyFn({ data: { kioskId: k.id } });
+      return { name: k.name, key };
+    },
+    onSuccess: (res) => {
+      setNewKey(res);
+      void qc.invalidateQueries({ queryKey: ["admin", "kiosks"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const geocodeFn = useServerFn(geocodeAddress);
   const locate = useMutation({
     mutationFn: async (k: { id: string; address: string | null }) => {
@@ -169,6 +185,7 @@ function AdminKiosks() {
         contact_phone: form.contactPhone.trim() || null,
         associate_id: form.associateId || null,
         is_24h: form.is24h,
+        point_type: form.pointType,
         schedule: form.is24h ? {} : form.schedule,
       };
       const { error } = editingId
@@ -205,6 +222,7 @@ function AdminKiosks() {
     contact_phone: string | null;
     associate_id: string | null;
     is_24h: boolean;
+    point_type: string;
     schedule: unknown;
   }) => {
     setEditingId(k.id);
@@ -221,6 +239,7 @@ function AdminKiosks() {
       contactPhone: k.contact_phone ?? "",
       associateId: k.associate_id ?? "",
       is24h: k.is_24h,
+      pointType: k.point_type === "locker" ? "locker" : "point",
       schedule: ((k.schedule as KioskSchedule) ?? emptySchedule) || emptySchedule,
     });
     setOpen(true);
@@ -405,6 +424,27 @@ function AdminKiosks() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([["point", "Punto asistido"], ["locker", "Locker automático"]] as const).map(([v, l]) => (
+                    <Button
+                      key={v}
+                      type="button"
+                      variant={form.pointType === v ? "default" : "outline"}
+                      onClick={() => setForm({ ...form, pointType: v })}
+                    >
+                      {l}
+                    </Button>
+                  ))}
+                </div>
+                {form.pointType === "locker" && (
+                  <p className="text-xs text-muted-foreground">
+                    Después de guardar, generá la API key desde la tarjeta del locker.
+                  </p>
+                )}
+              </div>
+
               <div className="flex items-center justify-between rounded-xl border border-gray-100 p-3">
                 <Label htmlFor="k-24h">Abierto 24 horas</Label>
                 <Switch
@@ -501,6 +541,7 @@ function AdminKiosks() {
                 <div className="min-w-0">
                   <h2 className="text-lg font-bold text-navy">{k.name}</h2>
 <OnlineBadge lastSeenAt={k.last_seen_at} />
+{k.point_type === "locker" ? <Pill tone="orange">LOCKER</Pill> : <Pill>PUNTO</Pill>}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Pill tone="info">
                       {KIOSK_CATEGORIES.find((c) => c.value === k.category)?.label ??
@@ -605,6 +646,28 @@ function AdminKiosks() {
                 </span>
               </div>
 
+              {k.point_type === "locker" && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent/10 px-4 py-3">
+                  <span className="text-sm">
+                    <span className="font-medium">API key del locker: </span>
+                    <span className="font-mono text-muted-foreground">
+                      {k.api_key_prefix ? `${k.api_key_prefix}…` : "Sin generar"}
+                    </span>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant={k.api_key_prefix ? "outline" : "default"}
+                    disabled={genKey.isPending}
+                    onClick={() => {
+                      if (k.api_key_prefix && !confirm("La clave actual dejará de funcionar en el locker. ¿Generar una nueva?")) return;
+                      genKey.mutate({ id: k.id, name: k.name });
+                    }}
+                  >
+                    {k.api_key_prefix ? "Regenerar API key" : "Generar API key"}
+                  </Button>
+                </div>
+              )}
+
 
               <div className="mt-3 rounded-xl bg-gray-50 px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -666,6 +729,27 @@ function AdminKiosks() {
         )}
       </div>
 
+      <Dialog open={!!newKey} onOpenChange={(o) => !o && setNewKey(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>API key de {newKey?.name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Copiala ahora y cargala en el locker. Por seguridad no se vuelve a mostrar; si la perdés, generá una nueva.
+          </p>
+          <code className="block break-all rounded-lg bg-muted p-3 font-mono text-sm">{newKey?.key}</code>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                if (newKey) void navigator.clipboard.writeText(newKey.key);
+                toast.success("API key copiada");
+              }}
+            >
+              Copiar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

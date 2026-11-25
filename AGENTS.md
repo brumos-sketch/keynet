@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Locker API (/api/public/locker/*) authenticates by Bearer API key; only its SHA-256 hash is stored on kiosks, shown once on generation. Why: a DB leak must not expose usable keys.

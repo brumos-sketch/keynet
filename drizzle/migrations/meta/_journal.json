@@ -8,6 +8,13 @@
       "when": 1795643087958,
       "tag": "0000_security_throttle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795643746429,
+      "tag": "0001_kiosk_type_locker_key",
+      "breakpoints": true
     }
   ]
 }

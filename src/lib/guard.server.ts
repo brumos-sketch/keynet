@@ -35,3 +35,18 @@ export async function guardedValidateCode(kioskId: string, code: string, ip: str
     throw err;
   }
 }
+
+/** Resolves a locker by its Bearer API key, blocking an IP after repeated bad keys. */
+export async function guardedResolveLocker(headers: Headers, ip: string) {
+  const key = `apikey:${ip}`;
+  await assertNotLocked([key]);
+  const { resolveLockerByBearer } = await import("@/lib/point.server");
+  try {
+    const kiosk = await resolveLockerByBearer(headers);
+    await clearFailures([key]);
+    return kiosk;
+  } catch (err) {
+    await recordFailure([[key, RULES.pointLogin]]);
+    throw err;
+  }
+}
