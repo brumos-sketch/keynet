@@ -35,6 +35,9 @@ import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPointsRouteImport } from './routes/_authenticated/admin.points'
 import { Route as AuthenticatedAdminProRouteImport } from './routes/_authenticated/admin.pro'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as ApiPublicLockerInfoRouteImport } from './routes/api/public/locker/info'
+import { Route as ApiPublicLockerPingRouteImport } from './routes/api/public/locker/ping'
+import { Route as ApiPublicLockerValidateRouteImport } from './routes/api/public/locker/validate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -168,6 +171,21 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiPublicLockerInfoRoute = ApiPublicLockerInfoRouteImport.update({
+  id: '/api/public/locker/info',
+  path: '/api/public/locker/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLockerPingRoute = ApiPublicLockerPingRouteImport.update({
+  id: '/api/public/locker/ping',
+  path: '/api/public/locker/ping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLockerValidateRoute = ApiPublicLockerValidateRouteImport.update({
+  id: '/api/public/locker/validate',
+  path: '/api/public/locker/validate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -195,6 +213,9 @@ export interface FileRoutesByFullPath {
   '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
+  '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
+  '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -221,6 +242,9 @@ export interface FileRoutesByTo {
   '/admin/pro': typeof AuthenticatedAdminProRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
+  '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
+  '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -250,6 +274,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/pro': typeof AuthenticatedAdminProRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/locker/info': typeof ApiPublicLockerInfoRoute
+  '/api/public/locker/ping': typeof ApiPublicLockerPingRoute
+  '/api/public/locker/validate': typeof ApiPublicLockerValidateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -279,6 +306,9 @@ export interface FileRouteTypes {
     | '/admin/pro'
     | '/admin/users'
     | '/admin/'
+    | '/api/public/locker/info'
+    | '/api/public/locker/ping'
+    | '/api/public/locker/validate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -305,6 +335,9 @@ export interface FileRouteTypes {
     | '/admin/pro'
     | '/admin/users'
     | '/admin'
+    | '/api/public/locker/info'
+    | '/api/public/locker/ping'
+    | '/api/public/locker/validate'
   id:
     | '__root__'
     | '/'
@@ -333,6 +366,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/pro'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
+    | '/api/public/locker/info'
+    | '/api/public/locker/ping'
+    | '/api/public/locker/validate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -347,6 +383,9 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PaseRefRoute: typeof PaseRefRoute
   PassRefRoute: typeof PassRefRoute
+  ApiPublicLockerInfoRoute: typeof ApiPublicLockerInfoRoute
+  ApiPublicLockerPingRoute: typeof ApiPublicLockerPingRoute
+  ApiPublicLockerValidateRoute: typeof ApiPublicLockerValidateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -533,6 +572,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/locker/info': {
+      id: '/api/public/locker/info'
+      path: '/api/public/locker/info'
+      fullPath: '/api/public/locker/info'
+      preLoaderRoute: typeof ApiPublicLockerInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/locker/ping': {
+      id: '/api/public/locker/ping'
+      path: '/api/public/locker/ping'
+      fullPath: '/api/public/locker/ping'
+      preLoaderRoute: typeof ApiPublicLockerPingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/locker/validate': {
+      id: '/api/public/locker/validate'
+      path: '/api/public/locker/validate'
+      fullPath: '/api/public/locker/validate'
+      preLoaderRoute: typeof ApiPublicLockerValidateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -596,6 +656,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PaseRefRoute: PaseRefRoute,
   PassRefRoute: PassRefRoute,
+  ApiPublicLockerInfoRoute: ApiPublicLockerInfoRoute,
+  ApiPublicLockerPingRoute: ApiPublicLockerPingRoute,
+  ApiPublicLockerValidateRoute: ApiPublicLockerValidateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
