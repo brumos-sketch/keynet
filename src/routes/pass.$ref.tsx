@@ -350,9 +350,10 @@ function BoardingPassPage() {
                   {pass.pickup_code ? formatCode(pass.pickup_code) : "—"}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">{t.bidirectional}</p>
-                {pass.pickup_time && (
+                {(pass.pickup_time || pass.pickup_until) && (
                   <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-sm font-bold text-navy inline-block">
-                    {t.pickupAvailable} {pass.pickup_time}
+                    {pass.pickup_time ? `${t.pickupAvailable} ${pass.pickup_time}` : ""}
+                    {pass.pickup_until ? ` · ${lang === "es" ? "Hasta" : lang === "pt" ? "Até" : "Until"} ${pass.pickup_until}` : ""}
                   </p>
                 )}
               </div>

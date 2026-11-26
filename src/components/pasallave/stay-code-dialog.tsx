@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Stay = {
@@ -60,11 +60,11 @@ export function StayCodeDialog({ stay, monthly, onClose }: { stay: Stay; monthly
         <div className="space-y-2"><Label htmlFor="stay-guest">Nombre (opcional)</Label><Input id="stay-guest" maxLength={80} value={name} onChange={(event) => setName(event.target.value)} /></div>
         <div className="flex items-center justify-between text-sm"><Label>Rol</Label><span className="text-muted-foreground">Huésped</span></div>
         {monthly && <div className="space-y-2">
-          <Label htmlFor="stay-frequency">Frecuencia de uso</Label>
-          <Select value={reusable ? "reusable" : "once"} onValueChange={(value) => setReusable(value === "reusable")}>
-            <SelectTrigger id="stay-frequency"><SelectValue /></SelectTrigger>
-            <SelectContent><SelectItem value="once">Un solo uso</SelectItem><SelectItem value="reusable">Reutilizable</SelectItem></SelectContent>
-          </Select>
+          <Label id="stay-frequency">Frecuencia de uso</Label>
+          <RadioGroup aria-labelledby="stay-frequency" value={reusable ? "reusable" : "once"} onValueChange={(value) => setReusable(value === "reusable")} className="flex flex-wrap gap-6">
+            <div className="flex items-center gap-2"><RadioGroupItem id="stay-once" value="once" /><Label htmlFor="stay-once">Un solo uso</Label></div>
+            <div className="flex items-center gap-2"><RadioGroupItem id="stay-reusable" value="reusable" /><Label htmlFor="stay-reusable">Reutilizable</Label></div>
+          </RadioGroup>
         </div>}
         <div className="flex items-center gap-3"><Checkbox id="stay-validity" checked={limited} onCheckedChange={(value) => setLimited(value === true)} /><Label htmlFor="stay-validity">Establecer ventana horaria / fechas</Label></div>
         {limited && <div className="grid grid-cols-2 gap-4">

@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
 import { sendPushToUser } from "@/lib/push.server";
-import { stayCodeEditSchema } from "@/lib/stay-code-policy";
+import { canEditStayCode, stayCodeEditSchema } from "@/lib/stay-code-policy";
 
 type TypedSupabase = SupabaseClient<Database>;
 
@@ -233,8 +233,6 @@ export const createKey = createServerFn({ method: "POST" })
 
 const updateExchangeSchema = stayCodeEditSchema;
 
-const EDITABLE_STATUSES = ["created", "waiting_deposit", "deposited"];
-
 export const updateExchange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => updateExchangeSchema.parse(input))
@@ -252,7 +250,7 @@ export const updateExchange = createServerFn({ method: "POST" })
     const { data: myHost } = await supabase.rpc("my_host_id");
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para este intercambio");
 
-    if (!EDITABLE_STATUSES.includes(exchange.status)) {
+    if (!canEditStayCode(exchange.status, key.subscription_type)) {
       throw new Error("La estadía ya no se puede editar");
     }
 
@@ -536,7 +534,11 @@ const createAccessCodeSchema = z.object({
 
 export const createAccessCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => createAccessCodeSchema.parse(input))
+  .inputValidator((input: unknown) => {
+    const data = createAccessCodeSchema.parse(input);
+    stayCodeEditSchema.parse({ exchangeId: data.keyId, checkIn: data.validFrom, checkOut: data.validTo, pickupTime: data.timeFrom, pickupUntil: data.timeTo });
+    return data;
+  })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: key } = await supabase
@@ -723,6 +725,7 @@ export type BoardingPass = {
   deposit_code: string;
   pickup_code: string | null;
   pickup_time: string | null;
+  pickup_until: string | null;
   check_in: string | null;
   check_out: string | null;
   key_name: string | null;
@@ -737,7 +740,7 @@ export type BoardingPass = {
 
 export const getBoardingPass = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
-    z.object({ ref: z.string().trim().min(3).max(16) }).parse(input),
+    z.object({ ref: z.string().trim().min(3).max(64) }).parse(input),
   )
   .handler(async ({ data }) => {
     const supabasePublic = publicClient();
@@ -747,7 +750,12 @@ export const getBoardingPass = createServerFn({ method: "GET" })
         args: Record<string, string>,
       ) => Promise<{ data: BoardingPass[] | null; error: { message: string } | null }>
     )("boarding_pass", { _ref: data.ref });
-    return { pass: rows?.[0] ?? null };
+    const pass = rows?.[0];
+    if (!pass) return { pass: null };
+    const { data: validity, error } = await supabasePublic.rpc("boarding_pass_validity", { _ref: data.ref });
+    if (error) throw new Error(error.message);
+    const until = validity && typeof validity === "object" && !Array.isArray(validity) ? validity["pickup_until"] : null;
+    return { pass: { ...pass, pickup_until: typeof until === "string" ? until : null } };
   });
 
 export const joinWaitlist = createServerFn({ method: "POST" })

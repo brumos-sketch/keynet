@@ -882,6 +882,7 @@ export type Database = {
           status: string
         }[]
       }
+      boarding_pass_validity: { Args: { _ref: string }; Returns: Json }
       claim_locker_enrollment: {
         Args: { _claim_code: string; _kiosk_id: string }
         Returns: string

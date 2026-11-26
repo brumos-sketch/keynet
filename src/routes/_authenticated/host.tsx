@@ -19,6 +19,7 @@ import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bi
 import { PlanBadge } from "@/components/pasallave/status-badge";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
 import { StayCodeDialog } from "@/components/pasallave/stay-code-dialog";
+import { canEditStayCode } from "@/lib/stay-code-policy";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
 import { InstallButton } from "@/components/pasallave/install-button";
@@ -498,7 +499,7 @@ function KeyDetail({
                 </div>
               )}
               <div className="mt-3 flex gap-2 flex-wrap">
-                {["created", "waiting_deposit", "deposited"].includes(activeEx.status) && k.subscription_type !== "pro" && (
+                {canEditStayCode(activeEx.status, k.subscription_type) && k.subscription_type !== "pro" && (
                   <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onEditExchange(activeEx)}>
                     Editar estadía
                   </Button>
@@ -591,7 +592,7 @@ function KeyDetail({
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400 font-medium">{ex.guest_name || "Huésped"}{k.subscription_type === "monthly" ? ` · ${ex.reusable ? "Reutilizable" : "Un solo uso"}` : ""}</span>
-                    {["created", "waiting_deposit", "deposited"].includes(ex.status) && (
+                    {canEditStayCode(ex.status, k.subscription_type) && (
                       <Button variant="ghost" size="sm"
                         className="text-xs font-semibold text-electric hover:underline"
                         onClick={() => onEditCodeEx(ex)}
@@ -1004,6 +1005,10 @@ function HostPanel() {
               onBack={() => setSelKey(null)}
               onCreateExchange={(keyId) => setOpenExKey(keyId)}
               onEditExchange={(ex) => {
+                if (selKey.subscription_type === "monthly") {
+                  setEditCodeEx(ex);
+                  return;
+                }
                 setEditForm({
                   checkIn: ex.check_in ?? "",
                   checkOut: ex.check_out ?? "",

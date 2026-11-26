@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { stayCodeEditSchema } from "@/lib/stay-code-policy";
 import {
   Dialog,
   DialogContent,
@@ -76,7 +78,7 @@ export function ProAccessCodes({
       /* noop */
     }
   };
-  const [editForm, setEditForm] = useState({ personName: "", role: "guest", validFrom: "", validTo: "", timeFrom: "", timeTo: "" });
+  const [editForm, setEditForm] = useState({ personName: "", role: "guest", reusable: false, validFrom: "", validTo: "", timeFrom: "", timeTo: "" });
 
   const [form, setForm] = useState({
     personName: "",
@@ -117,11 +119,11 @@ export function ProAccessCodes({
           role: form.role as "guest" | "cleaning" | "maintenance" | "other",
           personName: form.personName || null,
           reusable: form.usage === "reusable",
-          hasValidity: form.usage === "once" && form.hasValidity,
-          validFrom: form.usage === "once" && form.hasValidity ? form.validFrom || null : null,
-          validTo: form.usage === "once" && form.hasValidity ? form.validTo || null : null,
-          timeFrom: form.usage === "once" && form.hasValidity ? form.timeFrom || null : null,
-          timeTo: form.usage === "once" && form.hasValidity ? form.timeTo || null : null,
+          hasValidity: form.hasValidity,
+          validFrom: form.hasValidity ? form.validFrom || null : null,
+          validTo: form.hasValidity ? form.validTo || null : null,
+          timeFrom: form.hasValidity ? form.timeFrom || null : null,
+          timeTo: form.hasValidity ? form.timeTo || null : null,
         },
       }),
     onSuccess: (res) => {
@@ -199,7 +201,7 @@ export function ProAccessCodes({
                       name="usage"
                       value={opt}
                       checked={form.usage === opt}
-                      onChange={() => setForm({ ...form, usage: opt, hasValidity: false })}
+                      onChange={() => setForm({ ...form, usage: opt })}
                       className="accent-electric shrink-0"
                     />
                     <span className="text-sm font-semibold">
@@ -208,7 +210,7 @@ export function ProAccessCodes({
                   </label>
                 ))}
               </div>
-              {form.usage === "once" && (
+              {(
                 <label className="flex cursor-pointer items-center gap-3">
                   <input
                     type="checkbox"
@@ -219,7 +221,7 @@ export function ProAccessCodes({
                   <span className="text-sm font-medium">Establecer ventana horaria / fechas</span>
                 </label>
               )}
-              {form.usage === "once" && form.hasValidity && (
+              {form.hasValidity && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label>Fecha desde</Label>
@@ -282,6 +284,7 @@ export function ProAccessCodes({
                       setEditForm({
                         personName: c.person_name ?? "",
                         role: c.role ?? "guest",
+                        reusable: c.reusable,
                         validFrom: c.valid_from ?? "",
                         validTo: c.valid_to ?? "",
                         timeFrom: c.time_from ?? "",
@@ -313,9 +316,11 @@ export function ProAccessCodes({
 
             {/* fechas */}
             <p className="text-xs text-gray-400 mb-3">
-              {c.has_validity && c.valid_from && c.valid_to
-                ? `${formatDate(c.valid_from)} → ${formatDate(c.valid_to)}${c.time_from && c.time_to ? ` · ${c.time_from}–${c.time_to}` : ""}`
+              {c.has_validity && (c.valid_from || c.valid_to)
+                ? `${c.valid_from ? formatDate(c.valid_from) : "—"} → ${c.valid_to ? formatDate(c.valid_to) : "—"}`
                 : "Sin fechas (libre)"}
+              {c.has_validity && c.time_from ? ` · Retiro desde ${c.time_from}` : ""}
+              {c.has_validity && c.time_to ? ` · Hasta ${c.time_to}` : ""}
             </p>
 
             {/* acciones */}
@@ -398,7 +403,14 @@ export function ProAccessCodes({
                   </SelectContent>
                 </Select>
               </div>
-              {editCode.reusable === false && (
+              <div className="space-y-2">
+                <Label id="pro-edit-frequency">Frecuencia de uso</Label>
+                <RadioGroup aria-labelledby="pro-edit-frequency" value={editForm.reusable ? "reusable" : "once"} onValueChange={(value) => setEditForm({ ...editForm, reusable: value === "reusable" })} className="flex flex-wrap gap-6">
+                  <div className="flex items-center gap-2"><RadioGroupItem id="pro-edit-once" value="once" /><Label htmlFor="pro-edit-once">Un solo uso</Label></div>
+                  <div className="flex items-center gap-2"><RadioGroupItem id="pro-edit-reusable" value="reusable" /><Label htmlFor="pro-edit-reusable">Reutilizable</Label></div>
+                </RadioGroup>
+              </div>
+              {(
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label>Fecha desde</Label>
@@ -426,22 +438,26 @@ export function ProAccessCodes({
               onClick={async () => {
                 if (!editCode) return;
                 try {
-                  await supabase
+                  stayCodeEditSchema.parse({ exchangeId: editCode.id, checkIn: editForm.validFrom || null, checkOut: editForm.validTo || null, pickupTime: editForm.timeFrom || null, pickupUntil: editForm.timeTo || null });
+                  const { error } = await supabase
                     .from("access_codes")
                     .update({
                       person_name: editForm.personName || null,
                       role: editForm.role,
+                      reusable: editForm.reusable,
+                      has_validity: Boolean(editForm.validFrom || editForm.validTo || editForm.timeFrom || editForm.timeTo),
                       valid_from: editForm.validFrom || null,
                       valid_to: editForm.validTo || null,
                       time_from: editForm.timeFrom || null,
                       time_to: editForm.timeTo || null,
                     })
                     .eq("id", editCode.id);
+                  if (error) throw error;
                   toast.success("Código actualizado");
                   setEditCode(null);
                   void qc.invalidateQueries({ queryKey: ["host", "access-codes", keyId] });
-                } catch {
-                  toast.error("No se pudo guardar");
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "No se pudo guardar");
                 }
               }}
             >

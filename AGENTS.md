@@ -13,3 +13,5 @@
 - Assisted terminals persist their device credential in browser storage and revalidate it on reopening and every operation; retain it on network errors, discard it on confirmed revocation, and never fall back to a numeric point login. Why: closing the browser must not require pairing again or bypass administrator revocation.
 - Monthly code validation and stay rotation execute in a service-only database transaction locking the point and key; keep movement logging in that transaction. Why: concurrent retries must not allocate duplicate positions or leave a returned key without its next stay.
 - Run the monthly PostgreSQL procedures against isolated PGlite fixtures in tests, never production keys. Why: the same SQL can be checked end-to-end without operating a real locker.
+- Share stay-code edit eligibility between the host UI and server validator. Why: the edit action must match the operation allowed for each plan and stay state.
+- Interpret access-code date/time windows in Argentina local time across SQL and server validation. Why: UTC comparisons can open a compartment outside the user's chosen hours.

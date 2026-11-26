@@ -17,15 +17,18 @@ beforeAll(async () => {
     CREATE TABLE public.kiosks(id uuid primary key, positions integer);
     CREATE TABLE public.keys(id uuid primary key, kiosk_id uuid, host_id uuid, subscription_type text, deposit_code text, locked boolean default false);
     CREATE TABLE public.key_exchanges(id uuid primary key default gen_random_uuid(), key_id uuid, kiosk_id uuid, booking_ref text, locker_position integer default 0, deposit_code text, pickup_code text, return_code text, pickup_time text, status text, check_in date, check_out date, deposited_at timestamptz, picked_up_at timestamptz, returned_at timestamptz, created_at timestamptz default now());
-    CREATE TABLE public.access_codes(key_id uuid, code text);
+    CREATE TABLE public.access_codes(id uuid default gen_random_uuid(), key_id uuid, code text, has_validity boolean default false, time_to text);
     CREATE TABLE public.access_log(key_id uuid, action text, role text, person_name text);
     CREATE FUNCTION public.is_admin() RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
     CREATE FUNCTION public.my_host_id() RETURNS uuid LANGUAGE sql AS $$ SELECT '${host}'::uuid $$;
+    CREATE FUNCTION public.test_clock() RETURNS timestamptz LANGUAGE sql AS $$ SELECT coalesce(nullif(current_setting('test.clock',true),'')::timestamptz,now()) $$;
   `);
-  await db.exec(readFileSync(new URL("../../drizzle/migrations/0004_monthly_guest_code_rotation.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../../drizzle/migrations/0004_monthly_guest_code_rotation.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0005_monthly_stay_from_stored_key.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../../drizzle/migrations/0006_boarding_pass_end_time.sql", import.meta.url), "utf8"));
 }, 30000);
 beforeEach(async () => {
+  await db.exec("set test.clock=''");
   await db.exec(`TRUNCATE public.keys,public.kiosks,public.key_exchanges,public.access_log;
     INSERT INTO public.kiosks VALUES('${point}',16);
     INSERT INTO public.keys(id,kiosk_id,host_id,subscription_type,deposit_code) VALUES('${key}','${point}','${host}','monthly','015589');
@@ -34,6 +37,13 @@ beforeEach(async () => {
 afterAll(async () => { await db?.close(); });
 
 describe("ciclo mensual real en PostgreSQL", () => {
+  it("la tarjeta de embarque lee la hora final vigente también después del retiro", async () => {
+    await validate("015589"); await validate("393496");
+    await db.exec("update public.key_exchanges set pickup_until='21:00'");
+    const result = await db.query<{ limits: { pickup_until: string } }>("select public.boarding_pass_validity('TEST-STAY') as limits");
+    expect(result.rows[0]?.limits.pickup_until).toBe("21:00");
+    expect((await stays())[0]?.status).toBe("picked_up");
+  });
   it("un ciclo único vence al devolver y crea otra estadía con código nuevo y el mismo casillero", async () => {
     expect((await validate("015589")).rows[0]?.result.action).toBe("deposited");
     expect((await validate("393496")).rows[0]?.result.action).toBe("picked_up");
@@ -85,6 +95,19 @@ describe("ciclo mensual real en PostgreSQL", () => {
     await validate("015589");
     await db.exec("update public.key_exchanges set pickup_time='23:59:59.999999'");
     await expect(validate("393496")).rejects.toThrow("aún no es válido en este horario");
+  });
+  it("desde 15:00 permite el retiro observado a las 23:57 de Argentina", async () => {
+    await db.exec("set test.clock='2026-11-26T02:57:14Z'");
+    await validate("015589");
+    await db.exec("update public.key_exchanges set pickup_time='15:00',reusable=true");
+    expect((await validate("393496")).rows[0]?.result.action).toBe("picked_up");
+  });
+  it("desde 15:00 rechaza el retiro a las 14:59 de Argentina", async () => {
+    await db.exec("set test.clock='2026-11-26T17:59:00Z'");
+    await validate("015589");
+    await db.exec("update public.key_exchanges set pickup_time='15:00',reusable=true");
+    await expect(validate("393496")).rejects.toThrow("aún no es válido en este horario");
+    expect((await stays())[0]?.status).toBe("deposited");
   });
   it("aplica la hora máxima de retiro", async () => {
     await validate("015589");

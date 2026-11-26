@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
 import { sendPushToUser } from "@/lib/push.server";
+import { assertPickupValidity } from "@/lib/stay-code-policy";
 
 type TypedSupabase = SupabaseClient<Database>;
 
@@ -74,13 +75,12 @@ export async function runCodeValidation(
 ): Promise<ValidationResult> {
   const clean = normalizeCode(rawCode);
   const now = nowIso();
-  const today = new Date().toISOString().slice(0, 10);
-  const currentTime = new Date().toISOString().slice(11, 16);
 
   let logKeyId: string | null = null;
   let logRole: string | null = "kiosk";
   let logPerson: string | null = null;
   let movementLogged = false;
+  let usedAccessCode: { id: string; count: number } | null = null;
 
   const resolve = async (): Promise<ValidationResult> => {
     // Monthly operations are serialized at the point in one database transaction.
@@ -113,20 +113,12 @@ export async function runCodeValidation(
       logKeyId = key.id;
       logRole = ac.role ?? "guest";
       logPerson = ac.person_name ?? null;
-      await supabase
-        .from("access_codes")
-        .update({ uses_count: (ac.uses_count ?? 0) + 1 })
-        .eq("id", ac.id);
       if (!ac.reusable && (ac.uses_count ?? 0) >= 1) throw new Error("Este código ya fue usado");
 
       if (ac.has_validity) {
-        if (ac.valid_from && today < ac.valid_from) throw new Error("El código aún no es válido");
-        if (ac.valid_to && today > ac.valid_to) throw new Error("El código expiró");
-        if (ac.time_from && currentTime < ac.time_from)
-          throw new Error("El código aún no es válido en este horario");
-        if (ac.time_to && currentTime > ac.time_to)
-          throw new Error("El código ya no es válido en este horario");
+        assertPickupValidity({ from: ac.valid_from, to: ac.valid_to, timeFrom: ac.time_from, timeTo: ac.time_to });
       }
+      usedAccessCode = { id: ac.id, count: (ac.uses_count ?? 0) + 1 };
 
       const { data: activeExchanges } = await supabase
         .from("key_exchanges")
@@ -310,6 +302,7 @@ export async function runCodeValidation(
       const isGuestCode = codesMatch(ex.pickup_code, clean) || codesMatch(ex.return_code, clean);
       if (isGuestCode) {
         if (ex.status === "deposited") {
+          assertPickupValidity({ from: ex.check_in, to: ex.check_out, timeFrom: ex.pickup_time, timeTo: ex.pickup_until });
           await supabase
             .from("key_exchanges")
             .update({ status: "picked_up", picked_up_at: now, locker_position: 0 })
@@ -345,6 +338,11 @@ export async function runCodeValidation(
   };
 
   const result = await resolve();
+
+  if (usedAccessCode) {
+    const used = usedAccessCode as { id: string; count: number };
+    await supabase.from("access_codes").update({ uses_count: used.count }).eq("id", used.id);
+  }
 
   if (!movementLogged) await supabase.from("access_log").insert({
     key_id: logKeyId,

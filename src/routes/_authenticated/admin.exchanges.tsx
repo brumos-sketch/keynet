@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateExchange } from "@/lib/pasallave.functions";
+import { canEditStayCode } from "@/lib/stay-code-policy";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ type ExchangeRow = {
   pickup_code: string | null;
   return_code: string | null;
   pickup_time: string | null;
+  pickup_until: string | null;
   check_in: string | null;
   check_out: string | null;
   status: string;
@@ -57,6 +59,10 @@ export const Route = createFileRoute("/_authenticated/admin/exchanges")({
     meta: [
       { title: "Intercambios — PASALLAVE Admin" },
       { name: "description", content: "Seguimiento de depósitos y retiros de llaves." },
+      { property: "og:title", content: "Intercambios — PASALLAVE Admin" },
+      { property: "og:description", content: "Seguimiento de depósitos y retiros de llaves." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminExchanges,
@@ -68,13 +74,14 @@ function AdminExchanges() {
   const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<ExchangeRow | null>(null);
   const updateExchangeFn = useServerFn(updateExchange);
-  const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "" });
+  const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", pickupUntil: "" });
 
   useEffect(() => {
     setEditForm({
       checkIn: detail?.check_in ?? "",
       checkOut: detail?.check_out ?? "",
       pickupTime: detail?.pickup_time ?? "",
+      pickupUntil: detail?.pickup_until ?? "",
     });
   }, [detail]);
 
@@ -87,6 +94,7 @@ function AdminExchanges() {
           checkIn: editForm.checkIn || null,
           checkOut: editForm.checkOut || null,
           pickupTime: editForm.pickupTime || null,
+          pickupUntil: editForm.pickupUntil || null,
         },
       });
     },
@@ -105,7 +113,7 @@ function AdminExchanges() {
     queryFn: async () => {
       const [exchanges, keys, kiosks] = await Promise.all([
         supabase.from("key_exchanges").select("*").order("created_at", { ascending: false }),
-        supabase.from("keys").select("id, name"),
+        supabase.from("keys").select("id, name, subscription_type"),
         supabase.from("kiosks").select("id, name"),
       ]);
       return {
@@ -293,12 +301,13 @@ function AdminExchanges() {
                 <Info label="Check-in" value={formatDate(detail.check_in)} />
                 <Info label="Check-out" value={formatDate(detail.check_out)} />
                 <Info label="Retiro previsto" value={detail.pickup_time ?? "—"} />
+                <Info label="Retiro hasta" value={detail.pickup_until ?? "—"} />
                 <Info label="Depósito" value={formatCode(detail.deposit_code)} />
                 <Info label="Retiro" value={detail.pickup_code ? formatCode(detail.pickup_code) : "—"} />
                 <Info label="Devolución" value={detail.return_code ?? "—"} />
               </div>
 
-              {["created", "waiting_deposit", "deposited"].includes(detail.status) && (
+              {canEditStayCode(detail.status, data?.keys.find((key) => key.id === detail.key_id)?.subscription_type ?? "") && (
                 <div className="space-y-3 rounded-xl border border-gray-100 p-3">
                   <p className="text-xs tracking-wide text-gray-500 uppercase">Editar estadía</p>
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -331,6 +340,10 @@ function AdminExchanges() {
                     </div>
                   </div>
                   <div className="flex justify-end">
+                    <div className="mr-auto space-y-1.5">
+                      <Label htmlFor="a-pickup-until">Retiro hasta</Label>
+                      <Input id="a-pickup-until" type="time" value={editForm.pickupUntil} onChange={(e) => setEditForm({ ...editForm, pickupUntil: e.target.value })} />
+                    </div>
                     <Button
                       size="sm"
                       disabled={editMutation.isPending}

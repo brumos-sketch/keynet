@@ -43,6 +43,13 @@
       "when": 1795660820236,
       "tag": "0005_monthly_stay_from_stored_key",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795662405433,
+      "tag": "0006_boarding_pass_end_time",
+      "breakpoints": true
     }
   ]
 }
