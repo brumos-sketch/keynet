@@ -695,7 +695,11 @@ function HostPanel() {
   // load access log when key selected
   useEffect(() => {
     if (selKey) setLogKeyId(selKey.id);
-  }, [selKey]);
+    // refresh states whenever a card is opened or closed
+    void qc.invalidateQueries({ queryKey: ["host", "overview"] });
+    if (selKey) void qc.invalidateQueries({ queryKey: ["host", "access-log", selKey.id] });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selKey?.id]);
 
   const { data: hostId } = useQuery({
     queryKey: ["host", "id"],
@@ -731,11 +735,23 @@ function HostPanel() {
         kiosks: kiosks.data ?? [],
       };
     },
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
   });
+
+  // keep the open key in sync with fresh data
+  useEffect(() => {
+    if (!selKey || !data) return;
+    const fresh = data.keys.find((k) => k.id === selKey.id);
+    if (!fresh) setSelKey(null);
+    else if (fresh !== selKey) setSelKey(fresh);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const { data: accessLog } = useQuery({
     queryKey: ["host", "access-log", logKeyId],
     enabled: !!logKeyId,
+    refetchInterval: 15_000,
     queryFn: async () => {
       const { data: rows } = await supabase
         .from("access_log")
