@@ -1,3 +1,4 @@
+import { reservedLockerCodes } from "@/lib/reserved-codes.server";
 import { movementNotification } from "@/lib/movement-history";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -85,6 +86,12 @@ export async function runCodeValidation(
   let usedAccessCode: { id: string; count: number } | null = null;
 
   const resolve = async (): Promise<ValidationResult> => {
+    // The locker's configuration code is never a key code.
+    {
+      const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+      const { data: cfg } = await admin.from("kiosks").select("admin_code").eq("id", kioskId).maybeSingle();
+      if (cfg?.admin_code && cfg.admin_code === clean) throw new Error("Código reservado para configuración del locker");
+    }
     // Monthly operations are serialized at the point in one database transaction.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: monthly, error: monthlyError } = await supabaseAdmin.rpc("validate_monthly_code", {
@@ -278,7 +285,7 @@ export async function runCodeValidation(
       }
 
       const position = await reservePosition(supabase, kioskId);
-      const bidiCode = generateExchangeCode();
+      const bidiCode = generateExchangeCode(await reservedLockerCodes());
       const { data: created } = await supabase
         .from("key_exchanges")
         .insert({

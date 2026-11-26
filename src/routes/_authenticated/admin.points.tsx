@@ -1,6 +1,6 @@
 import { OnlineBadge } from "@/components/pasallave/online-badge";
 import { LockerPairing } from "@/components/pasallave/locker-pairing";
-import { formatAddress } from "@/lib/pasallave";
+import { formatAddress, formatCode, generateLockerAdminCode } from "@/lib/pasallave";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,6 +85,7 @@ const blankForm = {
   associateId: "",
   is24h: false,
   pointType: "point" as "point" | "locker",
+  adminCode: "456852",
   schedule: emptySchedule as KioskSchedule,
 };
 
@@ -178,8 +179,10 @@ function AdminKiosks() {
         associate_id: form.associateId || null,
         is_24h: form.is24h,
         point_type: form.pointType,
+        admin_code: form.adminCode,
         schedule: form.is24h ? {} : form.schedule,
       };
+      if (form.pointType === "locker" && !/^\d{6}$/.test(form.adminCode)) throw new Error("El código de configuración debe tener 6 dígitos");
       const { error } = editingId
         ? await supabase.from("kiosks").update(payload).eq("id", editingId)
         : await supabase.from("kiosks").insert({ ...payload, access_code: generateKioskCode() });
@@ -216,6 +219,7 @@ function AdminKiosks() {
     associate_id: string | null;
     is_24h: boolean;
     point_type: string;
+    admin_code?: string | null;
     schedule: unknown;
   }) => {
     setEditingId(k.id);
@@ -234,6 +238,7 @@ function AdminKiosks() {
       associateId: k.associate_id ?? "",
       is24h: k.is_24h,
       pointType: k.point_type === "locker" ? "locker" : "point",
+      adminCode: k.admin_code ?? "456852",
       schedule: ((k.schedule as KioskSchedule) ?? emptySchedule) || emptySchedule,
     });
     setOpen(true);
@@ -442,6 +447,26 @@ function AdminKiosks() {
                     </Button>
                   ))}
                 </div>
+                {form.pointType === "locker" && (
+                  <div className="space-y-1">
+                    <Label htmlFor="k-admin-code">Código de configuración del locker</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="k-admin-code"
+                        inputMode="numeric"
+                        value={formatCode(form.adminCode)}
+                        onChange={(e) => setForm({ ...form, adminCode: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                        placeholder="456-852"
+                      />
+                      <Button type="button" variant="outline" onClick={() => setForm({ ...form, adminCode: generateLockerAdminCode() })}>
+                        Generar
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Abre el menú de configuración en la pantalla del locker. Nunca se asigna a una llave. El locker lo recibe al consultar su información.
+                    </p>
+                  </div>
+                )}
                 {form.pointType === "locker" && (
                   <p className="text-xs text-muted-foreground">
                     Después de guardar, generá la API key desde la tarjeta del locker.

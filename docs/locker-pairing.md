@@ -101,3 +101,18 @@ La tablet usa el mismo protocolo seguro en `/api/public/point/enroll/start`, `/p
 Si se borran los datos del navegador, se cambia de navegador o dirección del sitio, se usa modo incógnito o el administrador desvincula el dispositivo, será necesaria una nueva aprobación. Un corte de red no borra la credencial ni permite operar sin validación. Para la instalación definitiva usar siempre la dirección publicada, no la de vista previa.
 
 **Desvincular** revoca inmediatamente la credencial e invalida entregas pendientes. La pantalla vuelve a vinculación cuando detecta la revocación (en el siguiente control, cada 45 segundos, o al intentar operar). Reemplazar un dispositivo autoriza solo la nueva credencial; cada punto tiene un dispositivo autorizado a la vez.
+## Código de configuración del locker
+
+- Cada locker tiene un código secreto de 6 dígitos (por defecto `456852`, se muestra `456-852`) para abrir el menú de configuración en la pantalla.
+- Se edita o genera al azar en Admin → Puntos → editar locker.
+- El ESP32 lo obtiene en `GET /api/public/locker/info` (campo `adminCode`, crudo sin guion). Consultarlo al arrancar y periódicamente (p. ej. cada heartbeat) y guardarlo en NVS; si no hay red, usar el último guardado.
+- En la pantalla: si el usuario ingresa `adminCode`, abrir el menú local y **no** llamar a `/validate`.
+- El servidor nunca asigna ese código a una llave y `/validate` lo rechaza ("Código reservado para configuración del locker").
+
+```cpp
+// tras GET /info
+String adminCode = doc["adminCode"] | "456852";
+prefs.putString("admin_code", adminCode);
+// al confirmar el teclado
+if (typed == prefs.getString("admin_code", "456852")) { openConfigMenu(); return; }
+```

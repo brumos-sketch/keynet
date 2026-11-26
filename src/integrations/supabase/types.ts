@@ -389,6 +389,7 @@ export type Database = {
         Row: {
           access_code: string
           address: string | null
+          admin_code: string
           api_key_hash: string | null
           api_key_prefix: string | null
           associate_id: string | null
@@ -413,6 +414,7 @@ export type Database = {
         Insert: {
           access_code: string
           address?: string | null
+          admin_code?: string
           api_key_hash?: string | null
           api_key_prefix?: string | null
           associate_id?: string | null
@@ -437,6 +439,7 @@ export type Database = {
         Update: {
           access_code?: string
           address?: string | null
+          admin_code?: string
           api_key_hash?: string | null
           api_key_prefix?: string | null
           associate_id?: string | null

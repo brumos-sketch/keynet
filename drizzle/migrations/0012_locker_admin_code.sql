@@ -1,0 +1,1 @@
+ALTER TABLE public.kiosks ADD COLUMN IF NOT EXISTS admin_code text NOT NULL DEFAULT '456852';

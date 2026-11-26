@@ -136,8 +136,20 @@ function pick(source: string, length: number): string {
 }
 
 /** Código de intercambio crudo: 6 dígitos (se muestra como XXX-XXX con formatCode). */
-export function generateExchangeCode(): string {
-  return pick(DIGITS, 6);
+export const DEFAULT_LOCKER_ADMIN_CODE = "456852";
+
+/** Código de intercambio crudo: nunca coincide con códigos reservados (configuración de lockers). */
+export function generateExchangeCode(reserved: Iterable<string> = []): string {
+  const blocked = new Set([DEFAULT_LOCKER_ADMIN_CODE, ...Array.from(reserved, (c) => c.replace(/\D/g, ""))]);
+  for (;;) {
+    const code = pick(DIGITS, 6);
+    if (!blocked.has(code)) return code;
+  }
+}
+
+/** Código secreto de configuración del locker: 6 dígitos aleatorios fuera de los usados por llaves. */
+export function generateLockerAdminCode(taken: Iterable<string> = []): string {
+  return generateExchangeCode(taken);
 }
 
 /** Muestra un código de 6 dígitos como 123-456; otros valores se devuelven igual. */

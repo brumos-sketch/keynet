@@ -182,7 +182,7 @@ export const createKey = createServerFn({ method: "POST" })
     }
 
     // Insert key — every key gets a fixed, unique deposit code (host side)
-    const depositCode = generateExchangeCode();
+    const depositCode = generateExchangeCode(await reservedLockerCodes());
     const { data: key, error: keyError } = await supabaseAdmin
       .from("keys")
       .insert({
@@ -198,7 +198,7 @@ export const createKey = createServerFn({ method: "POST" })
     if (keyError || !key) throw new Error(keyError?.message ?? "No se pudo crear la llave");
 
     // Every plan starts with an exchange ready to be deposited.
-    const bidiCode = generateExchangeCode();
+    const bidiCode = generateExchangeCode(await reservedLockerCodes());
     const bookingRef = generateBookingRef();
     const { data: exchange, error: exError } = await supabaseAdmin
       .from("key_exchanges")
@@ -223,7 +223,7 @@ export const createKey = createServerFn({ method: "POST" })
       // Pro guest access code: one reusable access code that covers deposit and pickup
       const { error: acError } = await supabaseAdmin.from("access_codes").insert({
         key_id: key.id,
-        code: generateExchangeCode(),
+        code: generateExchangeCode(await reservedLockerCodes()),
         role: "guest",
         reusable: true,
         scope: "both",
@@ -416,12 +416,12 @@ export const createExchange = createServerFn({ method: "POST" })
     // Fixed deposit code per key (all plans). Backfill if the key predates this rule.
     let depositCode = key.deposit_code;
     if (!depositCode) {
-      depositCode = generateExchangeCode();
+      depositCode = generateExchangeCode(await reservedLockerCodes());
       await supabase.from("keys").update({ deposit_code: depositCode }).eq("id", key.id);
     }
 
     // Single bidirectional code: the guest uses it to pick up AND to return.
-    const bidiCode = generateExchangeCode();
+    const bidiCode = generateExchangeCode(await reservedLockerCodes());
 
     const { data: exchange, error } = await supabase
       .from("key_exchanges")
@@ -564,7 +564,7 @@ export const createAccessCode = createServerFn({ method: "POST" })
     if (key.subscription_type !== "pro")
       throw new Error("Los códigos de acceso solo aplican al plan Pro");
 
-    const code = generateExchangeCode();
+    const code = generateExchangeCode(await reservedLockerCodes());
     const { error } = await supabase.from("access_codes").insert({
       key_id: key.id,
       code,
@@ -1026,3 +1026,8 @@ export const deleteProAgreement = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+async function reservedLockerCodes(): Promise<string[]> {
+  const mod = await import("@/lib/reserved-codes.server");
+  return mod.reservedLockerCodes();
+}
