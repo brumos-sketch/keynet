@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatDateTime } from "@/lib/pasallave";
+import { movementNotification, normalizeMovementNotification, notificationActor } from "@/lib/movement-history";
 
 export function NotificationBell() {
   const qc = useQueryClient();
@@ -22,7 +23,24 @@ export function NotificationBell() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
-      return rows ?? [];
+      const notifications = rows ?? [];
+      const refs = notifications.flatMap((n) => n.booking_ref ? [n.booking_ref] : []);
+      if (!refs.length) return notifications;
+      const [stays, codes] = await Promise.all([
+        supabase.from("key_exchanges").select("key_id, booking_ref, keys(name)").in("booking_ref", refs),
+        supabase.from("access_codes").select("key_id, id, keys(name)").in("id", refs.filter((ref) => /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(ref))),
+      ]);
+      const keys = [...(stays.data ?? []).map((s) => ({ ref: s.booking_ref, keyId: s.key_id, name: s.keys?.name })), ...(codes.data ?? []).map((c) => ({ ref: c.id, keyId: c.key_id, name: c.keys?.name }))];
+      const keyIds = keys.flatMap((k) => k.keyId ? [k.keyId] : []);
+      const { data: logs } = keyIds.length ? await supabase.from("access_log").select("id, key_id, action, role, person_name, timestamp").in("key_id", keyIds).gte("timestamp", new Date(Math.min(...notifications.map((n) => Date.parse(n.created_at))) - 3000).toISOString()) : { data: [] };
+      return notifications.map((n) => {
+        if (!["deposited", "picked_up", "completed"].includes(n.type ?? "")) return n;
+        // New messages already carry the recorded actor; never overwrite it.
+        if (/^Llave (depositada|retirada) \(/.test(n.message ?? "")) return n;
+        const key = keys.find((k) => k.ref === n.booking_ref);
+        const role = notificationActor(n.type ?? "", n.created_at, (logs ?? []).filter((l) => l.key_id === key?.keyId));
+        return { ...n, message: key?.name ? movementNotification(n.type ?? "", key.name, role) : normalizeMovementNotification(n.message ?? "") };
+      });
     },
     refetchInterval: 60_000,
   });
@@ -66,7 +84,7 @@ export function NotificationBell() {
           )}
           {(data ?? []).map((n) => (
             <div key={n.id} className="px-4 py-3">
-              <p className="text-sm text-gray-700">{n.message}</p>
+              <p className="text-sm text-gray-700">{normalizeMovementNotification(n.message ?? "")}</p>
               <p className="mt-1 text-xs text-gray-400">
                 {n.booking_ref ? `${n.booking_ref} · ` : ""}
                 {formatDateTime(n.created_at)}

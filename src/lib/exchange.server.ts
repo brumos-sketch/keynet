@@ -1,3 +1,4 @@
+import { movementNotification } from "@/lib/movement-history";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
@@ -93,6 +94,8 @@ export async function runCodeValidation(
     if (monthly && typeof monthly === "object" && !Array.isArray(monthly)) {
       const result = monthly as { action: string; position: number | null; bookingRef: string | null; keyId: string };
       logKeyId = result.keyId;
+      const { data: monthlyKey } = await supabaseAdmin.from("keys").select("deposit_code").eq("id", result.keyId).maybeSingle();
+      logRole = codesMatch(monthlyKey?.deposit_code ?? null, clean) ? "host" : "guest";
       movementLogged = true;
       return { action: result.action, position: result.position, bookingRef: result.bookingRef };
     }
@@ -386,12 +389,7 @@ export async function runCodeValidation(
           .maybeSingle();
         notifyPush = prefs?.notify_push ?? true;
       }
-      const messages: Record<string, string> = {
-        deposited: `Se depositó la llave "${keyRow.name}" en el punto.`,
-        picked_up: `Se retiró la llave "${keyRow.name}" del punto.`,
-        completed: `Se devolvió la llave "${keyRow.name}" al punto.`,
-      };
-      const message = messages[result.action] ?? `Movimiento registrado (${result.action}).`;
+      const message = movementNotification(result.action, keyRow.name, logRole);
       if (notifyPush) {
         await supabaseAdmin.from("notifications").insert({
           host_id: keyRow.host_id,

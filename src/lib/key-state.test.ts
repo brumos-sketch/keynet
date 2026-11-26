@@ -20,7 +20,7 @@ describe("estado de la llave", () => {
 import { STATUS_LABELS } from "./pasallave";
 describe("listados de intercambios", () => {
   it("un intercambio devuelto indica que la llave está en el locker", () => {
-    expect(STATUS_LABELS.completed).toBe("Devuelta · en el locker");
+    expect(STATUS_LABELS.completed).toBe("Depositada · en el locker");
   });
 });
 

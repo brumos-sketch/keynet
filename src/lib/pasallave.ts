@@ -57,7 +57,7 @@ export const STATUS_LABELS: Record<ExchangeStatus, string> = {
   waiting_deposit: "Esperando depósito",
   deposited: "Depositada",
   picked_up: "Retirada",
-  completed: "Devuelta · en el locker",
+  completed: "Depositada · en el locker",
   expired: "Vencido",
   overdue: "Atrasado",
 };
@@ -302,9 +302,10 @@ export const ACCESS_SCOPE_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 export const ACTION_LABELS: Record<string, string> = {
-  deposited: "Depósito",
-  picked_up: "Retiro",
-  completed: "Llave devuelta al punto",
+  deposited: "Llave depositada",
+  picked_up: "Llave retirada",
+  pickup: "Llave retirada",
+  completed: "Llave depositada",
   key_created: "Llave creada",
   key_updated: "Llave editada",
   code_created: "Código generado",

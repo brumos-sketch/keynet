@@ -1,3 +1,4 @@
+import { keyHistoryEvents, movementLabel } from "@/lib/movement-history";
 import { formatCode, formatValidity, isKeyInLocker } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
@@ -42,7 +43,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ACTION_LABELS,
   EXTRA_DAY_PRICE,
   ONE_USE_STORAGE_HOURS,
   PLAN_LABELS,
@@ -54,7 +54,6 @@ import {
   matchesQuery,
   keyStateOf,
   keyBadgeOf,
-  roleLabel,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
@@ -184,8 +183,8 @@ function HistoryTimeline({
         id: `ex-created-${ex.id}`,
         date: ex.created_at,
         icon: "📋",
-        label: "Intercambio creado",
-        sub: `Anfitrión · Reserva ${ex.booking_ref}`,
+        label: movementLabel("exchange_created", accessLog.find((l) => l.action === "exchange_created" && Math.abs(Date.parse(l.timestamp) - Date.parse(ex.created_at)) < 3000)?.role),
+        sub: `Reserva ${ex.booking_ref}`,
         tone: "neutral",
       });
       if (ex.status === "expired") {
@@ -193,8 +192,8 @@ function HistoryTimeline({
           id: `ex-expired-${ex.id}`,
           date: ex.check_out ?? ex.created_at,
           icon: "⚠",
-          label: "Intercambio vencido",
-          sub: `Sistema · Reserva ${ex.booking_ref}`,
+          label: "Intercambio vencido (Sistema)",
+          sub: `Reserva ${ex.booking_ref}`,
           tone: "danger",
         });
       }
@@ -204,8 +203,8 @@ function HistoryTimeline({
       id: `log-${l.id}`,
       date: l.timestamp,
       icon: l.action === "picked_up" ? "↑" : l.action === "deposited" || l.action === "completed" ? "↓" : "↻",
-      label: ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—",
-      sub: [roleLabel(l.role), l.person_name].filter(Boolean).join(" · "),
+      label: movementLabel(l.action, l.role),
+      sub: l.person_name ?? "",
       tone: l.action === "picked_up" ? "purple" : l.action === "deposited" || l.action === "completed" ? "info" : "success",
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -315,33 +314,7 @@ function KeyDetail({
     { id: "history" as const, label: "Historial" },
   ];
 
-  // History events: every real movement, with its own timestamp
-  const historyEvents = [
-    ...keyLog.filter((entry) => ["deposited", "picked_up", "completed"].includes(entry.action ?? "")).map((entry) => ({
-      type: entry.action === "completed" ? "deposited" : entry.action ?? "deposited",
-      label: entry.action === "picked_up" ? "Llave retirada" : entry.action === "completed" ? "Llave depositada (devuelta por el huésped)" : "Llave depositada",
-      ref: null,
-      date: entry.timestamp,
-      icon: entry.action === "picked_up" ? "↑" : "↓",
-      who: entry.person_name ?? "",
-    })),
-    ...kEx.flatMap((ex) => {
-      const evs: Array<{ type: string; label: string; ref: string | null; date: string; icon: string; who?: string; code?: string }> = [];
-      evs.push({ type: "created", label: "Intercambio creado", ref: ex.booking_ref, date: ex.created_at, icon: "+" });
-      if (ex.deposited_at || (k.subscription_type !== "monthly" && ["deposited", "picked_up", "completed"].includes(ex.status)))
-        evs.push({ type: "deposited", label: "Llave depositada", ref: ex.booking_ref, date: ex.deposited_at ?? ex.created_at, icon: "↓" });
-      if (ex.picked_up_at || ["picked_up", "completed"].includes(ex.status))
-        evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.picked_up_at ?? ex.check_in ?? ex.created_at, icon: "↑" });
-      if (ex.returned_at || ex.status === "completed")
-        evs.push({ type: "deposited", label: "Llave depositada (devuelta por el huésped)", ref: ex.booking_ref, date: ex.returned_at ?? ex.check_out ?? ex.created_at, icon: "↓" });
-      if (ex.status === "expired")
-        evs.push({ type: "expired", label: "Código vencido (48hs)", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "⏳" });
-      return evs.filter((event) => event.type === "created" || event.type === "expired" || !keyLog.some((entry) => {
-        const type = entry.action === "completed" ? "deposited" : entry.action;
-        return type === event.type && Math.abs(new Date(entry.timestamp).getTime() - new Date(event.date).getTime()) < 3000;
-      }));
-    }),
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const historyEvents = keyHistoryEvents(kEx, keyLog);
 
   const historyToneClass: Record<string, string> = {
     created: "bg-gray-100 text-gray-500",
@@ -524,10 +497,10 @@ function KeyDetail({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-navy">
-                    {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "Llave retirada" : lastLog.action === "deposited" || lastLog.action === "completed" ? "Llave depositada" : "Movimiento"}
+                    {movementLabel(lastLog.action, lastLog.role)}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {roleLabel(lastLog.role)}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
+                    {lastLog.person_name}
                   </p>
                 </div>
                 <span className="text-xs text-gray-400 font-mono shrink-0">{formatDateTime(lastLog.timestamp)}</span>

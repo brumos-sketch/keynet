@@ -15,3 +15,4 @@
 - Run the monthly PostgreSQL procedures against isolated PGlite fixtures in tests, never production keys. Why: the same SQL can be checked end-to-end without operating a real locker.
 - Share stay-code edit eligibility between the host UI and server validator. Why: the edit action must match the operation allowed for each plan and stay state.
 - Interpret access-code date/time windows in Argentina local time across SQL and server validation. Why: UTC comparisons can open a compartment outside the user's chosen hours.
+- Use the shared movement-history formatter for histories and movement notifications, preserving recorded actors and marking missing attribution explicitly. Why: display must not omit actions or invent traceability.
