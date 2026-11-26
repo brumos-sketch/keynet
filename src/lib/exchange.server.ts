@@ -229,6 +229,7 @@ export async function runCodeValidation(
       const key = keys[0];
       if (!key) throw new Error("Código no encontrado");
       logKeyId = key.id;
+      logRole = "host";
 
       const { data: stored } = await supabase.from("key_exchanges")
         .select("locker_position").eq("key_id", key.id)
@@ -264,7 +265,6 @@ export async function runCodeValidation(
             .from("key_exchanges")
             .update({ status: "completed", returned_at: now, locker_position: position })
             .eq("id", existing.id);
-          logRole = "host";
           return { action: "completed", position, bookingRef: existing.booking_ref };
         }
         throw new Error("La llave está en poder del huésped");
@@ -311,6 +311,8 @@ export async function runCodeValidation(
       logKeyId = ex.key_id;
 
       const isGuestCode = codesMatch(ex.pickup_code, clean) || codesMatch(ex.return_code, clean);
+      logRole = isGuestCode ? "guest" : "host";
+      logPerson = isGuestCode ? (ex.guest_name ?? null) : null;
       if (isGuestCode) {
         if (ex.status === "deposited") {
           assertPickupValidity({ from: ex.check_in, to: ex.check_out, timeFrom: ex.pickup_time, timeTo: ex.pickup_until });

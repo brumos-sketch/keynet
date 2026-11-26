@@ -143,6 +143,11 @@ const createKeySchema = z.object({
   subscriptionType: z.enum(["one_use", "monthly", "pro"]),
 });
 
+async function logActivity(keyId: string, action: string, role: string, personName: string | null = null) {
+  const supabaseAdmin = await loadAdminClient();
+  await supabaseAdmin.from("access_log").insert({ key_id: keyId, action, role, person_name: personName });
+}
+
 export const createKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createKeySchema.parse(input))
@@ -227,6 +232,7 @@ export const createKey = createServerFn({ method: "POST" })
       if (acError) throw acError;
     }
 
+    await logActivity(key.id, "key_created", admin ? "admin" : "host");
     return { keyId: key.id, exchangeId: exchange.id, bookingRef };
   });
 
@@ -274,7 +280,7 @@ export const updateExchange = createServerFn({ method: "POST" })
     await supabase.from("access_log").insert({
       key_id: exchange.key_id,
       action: "exchange_updated",
-      role: "host",
+      role: (await isAdmin(context)) ? "admin" : "host",
       person_name: data.guestName ?? null,
     });
 
@@ -332,6 +338,7 @@ export const updateKey = createServerFn({ method: "POST" })
       .update({ name: data.name.trim(), property_name: data.propertyName?.trim() || null })
       .eq("id", key.id);
     if (error) throw error;
+    await logActivity(key.id, "key_updated", (await isAdmin(context)) ? "admin" : "host");
     return { ok: true };
   });
 
@@ -438,7 +445,7 @@ export const createExchange = createServerFn({ method: "POST" })
     await supabase.from("access_log").insert({
       key_id: key.id,
       action: "exchange_created",
-      role: "host",
+      role: (await isAdmin(context)) ? "admin" : "host",
       person_name: data.guestName ?? null,
     });
 
@@ -515,6 +522,7 @@ export const renewExchange = createServerFn({ method: "POST" })
       .update({ status: "created", created_at: nowIso() })
       .eq("id", data.exchangeId);
     if (error) throw error;
+    if (exchange.key_id) await logActivity(exchange.key_id, "exchange_renewed", admin ? "admin" : "host");
 
     return { ok: true };
   });
@@ -572,6 +580,7 @@ export const createAccessCode = createServerFn({ method: "POST" })
       status: "active",
     });
     if (error) throw error;
+    await logActivity(key.id, "code_created", admin ? "admin" : "host", data.personName ?? null);
     return { code };
   });
 
@@ -602,6 +611,7 @@ export const toggleAccessCode = createServerFn({ method: "POST" })
       .update({ status: data.status })
       .eq("id", data.codeId);
     if (error) throw error;
+    if (code.key_id) await logActivity(code.key_id, data.status === "active" ? "code_updated" : "code_revoked", admin ? "admin" : "host", code.person_name ?? null);
     return { ok: true };
   });
 

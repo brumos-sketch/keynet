@@ -54,6 +54,7 @@ import {
   matchesQuery,
   keyStateOf,
   keyBadgeOf,
+  roleLabel,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
@@ -184,57 +185,27 @@ function HistoryTimeline({
         date: ex.created_at,
         icon: "📋",
         label: "Intercambio creado",
-        sub: `Reserva ${ex.booking_ref}`,
+        sub: `Anfitrión · Reserva ${ex.booking_ref}`,
         tone: "neutral",
       });
-      if (ex.status === "deposited" || ex.status === "picked_up" || ex.status === "completed") {
-        evs.push({
-          id: `ex-deposited-${ex.id}`,
-          date: ex.deposited_at ?? ex.created_at,
-          icon: "↓",
-          label: "Llave depositada",
-          sub: `Reserva ${ex.booking_ref} · ${kioskName(ex.kiosk_id)}`,
-          tone: "info",
-        });
-      }
-      if (ex.status === "picked_up" || ex.status === "completed") {
-        evs.push({
-          id: `ex-pickup-${ex.id}`,
-          date: ex.picked_up_at ?? ex.check_in ?? ex.created_at,
-          icon: "↑",
-          label: "Llave retirada",
-          sub: `Reserva ${ex.booking_ref}`,
-          tone: "purple",
-        });
-      }
-      if (ex.status === "completed") {
-        evs.push({
-          id: `ex-completed-${ex.id}`,
-          date: ex.returned_at ?? ex.check_out ?? ex.created_at,
-          icon: "↓",
-          label: "Llave depositada (devuelta por el huésped)",
-          sub: `Reserva ${ex.booking_ref}`,
-          tone: "info",
-        });
-      }
       if (ex.status === "expired") {
         evs.push({
           id: `ex-expired-${ex.id}`,
           date: ex.check_out ?? ex.created_at,
           icon: "⚠",
           label: "Intercambio vencido",
-          sub: `Reserva ${ex.booking_ref}`,
+          sub: `Sistema · Reserva ${ex.booking_ref}`,
           tone: "danger",
         });
       }
       return evs;
     }),
-    ...accessLog.map((l) => ({
+    ...accessLog.filter((l) => l.action !== "exchange_created").map((l) => ({
       id: `log-${l.id}`,
       date: l.timestamp,
       icon: l.action === "picked_up" ? "↑" : l.action === "deposited" || l.action === "completed" ? "↓" : "↻",
       label: ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—",
-      sub: [l.role, l.person_name].filter(Boolean).join(" · "),
+      sub: [roleLabel(l.role), l.person_name].filter(Boolean).join(" · "),
       tone: l.action === "picked_up" ? "purple" : l.action === "deposited" || l.action === "completed" ? "info" : "success",
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -556,7 +527,7 @@ function KeyDetail({
                     {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "Llave retirada" : lastLog.action === "deposited" || lastLog.action === "completed" ? "Llave depositada" : "Movimiento"}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {lastLog.role}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
+                    {roleLabel(lastLog.role)}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
                   </p>
                 </div>
                 <span className="text-xs text-gray-400 font-mono shrink-0">{formatDateTime(lastLog.timestamp)}</span>

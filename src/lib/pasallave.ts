@@ -304,7 +304,14 @@ export const ACCESS_SCOPE_LABELS: Record<string, string> = Object.fromEntries(
 export const ACTION_LABELS: Record<string, string> = {
   deposited: "Depósito",
   picked_up: "Retiro",
-  completed: "Llave depositada (devuelta por el huésped)",
+  completed: "Llave devuelta al punto",
+  key_created: "Llave creada",
+  key_updated: "Llave editada",
+  code_created: "Código generado",
+  code_updated: "Código editado",
+  code_revoked: "Código revocado",
+  plan_changed: "Plan cambiado",
+  exchange_renewed: "Intercambio renovado",
   exchange_created: "Intercambio creado",
   exchange_updated: "Estadía editada",
 };
@@ -367,4 +374,23 @@ export function formatValidity(v: { from?: string | null; to?: string | null; ti
 /** Una llave está físicamente en el locker si tiene una estadía depositada o devuelta con casillero. */
 export function isKeyInLocker(exchanges: { status: string; locker_position?: number | null }[]): boolean {
   return exchanges.some((e) => e.status === "deposited" || (e.status === "completed" && (e.locker_position ?? 0) > 0));
+}
+
+/** Human label of who performed a logged movement. Unknown/empty → "Sistema". */
+export const ACTOR_LABELS: Record<string, string> = {
+  host: "Anfitrión",
+  guest: "Huésped",
+  kiosk: "Empleado del punto",
+  employee: "Empleado del punto",
+  admin: "Administrador",
+  associate: "Asociado",
+  cleaning: "Limpieza",
+  other: "Otro",
+  maintenance: "Mantenimiento",
+  owner: "Propietario",
+  system: "Sistema",
+};
+export function roleLabel(role: string | null | undefined): string {
+  if (!role) return "Sistema";
+  return ACTOR_LABELS[role.toLowerCase()] ?? role.charAt(0).toUpperCase() + role.slice(1);
 }
