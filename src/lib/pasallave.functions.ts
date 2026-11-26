@@ -59,7 +59,7 @@ async function loadAdminClient() {
 async function reservePosition(supabase: TypedSupabase, kioskId: string) {
   const { data: kiosk } = await supabase
     .from("kiosks")
-    .select("positions")
+    .select("positions, enabled_positions")
     .eq("id", kioskId)
     .maybeSingle();
   if (!kiosk) throw new Error("Punto no encontrado");
@@ -76,6 +76,7 @@ async function reservePosition(supabase: TypedSupabase, kioskId: string) {
     (taken ?? [])
       .map((x: { locker_position: number | null }) => x.locker_position ?? 0)
       .filter(Boolean),
+    kiosk.enabled_positions,
   );
   if (position === 0) throw new Error("No hay posiciones libres");
   return position;

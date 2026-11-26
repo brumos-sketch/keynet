@@ -37,7 +37,7 @@ import {
   TIME_SLOTS,
   WEEKDAYS,
   describeSchedule,
-  generateKioskCode,
+  generateKioskCode, parsePositionList,
   matchesQuery,
   type KioskSchedule,
 } from "@/lib/pasallave";
@@ -78,6 +78,7 @@ const blankForm = {
   category: "kiosco",
   customCategory: "",
   positions: 10,
+  enabledPositions: "",
   commission: 20,
   contactName: "",
   contactPhone: "",
@@ -170,6 +171,7 @@ function AdminKiosks() {
         category: form.category,
         custom_category: form.category === "otro" ? form.customCategory.trim() || null : null,
         positions: form.positions,
+        enabled_positions: form.enabledPositions.trim() ? parsePositionList(form.enabledPositions, form.positions) : null,
         commission_percent: form.commission,
         contact_name: form.contactName.trim() || null,
         contact_phone: form.contactPhone.trim() || null,
@@ -207,6 +209,7 @@ function AdminKiosks() {
     category: string;
     custom_category: string | null;
     positions: number;
+    enabled_positions?: number[] | null;
     commission_percent: number;
     contact_name: string | null;
     contact_phone: string | null;
@@ -224,6 +227,7 @@ function AdminKiosks() {
       category: k.category,
       customCategory: k.custom_category ?? "",
       positions: k.positions,
+      enabledPositions: (k.enabled_positions ?? []).join(", "),
       commission: k.commission_percent,
       contactName: k.contact_name ?? "",
       contactPhone: k.contact_phone ?? "",
@@ -355,6 +359,16 @@ function AdminKiosks() {
                     value={form.positions}
                     onChange={(e) => setForm({ ...form, positions: Number(e.target.value) })}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="k-enabled">Casilleros habilitados</Label>
+                  <Input
+                    id="k-enabled"
+                    placeholder="Todos (ej: 1, 4, 8, 16)"
+                    value={form.enabledPositions}
+                    onChange={(e) => setForm({ ...form, enabledPositions: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Vacío = todos. Las llaves solo se asignan a estos.</p>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="k-comm">Comisión (%)</Label>

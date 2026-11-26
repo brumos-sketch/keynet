@@ -160,13 +160,27 @@ export function generateKioskCode(): string {
 }
 
 /** Posición aleatoria entre las libres del punto. */
-export function pickFreePosition(totalPositions: number, taken: number[]): number {
+export function pickFreePosition(totalPositions: number, taken: number[], enabled?: number[] | null): number {
   const free: number[] = [];
+  const allowed = enabled && enabled.length > 0 ? new Set(enabled) : null;
   for (let i = 1; i <= totalPositions; i += 1) {
+    if (allowed && !allowed.has(i)) continue;
     if (!taken.includes(i)) free.push(i);
   }
   if (free.length === 0) return 0;
   return free[Math.floor(Math.random() * free.length)]!;
+}
+
+/** Interpreta "1, 4, 8-10" como lista de casilleros (vacío = todos). */
+export function parsePositionList(text: string, total: number): number[] {
+  const out = new Set<number>();
+  for (const part of text.split(/[,\s]+/).filter(Boolean)) {
+    const m = part.match(/^(\d+)(?:-(\d+))?$/);
+    if (!m) continue;
+    const a = Number(m[1]); const b = m[2] ? Number(m[2]) : a;
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i += 1) if (i >= 1 && i <= total) out.add(i);
+  }
+  return [...out].sort((x, y) => x - y);
 }
 
 export function formatMoney(value: number | null | undefined): string {

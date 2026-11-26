@@ -398,6 +398,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           custom_category: string | null
+          enabled_positions: number[] | null
           id: string
           is_24h: boolean
           last_seen_at: string | null
@@ -421,6 +422,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           custom_category?: string | null
+          enabled_positions?: number[] | null
           id?: string
           is_24h?: boolean
           last_seen_at?: string | null
@@ -444,6 +446,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           custom_category?: string | null
+          enabled_positions?: number[] | null
           id?: string
           is_24h?: boolean
           last_seen_at?: string | null

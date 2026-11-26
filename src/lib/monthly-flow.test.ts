@@ -26,7 +26,7 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0004_monthly_guest_code_rotation.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0005_monthly_stay_from_stored_key.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0006_boarding_pass_end_time.sql", import.meta.url), "utf8"));
-  await db.exec(readFileSync(new URL("../../drizzle/migrations/0008_random_locker_position_abc_refs_v2.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
+  await db.exec(readFileSync(new URL("../../drizzle/migrations/0009_enabled_locker_positions.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
 }, 30000);
 beforeEach(async () => {
   await db.exec("set test.clock=''");
