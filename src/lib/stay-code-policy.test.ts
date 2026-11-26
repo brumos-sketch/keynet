@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { argentinaClock, assertPickupValidity, canEditStayCode, stayCodeEditSchema } from "./stay-code-policy";
+import { formatValidity } from "./pasallave";
 
 const exchangeId = "00000000-0000-4000-8000-000000000001";
 describe("código Pasa Mes", () => {
@@ -45,5 +46,16 @@ describe("código Pasa Mes", () => {
   });
   it("rechaza un rango horario invertido", () => {
     expect(stayCodeEditSchema.safeParse({ exchangeId, pickupTime: "21:00", pickupUntil: "15:00" }).success).toBe(false);
+  });
+});
+describe("formatValidity", () => {
+  it("muestra solo la fecha inicial cuando no hay fecha final", () => {
+    expect(formatValidity({ from: "2026-11-27", timeFrom: "15:00" })).toBe("Desde 27/11/2026 · Retiro desde 15:00");
+  });
+  it("muestra solo la fecha final", () => {
+    expect(formatValidity({ to: "2026-11-30" })).toBe("Hasta 30/11/2026");
+  });
+  it("sin límites queda libre", () => {
+    expect(formatValidity({})).toBe("Sin fechas (libre)");
   });
 });

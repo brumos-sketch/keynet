@@ -1,4 +1,4 @@
-import { formatCode } from "@/lib/pasallave";
+import { formatCode, formatValidity } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Copy, KeyRound as Key, Menu, Plus, Share2, User } from "lucide-react";
@@ -606,11 +606,7 @@ function KeyDetail({
                   {formatCode(ex.pickup_code)}
                 </p>
                 <p className="text-xs text-gray-400 mb-3">
-                  {ex.check_in && ex.check_out
-                    ? `${formatDate(ex.check_in)} → ${formatDate(ex.check_out)}`
-                    : "Sin fechas (libre)"}
-                  {ex.pickup_time ? ` · Retiro desde ${ex.pickup_time}` : ""}
-                  {ex.pickup_until ? ` hasta ${ex.pickup_until}` : ""}
+                  {formatValidity({ from: ex.check_in, to: ex.check_out, timeFrom: ex.pickup_time, timeTo: ex.pickup_until })}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button

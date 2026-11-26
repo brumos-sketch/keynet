@@ -336,3 +336,16 @@ export function keyBadgeOf<T extends { status: string; created_at: string }>(
   )[0];
   return latest ? keyStateOf(latest.status) : null;
 }
+
+/** Texto de vigencia de un código: admite solo inicio, solo fin o ambos. */
+export function formatValidity(v: { from?: string | null; to?: string | null; timeFrom?: string | null; timeTo?: string | null }): string {
+  const dates = v.from && v.to ? `${formatDate(v.from)} → ${formatDate(v.to)}`
+    : v.from ? `Desde ${formatDate(v.from)}`
+    : v.to ? `Hasta ${formatDate(v.to)}`
+    : "Sin fechas (libre)";
+  const times = v.timeFrom && v.timeTo ? `Retiro de ${v.timeFrom.slice(0, 5)} a ${v.timeTo.slice(0, 5)}`
+    : v.timeFrom ? `Retiro desde ${v.timeFrom.slice(0, 5)}`
+    : v.timeTo ? `Retiro hasta ${v.timeTo.slice(0, 5)}`
+    : "";
+  return times ? `${dates} · ${times}` : dates;
+}

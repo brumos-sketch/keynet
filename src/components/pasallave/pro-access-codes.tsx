@@ -1,4 +1,4 @@
-import { formatCode } from "@/lib/pasallave";
+import { formatCode, formatValidity } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -316,11 +316,9 @@ export function ProAccessCodes({
 
             {/* fechas */}
             <p className="text-xs text-gray-400 mb-3">
-              {c.has_validity && (c.valid_from || c.valid_to)
-                ? `${c.valid_from ? formatDate(c.valid_from) : "—"} → ${c.valid_to ? formatDate(c.valid_to) : "—"}`
+              {c.has_validity
+                ? formatValidity({ from: c.valid_from, to: c.valid_to, timeFrom: c.time_from, timeTo: c.time_to })
                 : "Sin fechas (libre)"}
-              {c.has_validity && c.time_from ? ` · Retiro desde ${c.time_from}` : ""}
-              {c.has_validity && c.time_to ? ` · Hasta ${c.time_to}` : ""}
             </p>
 
             {/* acciones */}
