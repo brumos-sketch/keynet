@@ -50,6 +50,7 @@ import {
   formatDate,
   formatDateTime,
   matchesQuery,
+  keyStateOf,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
@@ -92,6 +93,9 @@ type Exchange = {
   check_out: string | null;
   status: string;
   created_at: string;
+  deposited_at?: string | null;
+  picked_up_at?: string | null;
+  returned_at?: string | null;
   keys: { subscription_type: string };
 };
 
@@ -220,10 +224,10 @@ function HistoryTimeline({
     ...accessLog.map((l) => ({
       id: `log-${l.id}`,
       date: l.timestamp,
-      icon: l.action === "picked_up" ? "↑" : "↻",
+      icon: l.action === "picked_up" ? "↑" : l.action === "deposited" ? "↓" : "↻",
       label: ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—",
       sub: [l.role, l.person_name].filter(Boolean).join(" · "),
-      tone: l.action === "picked_up" ? "purple" : "success",
+      tone: l.action === "picked_up" ? "purple" : l.action === "deposited" ? "info" : "success",
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -328,35 +332,25 @@ function KeyDetail({
 
   const tabs = [
     { id: "info" as const, label: "Info" },
-    ...(k.subscription_type === "pro" || k.subscription_type === "monthly"
-      ? [{ id: "codes" as const, label: k.subscription_type === "pro" ? `Códigos (${proCodeCount})` : `Códigos (${kExWithCode.length})` }]
-      : []),
+    { id: "codes" as const, label: k.subscription_type === "pro" ? `Códigos (${proCodeCount})` : `Códigos (${kExWithCode.length})` },
     { id: "history" as const, label: "Historial" },
   ];
 
-  // History events (same logic as prototype)
+  // History events: every real movement, with its own timestamp
   const historyEvents = [
     ...kEx.flatMap((ex) => {
       const evs: Array<{ type: string; label: string; ref: string | null; date: string; icon: string; who?: string; code?: string }> = [];
-      if (ex.created_at) evs.push({ type: "created", label: "Intercambio creado", ref: ex.booking_ref, date: ex.created_at, icon: "+" });
-      if (["deposited", "picked_up", "completed"].includes(ex.status))
-        evs.push({ type: "deposited", label: "Llave depositada", ref: ex.booking_ref, date: ex.created_at, icon: "↓" });
-      if (["picked_up", "completed"].includes(ex.status))
-        evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.check_in ?? ex.created_at, icon: "↑" });
+      evs.push({ type: "created", label: "Intercambio creado", ref: ex.booking_ref, date: ex.created_at, icon: "+" });
+      if (ex.deposited_at || ["deposited", "picked_up", "completed"].includes(ex.status))
+        evs.push({ type: "deposited", label: "Llave depositada", ref: ex.booking_ref, date: ex.deposited_at ?? ex.created_at, icon: "↓" });
+      if (ex.picked_up_at || ["picked_up", "completed"].includes(ex.status))
+        evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.picked_up_at ?? ex.check_in ?? ex.created_at, icon: "↑" });
       if (ex.status === "completed")
-        evs.push({ type: "completed", label: "Llave devuelta", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "↻" });
+        evs.push({ type: "completed", label: "Llave devuelta", ref: ex.booking_ref, date: ex.returned_at ?? ex.check_out ?? ex.created_at, icon: "↻" });
       if (ex.status === "expired")
         evs.push({ type: "expired", label: "Código vencido (48hs)", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "⏳" });
       return evs;
     }),
-    ...keyLog.map((l) => ({
-      type: l.action === "pickup" ? "picked_up" : "completed",
-      label: l.action === "pickup" ? "Llave retirada" : "Llave devuelta",
-      ref: null,
-      date: l.timestamp,
-      icon: l.action === "pickup" ? "↑" : "↻",
-      who: [l.role, l.person_name].filter(Boolean).join(" · "),
-    })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const historyToneClass: Record<string, string> = {
@@ -383,6 +377,9 @@ function KeyDetail({
               </button>
               <span className="text-xl font-black text-navy truncate">{k.name}</span>
               <PlanBadge plan={k.subscription_type as SubscriptionType} />
+              {activeEx && keyStateOf(activeEx.status) && (
+                <Pill tone={keyStateOf(activeEx.status)!.tone}>{keyStateOf(activeEx.status)!.label}</Pill>
+              )}
               {k.locked && <span className="text-xs font-bold text-red-600">BLOQUEADA</span>}
             </div>
             <p className="mt-1 ml-5 text-sm text-gray-500">
@@ -446,8 +443,8 @@ function KeyDetail({
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[var(--shadow-card)]">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-bold text-navy">Intercambio activo</span>
-                <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]}>
-                  {STATUS_LABELS[activeEx.status as ExchangeStatus]}
+                <Pill tone={keyStateOf(activeEx.status)?.tone ?? STATUS_TONE[activeEx.status as ExchangeStatus]}>
+                  {keyStateOf(activeEx.status)?.label ?? STATUS_LABELS[activeEx.status as ExchangeStatus]}
                 </Pill>
               </div>
               <div
@@ -533,11 +530,11 @@ function KeyDetail({
                     lastLog.action === "pickup" ? "bg-purple-100 text-purple-600" : "bg-green-100 text-green-600"
                   }`}
                 >
-                  {lastLog.action === "pickup" ? "↑" : "↻"}
+                  {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "↑" : lastLog.action === "deposited" ? "↓" : "↻"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-navy">
-                    {lastLog.action === "pickup" ? "Llave retirada" : "Llave devuelta"}
+                    {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "Llave retirada" : lastLog.action === "deposited" ? "Llave depositada" : "Llave devuelta"}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {lastLog.role}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
@@ -557,7 +554,7 @@ function KeyDetail({
       )}
 
       {/* ── Códigos Mensual ── */}
-      {tab === "codes" && k.subscription_type === "monthly" && (
+      {tab === "codes" && k.subscription_type !== "pro" && (
         <div className="space-y-3">
           {kExWithCode.length === 0 && (
             <p className="py-8 text-center text-sm text-gray-400">Sin códigos todavía.</p>
@@ -1047,8 +1044,8 @@ function HostPanel() {
                       </div>
                       <div className="flex items-center gap-2">
                         {activeEx ? (
-                          <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]}>
-                            {STATUS_LABELS[activeEx.status as ExchangeStatus]}
+                          <Pill tone={keyStateOf(activeEx.status)?.tone ?? STATUS_TONE[activeEx.status as ExchangeStatus]}>
+                            {keyStateOf(activeEx.status)?.label ?? STATUS_LABELS[activeEx.status as ExchangeStatus]}
                           </Pill>
                         ) : expiredEx ? (
                           <Pill tone="danger">Vencido</Pill>

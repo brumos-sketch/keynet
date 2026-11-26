@@ -316,3 +316,11 @@ export function formatAddress(address: string | null | undefined): string {
   const out = parts.slice(0, 2).join(", ");
   return out || address;
 }
+
+/** Estado simplificado de la llave para el badge (3 estados). */
+export function keyStateOf(status: string | null | undefined): { label: string; tone: Tone } | null {
+  if (status === "created" || status === "waiting_deposit") return { label: "Esperando primer depósito", tone: "amber" };
+  if (status === "deposited") return { label: "En el locker", tone: "info" };
+  if (status === "picked_up") return { label: "Llave en uso", tone: "purple" };
+  return null;
+}
