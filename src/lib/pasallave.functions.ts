@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
+import { generateBookingRef, generateExchangeCode, isKeyInLocker, pickFreePosition } from "@/lib/pasallave";
 import { sendPushToUser } from "@/lib/push.server";
 import { canEditStayCode, stayCodeEditSchema } from "@/lib/stay-code-policy";
 
@@ -343,13 +343,13 @@ export const deleteKey = createServerFn({ method: "POST" })
 
     const { data: blocking } = await supabaseAdmin
       .from("key_exchanges")
-      .select("id")
-      .eq("key_id", key.id)
-      .in("status", ["deposited", "picked_up"])
-      .limit(1);
-    if ((blocking ?? []).length > 0) {
-      throw new Error("La llave está depositada en un punto: no se puede eliminar");
+      .select("status, locker_position, booking_ref")
+      .eq("key_id", key.id);
+    if (isKeyInLocker(blocking ?? [])) {
+      throw new Error("La llave está en el locker: retirala antes de eliminarla");
     }
+    const refs = (blocking ?? []).map((e) => e.booking_ref).filter(Boolean);
+    if (refs.length) await supabaseAdmin.from("notifications").delete().in("booking_ref", refs);
 
     await supabaseAdmin.from("access_log").delete().eq("key_id", key.id);
     await supabaseAdmin.from("access_codes").delete().eq("key_id", key.id);

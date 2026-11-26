@@ -1,4 +1,4 @@
-import { formatCode, formatValidity } from "@/lib/pasallave";
+import { formatCode, formatValidity, isKeyInLocker } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Copy, KeyRound as Key, Menu, Plus, Share2, User } from "lucide-react";
@@ -426,9 +426,8 @@ function KeyDetail({
               size="sm"
               variant="ghost"
               className="rounded-xl text-destructive hover:text-destructive"
-              disabled={exchanges.some(
-                (e) => e.key_id === k.id && ["deposited", "picked_up"].includes(e.status),
-              )}
+              disabled={isKeyInLocker(exchanges.filter((e) => e.key_id === k.id))}
+              title={isKeyInLocker(exchanges.filter((e) => e.key_id === k.id)) ? "No se puede eliminar: la llave está en el locker" : undefined}
               onClick={() => onDeleteKey(k)}
             >
               Eliminar

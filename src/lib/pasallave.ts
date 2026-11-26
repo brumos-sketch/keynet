@@ -349,3 +349,8 @@ export function formatValidity(v: { from?: string | null; to?: string | null; ti
     : "";
   return times ? `${dates} · ${times}` : dates;
 }
+
+/** Una llave está físicamente en el locker si tiene una estadía depositada o devuelta con casillero. */
+export function isKeyInLocker(exchanges: { status: string; locker_position?: number | null }[]): boolean {
+  return exchanges.some((e) => e.status === "deposited" || (e.status === "completed" && (e.locker_position ?? 0) > 0));
+}

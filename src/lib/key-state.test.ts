@@ -23,3 +23,15 @@ describe("listados de intercambios", () => {
     expect(STATUS_LABELS.completed).toBe("Devuelta · en el locker");
   });
 });
+
+import { isKeyInLocker } from "./pasallave";
+describe("eliminar llave", () => {
+  it("bloquea si la llave está depositada o devuelta al locker", () => {
+    expect(isKeyInLocker([{ status: "deposited", locker_position: 3 }])).toBe(true);
+    expect(isKeyInLocker([{ status: "completed", locker_position: 5 }])).toBe(true);
+  });
+  it("permite si la llave no está en el locker", () => {
+    expect(isKeyInLocker([{ status: "picked_up", locker_position: 0 }, { status: "completed", locker_position: 0 }])).toBe(false);
+    expect(isKeyInLocker([{ status: "waiting_deposit", locker_position: 0 }])).toBe(false);
+  });
+});
