@@ -25,7 +25,7 @@ import {
 import { CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { PlanBadge } from "@/components/pasallave/status-badge";
 import { PLAN_LABELS, formatDate, matchesQuery, type SubscriptionType } from "@/lib/pasallave";
-import { createKey } from "@/lib/pasallave.functions";
+import { createKey, deleteKey } from "@/lib/pasallave.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/keys")({
   head: () => ({
@@ -110,12 +110,12 @@ function AdminKeys() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const deleteKeyFn = useServerFn(deleteKey);
+  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(null);
   const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("keys").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: async (id: string) => deleteKeyFn({ data: { keyId: id } }),
     onSuccess: () => {
+      setToDelete(null);
       toast.success("Llave eliminada");
       void qc.invalidateQueries({ queryKey: ["admin", "keys"] });
     },
@@ -277,7 +277,7 @@ function AdminKeys() {
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => remove.mutate(k.id)}
+                    onClick={() => setToDelete({ id: k.id, name: k.name })}
                   >
                     Eliminar
                   </Button>
@@ -294,6 +294,22 @@ function AdminKeys() {
           </tbody>
         </table>
       </div>
+      <Dialog open={!!toDelete} onOpenChange={(open) => !open && setToDelete(null)}>
+        <DialogContent className="rounded-2xl sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Eliminar llave</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500">
+            ¿Seguro que querés eliminar «{toDelete?.name}»? Solo se puede si la llave no está en el locker. Esta acción no se puede deshacer.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setToDelete(null)}>Cancelar</Button>
+            <Button variant="destructive" disabled={remove.isPending} onClick={() => toDelete && remove.mutate(toDelete.id)}>
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

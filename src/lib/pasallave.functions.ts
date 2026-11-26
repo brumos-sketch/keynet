@@ -348,7 +348,8 @@ export const deleteKey = createServerFn({ method: "POST" })
     if (isKeyInLocker(blocking ?? [])) {
       throw new Error("La llave está en el locker: retirala antes de eliminarla");
     }
-    const refs = (blocking ?? []).map((e) => e.booking_ref).filter(Boolean);
+    const { data: codes } = await supabaseAdmin.from("access_codes").select("id").eq("key_id", key.id);
+    const refs = [...(blocking ?? []).map((e) => e.booking_ref), ...(codes ?? []).map((c) => c.id)].filter(Boolean);
     if (refs.length) await supabaseAdmin.from("notifications").delete().in("booking_ref", refs);
 
     await supabaseAdmin.from("access_log").delete().eq("key_id", key.id);
