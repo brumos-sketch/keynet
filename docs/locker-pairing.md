@@ -35,6 +35,51 @@ Enviar `Authorization: Bearer <apiKey>` a:
 
 La vinculación no acciona relés: el firmware sigue siendo responsable del comando RS485 y de verificar el resultado físico.
 
+## Capacidad dinámica y relés RS485
+
+Cada locker tiene su propia capacidad, editable en **Admin → Puntos → Posiciones**. No hay una cantidad única para todos los dispositivos. La cantidad configurada debe coincidir con los casilleros físicos y relés instalados.
+
+Después de vincularse y en cada arranque, consultar:
+
+```http
+GET https://pasallave.lovable.app/api/public/locker/info
+Authorization: Bearer <apiKey>
+```
+
+Ejemplo de respuesta del endpoint existente:
+
+```json
+{
+  "ok": true,
+  "name": "Locker de ejemplo",
+  "address": "Dirección del locker",
+  "positions": 24,
+  "is24h": true
+}
+```
+
+`positions` es el número total de casilleros, numerados de **1 a positions**; no es la cantidad de casilleros libres. El servidor asigna la posición para cada operación. El firmware no debe elegirla ni asumir que siempre hay 36 casilleros.
+
+Recomendaciones para el firmware:
+
+- Consultar nuevamente `/info` al reconectarse y periódicamente si se necesitan cambios de capacidad sin reiniciar. El servidor no envía estos cambios por push.
+- Comprobar que `positions` sea un entero positivo y que no supere los canales físicos configurados. Ante una configuración incompatible, no accionar relés y mostrar un error de configuración.
+- Antes de abrir, comprobar que la posición devuelta por una validación exitosa sea un entero entre `1` y `positions`, con un relé físico asignado. Una respuesta inválida o un error de red nunca autoriza la apertura.
+- Mantener separado el número lógico de casillero del direccionamiento físico Modbus: PASALLAVE devuelve la posición, no la dirección de esclavo ni el registro de la placa.
+
+Para placas iguales con `C` canales, una distribución consecutiva puede calcularse así:
+
+```text
+indicePlaca = (posicion - 1) / C       (división entera, índice desde 0)
+indiceCanal = (posicion - 1) % C       (índice desde 0)
+```
+
+Ejemplo: con placas de 8 canales, el casillero 17 corresponde a la tercera placa (`indicePlaca = 2`) y su primer canal (`indiceCanal = 0`). El firmware debe convertir esos índices a la dirección de esclavo y a la bobina o registro que indique el manual de la placa. No asumir direcciones Modbus ni comandos universales; para cableados no consecutivos, usar una tabla explícita de posición → esclavo/canal.
+
+Para ampliar la capacidad, instalar primero los casilleros y relés adicionales, configurar su direccionamiento en el firmware y luego actualizar **Posiciones** en el panel. Cambiar solo el número en el panel no instala ni configura el hardware; evitar recompilar requiere que el firmware ya soporte esa ampliación.
+
+Para reducirla, verificar primero que ninguna llave ni operación pendiente utilice posiciones que se eliminarán. Esta es una comprobación operativa necesaria, no una garantía de bloqueo automático al editar la capacidad.
+
 ## Errores y seguridad
 
 - `401`: secreto o API key inválidos. No abrir casilleros. Una API key revocada requiere una nueva vinculación aprobada.
