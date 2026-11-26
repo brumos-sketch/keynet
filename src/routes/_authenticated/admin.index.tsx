@@ -99,7 +99,8 @@ function AdminDashboard() {
 
   const statusCounts = Object.entries(
     data.exchanges.reduce<Record<string, number>>((acc, e) => {
-      acc[e.status] = (acc[e.status] ?? 0) + 1;
+      const st = e.status === "completed" ? "deposited" : e.status;
+      acc[st] = (acc[st] ?? 0) + 1;
       return acc;
     }, {}),
   ).map(([status, total]) => ({

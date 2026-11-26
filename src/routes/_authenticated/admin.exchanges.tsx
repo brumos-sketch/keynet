@@ -175,7 +175,7 @@ function AdminExchanges() {
     { label: "Creado", at: e.created_at },
     { label: "Depositada", at: e.deposited_at },
     { label: "Retirada", at: e.picked_up_at },
-    { label: "Devuelta", at: e.returned_at },
+    { label: "Depositada", at: e.returned_at },
   ];
 
   return (
@@ -234,7 +234,6 @@ function AdminExchanges() {
               </tr>
             )}
             {rows.map((e) => {
-              const next = nextStatus(e.status);
               return (
                 <tr key={e.id}>
                   <td className="px-4 py-3">
@@ -259,15 +258,6 @@ function AdminExchanges() {
                     <Button variant="ghost" size="sm" onClick={() => setDetail(e)}>
                       Detalle
                     </Button>
-                    {next && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setStatus.mutate({ id: e.id, status: next })}
-                      >
-                        {STATUS_LABELS[next as ExchangeStatus]}
-                      </Button>
-                    )}
                   </td>
                 </tr>
               );
@@ -307,53 +297,6 @@ function AdminExchanges() {
                 <Info label="Devolución" value={detail.return_code ?? "—"} />
               </div>
 
-              {canEditStayCode(detail.status, data?.keys.find((key) => key.id === detail.key_id)?.subscription_type ?? "") && (
-                <div className="space-y-3 rounded-xl border border-gray-100 p-3">
-                  <p className="text-xs tracking-wide text-gray-500 uppercase">Editar estadía</p>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="a-checkin">Check-in</Label>
-                      <Input
-                        id="a-checkin"
-                        type="date"
-                        value={editForm.checkIn}
-                        onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="a-checkout">Check-out</Label>
-                      <Input
-                        id="a-checkout"
-                        type="date"
-                        value={editForm.checkOut}
-                        onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="a-pickup">Retiro</Label>
-                      <Input
-                        id="a-pickup"
-                        type="time"
-                        value={editForm.pickupTime}
-                        onChange={(e) => setEditForm({ ...editForm, pickupTime: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <div className="mr-auto space-y-1.5">
-                      <Label htmlFor="a-pickup-until">Retiro hasta</Label>
-                      <Input id="a-pickup-until" type="time" value={editForm.pickupUntil} onChange={(e) => setEditForm({ ...editForm, pickupUntil: e.target.value })} />
-                    </div>
-                    <Button
-                      size="sm"
-                      disabled={editMutation.isPending}
-                      onClick={() => editMutation.mutate()}
-                    >
-                      Guardar cambios
-                    </Button>
-                  </div>
-                </div>
-              )}
 
 
 
@@ -362,8 +305,8 @@ function AdminExchanges() {
                   Línea de tiempo
                 </p>
                 <ol className="space-y-3">
-                  {timeline(detail).map((step) => (
-                    <li key={step.label} className="flex items-start gap-3">
+                  {timeline(detail).filter((s) => s.at).sort((x, y) => Date.parse(y.at!) - Date.parse(x.at!)).map((step) => (
+                    <li key={step.label + step.at} className="flex items-start gap-3">
                       <span
                         className={cn(
                           "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
