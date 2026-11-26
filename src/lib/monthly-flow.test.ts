@@ -27,6 +27,7 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0005_monthly_stay_from_stored_key.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0006_boarding_pass_end_time.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0009_enabled_locker_positions.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
+  await db.exec(readFileSync(new URL("../../drizzle/migrations/0011_host_redeposit_monthly_key.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
 }, 30000);
 beforeEach(async () => {
   await db.exec("set test.clock=''");
@@ -83,6 +84,14 @@ describe("ciclo mensual real en PostgreSQL", () => {
     await validate("015589"); await validate("393496"); await validate("393496");
     await expect(validate("015589")).rejects.toThrow("ya se encuentra depositada");
     expect((await stays()).filter((row) => row.locker_position > 0)).toHaveLength(1);
+  });
+  it("el anfitrión reingresa con su código fijo una llave retirada", async () => {
+    await validate("015589"); await validate("393496");
+    const r = (await validate("015589")).rows[0]?.result;
+    expect(r?.action).toBe("completed");
+    expect([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]).toContain(r?.position);
+    expect((await stays()).filter((row) => row.status === "deposited" && row.locker_position === r?.position)).toHaveLength(1);
+    expect((await db.query<{ role: string }>("select role from public.access_log order by role")).rows.map((x) => x.role)).toContain("host");
   });
   it("un código reutilizable conserva la estadía y registra todos los movimientos", async () => {
     await db.exec("update public.key_exchanges set reusable=true");

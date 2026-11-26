@@ -257,6 +257,16 @@ export async function runCodeValidation(
         }
         if (existing.status === "deposited")
           throw new Error("Esta llave ya está depositada en el punto");
+        // Host re-deposits a key handed back outside the locker (Pasa Mes / Pasa Pro).
+        if (existing.status === "picked_up" && key.subscription_type !== "one_use") {
+          const position = await reservePosition(supabase, kioskId);
+          await supabase
+            .from("key_exchanges")
+            .update({ status: "completed", returned_at: now, locker_position: position })
+            .eq("id", existing.id);
+          logRole = "host";
+          return { action: "completed", position, bookingRef: existing.booking_ref };
+        }
         throw new Error("La llave está en poder del huésped");
       }
 
