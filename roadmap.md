@@ -1,3 +1,6 @@
+# Pro code counter
+- [x] Load active Pro code counts when a key opens and verify the tab updates without being clicked first.
+
 # Device pairing
 - [x] Show recorded roles beside all history actions and normalize movement notifications.
 - [x] Generate random LK-ABC-123 / PT-ABC-123 codes with ten-minute approval.

@@ -1,5 +1,6 @@
 import { formatCode, formatValidity } from "@/lib/pasallave";
-import { useEffect, useState } from "react";
+import { proAccessCodesQueryOptions } from "@/lib/access-codes";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -36,11 +37,9 @@ import {
 export function ProAccessCodes({
   keyId,
   keyName,
-  onCountChange,
 }: {
   keyId: string;
   keyName: string;
-  onCountChange?: (n: number) => void;
 }) {
   const qc = useQueryClient();
   const createFn = useServerFn(createAccessCode);
@@ -91,24 +90,7 @@ export function ProAccessCodes({
     timeTo: "",
   });
 
-  const { data: codes } = useQuery({
-    queryKey: ["host", "access-codes", keyId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("access_codes")
-        .select("*")
-        .eq("key_id", keyId)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
-
-  // notify parent of active code count
-  useEffect(() => {
-    if (codes && onCountChange) {
-      onCountChange(codes.filter((c) => c.status === "active").length);
-    }
-  }, [codes, onCountChange]);
+  const { data: codes } = useQuery(proAccessCodesQueryOptions(keyId));
 
   const mutation = useMutation({
     mutationFn: async () =>

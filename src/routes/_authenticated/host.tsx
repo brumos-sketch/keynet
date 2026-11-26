@@ -1,4 +1,5 @@
 import { keyHistoryEvents, movementLabel } from "@/lib/movement-history";
+import { proAccessCodesQueryOptions } from "@/lib/access-codes";
 import { formatCode, formatValidity, isKeyInLocker } from "@/lib/pasallave";
 import { formatAddress } from "@/lib/pasallave";
 import { useEffect, useState } from "react";
@@ -281,7 +282,12 @@ function KeyDetail({
   const lastLog = keyLog[0];
 
   const kExWithCode = kEx.filter((e) => e.pickup_code);
-  const [proCodeCount, setProCodeCount] = useState(0);
+  const { data: proCodes = [] } = useQuery({
+    ...proAccessCodesQueryOptions(k.id),
+    enabled: k.subscription_type === "pro",
+    refetchInterval: 15_000,
+  });
+  const proCodeCount = proCodes.filter((code) => code.status === "active").length;
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
 
   const handleCopyPassLink = async (bookingRef: string) => {
@@ -513,7 +519,7 @@ function KeyDetail({
 
       {/* ── Códigos Pro ── */}
       {tab === "codes" && k.subscription_type === "pro" && (
-        <ProAccessCodes keyId={k.id} keyName={k.name} onCountChange={setProCodeCount} />
+        <ProAccessCodes keyId={k.id} keyName={k.name} />
       )}
 
       {/* ── Códigos Mensual ── */}
