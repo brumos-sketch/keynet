@@ -36,6 +36,7 @@ export function AddressAutocomplete({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const skipNext = useRef(false);
+  const typed = useRef(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export function AddressAutocomplete({
       skipNext.current = false;
       return;
     }
+    if (!typed.current) return;
     if (query.length < 3) {
       setItems([]);
       setState("idle");
@@ -112,7 +114,10 @@ export function AddressAutocomplete({
         aria-autocomplete="list"
         role="combobox"
         className={inputClassName}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          typed.current = true;
+          onChange(e.target.value);
+        }}
         onFocus={() => items.length > 0 && setOpen(true)}
         onKeyDown={(e) => {
           if (!open || items.length === 0) return;
