@@ -57,7 +57,7 @@ export const STATUS_LABELS: Record<ExchangeStatus, string> = {
   waiting_deposit: "Esperando depósito",
   deposited: "Depositada",
   picked_up: "Retirada",
-  completed: "Completado",
+  completed: "Devuelta · en el locker",
   expired: "Vencido",
   overdue: "Atrasado",
 };
@@ -80,7 +80,7 @@ export const STATUS_TONE: Record<ExchangeStatus, Tone> = {
   waiting_deposit: "amber",
   deposited: "info",
   picked_up: "purple",
-  completed: "success",
+  completed: "info",
   expired: "danger",
   overdue: "orange",
 };

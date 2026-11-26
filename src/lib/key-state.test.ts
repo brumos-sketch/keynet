@@ -16,3 +16,10 @@ describe("estado de la llave", () => {
     expect(keyStateOf("picked_up")?.label).toBe("Llave en uso");
   });
 });
+
+import { STATUS_LABELS } from "./pasallave";
+describe("listados de intercambios", () => {
+  it("un intercambio devuelto indica que la llave está en el locker", () => {
+    expect(STATUS_LABELS.completed).toBe("Devuelta · en el locker");
+  });
+});
