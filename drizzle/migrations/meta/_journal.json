@@ -50,6 +50,20 @@
       "when": 1795662405433,
       "tag": "0006_boarding_pass_end_time",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795666359103,
+      "tag": "0007_random_locker_position_and_abc_refs",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795666402920,
+      "tag": "0008_random_locker_position_abc_refs_v2",
+      "breakpoints": true
     }
   ]
 }

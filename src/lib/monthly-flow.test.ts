@@ -26,6 +26,7 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0004_monthly_guest_code_rotation.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0005_monthly_stay_from_stored_key.sql", import.meta.url), "utf8"));
   await db.exec(readFileSync(new URL("../../drizzle/migrations/0006_boarding_pass_end_time.sql", import.meta.url), "utf8"));
+  await db.exec(readFileSync(new URL("../../drizzle/migrations/0008_random_locker_position_abc_refs_v2.sql", import.meta.url), "utf8").replaceAll("now()", "public.test_clock()"));
 }, 30000);
 beforeEach(async () => {
   await db.exec("set test.clock=''");
@@ -37,6 +38,15 @@ beforeEach(async () => {
 afterAll(async () => { await db?.close(); });
 
 describe("ciclo mensual real en PostgreSQL", () => {
+  it("el depósito sortea el casillero entre los libres", async () => {
+    const seen = new Set<number>();
+    for (let i = 0; i < 12; i += 1) {
+      await db.exec("update public.key_exchanges set status='waiting_deposit', locker_position=0");
+      seen.add((await validate("015589")).rows[0]?.result.position ?? 0);
+    }
+    expect(seen.size).toBeGreaterThan(1);
+    expect([...seen].every((n) => n >= 1 && n <= 16)).toBe(true);
+  });
   it("la tarjeta de embarque lee la hora final vigente también después del retiro", async () => {
     await validate("015589"); await validate("393496");
     await db.exec("update public.key_exchanges set pickup_until='21:00'");
@@ -57,6 +67,7 @@ describe("ciclo mensual real en PostgreSQL", () => {
     expect(active?.return_code).toBe(active?.pickup_code);
     expect(active?.deposited_at).toBeNull();
     expect(rows.find((row) => row.status === "completed")?.locker_position).toBe(0);
+    expect((await db.query<{ booking_ref: string }>("select booking_ref from public.key_exchanges where status='deposited'")).rows[0]?.booking_ref).toMatch(/^[A-Z]{3}-\d{3}$/);
     expect((await db.query<{ role: string }>("select role from public.access_log")).rows.every((row) => row.role === "guest")).toBe(true);
     await expect(validate("393496")).rejects.toThrow("ya no está vigente");
     if (!active) throw new Error("Falta la siguiente estadía");

@@ -602,7 +602,7 @@ function KeyDetail({
                     )}
                   </div>
                 </div>
-                <p className="text-2xl font-black font-mono tracking-widest text-electric mb-1">
+                <p className={`text-2xl font-black font-mono tracking-widest mb-1 ${!isActive && !ex.reusable ? "text-gray-400 line-through" : "text-electric"}`}>
                   {formatCode(ex.pickup_code)}
                 </p>
                 <p className="text-xs text-gray-400 mb-3">
