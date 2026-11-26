@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { generateBookingRef, generateExchangeCode, pickFreePosition } from "@/lib/pasallave";
 import { sendPushToUser } from "@/lib/push.server";
+import { stayCodeEditSchema } from "@/lib/stay-code-policy";
 
 type TypedSupabase = SupabaseClient<Database>;
 
@@ -230,13 +231,7 @@ export const createKey = createServerFn({ method: "POST" })
 
 // ---------- exchange edit (host / admin) ----------
 
-const updateExchangeSchema = z.object({
-  exchangeId: z.string().uuid(),
-  checkIn: z.string().optional().nullable(),
-  checkOut: z.string().optional().nullable(),
-  pickupTime: z.string().optional().nullable(),
-  guestName: z.string().trim().max(80).optional().nullable(),
-});
+const updateExchangeSchema = stayCodeEditSchema;
 
 const EDITABLE_STATUSES = ["created", "waiting_deposit", "deposited"];
 
@@ -247,11 +242,11 @@ export const updateExchange = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data: exchange } = await supabase
       .from("key_exchanges")
-      .select("*, keys!inner(host_id)")
+      .select("*, keys!inner(host_id, subscription_type)")
       .eq("id", data.exchangeId)
       .maybeSingle();
     if (!exchange) throw new Error("Intercambio no encontrado");
-    const key = (exchange as unknown as { keys: { host_id: string } }).keys;
+    const key = (exchange as unknown as { keys: { host_id: string; subscription_type: string } }).keys;
 
     const admin = await isAdmin(context);
     const { data: myHost } = await supabase.rpc("my_host_id");
@@ -261,12 +256,18 @@ export const updateExchange = createServerFn({ method: "POST" })
       throw new Error("La estadía ya no se puede editar");
     }
 
+    if (data.reusable !== undefined && key.subscription_type !== "monthly") {
+      throw new Error("La frecuencia de este código solo se configura en Pasa Mes");
+    }
     const { error } = await supabase
       .from("key_exchanges")
       .update({
-        check_in: data.checkIn || null,
-        check_out: data.checkOut || null,
-        pickup_time: data.pickupTime || null,
+        ...(data.checkIn !== undefined ? { check_in: data.checkIn } : {}),
+        ...(data.checkOut !== undefined ? { check_out: data.checkOut } : {}),
+        ...(data.pickupTime !== undefined ? { pickup_time: data.pickupTime } : {}),
+        ...(data.pickupUntil !== undefined ? { pickup_until: data.pickupUntil } : {}),
+        ...(data.guestName !== undefined ? { guest_name: data.guestName } : {}),
+        ...(data.reusable !== undefined ? { reusable: data.reusable } : {}),
       })
       .eq("id", data.exchangeId);
     if (error) throw error;
@@ -389,6 +390,18 @@ export const createExchange = createServerFn({ method: "POST" })
     const admin = await isAdmin(context);
     const { data: myHost } = await supabase.rpc("my_host_id");
     if (!admin && myHost !== key.host_id) throw new Error("No tenés permiso para esta llave");
+
+    if (key.subscription_type === "monthly") {
+      const { data: prepared, error: prepareError } = await supabase.rpc("start_monthly_stay", {
+        p_key_id: key.id,
+        ...(data.checkIn ? { p_check_in: data.checkIn } : {}),
+        ...(data.checkOut ? { p_check_out: data.checkOut } : {}),
+        ...(data.pickupTime ? { p_pickup_time: data.pickupTime } : {}),
+        ...(data.guestName ? { p_guest_name: data.guestName } : {}),
+      });
+      if (prepareError) throw new Error(prepareError.message);
+      return prepared as { exchangeId: string; bookingRef: string };
+    }
 
     // The locker position is assigned at deposit time, not now.
     const bookingRef = generateBookingRef();

@@ -80,8 +80,21 @@ export async function runCodeValidation(
   let logKeyId: string | null = null;
   let logRole: string | null = "kiosk";
   let logPerson: string | null = null;
+  let movementLogged = false;
 
   const resolve = async (): Promise<ValidationResult> => {
+    // Monthly operations are serialized at the point in one database transaction.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: monthly, error: monthlyError } = await supabaseAdmin.rpc("validate_monthly_code", {
+      p_kiosk_id: kioskId, p_code: clean,
+    });
+    if (monthlyError) throw new Error(monthlyError.message);
+    if (monthly && typeof monthly === "object" && !Array.isArray(monthly)) {
+      const result = monthly as { action: string; position: number | null; bookingRef: string | null; keyId: string };
+      logKeyId = result.keyId;
+      movementLogged = true;
+      return { action: result.action, position: result.position, bookingRef: result.bookingRef };
+    }
     // 1. Pro access codes first
     const { data: accessCodes } = await supabase
       .from("access_codes")
@@ -90,7 +103,8 @@ export async function runCodeValidation(
       .eq("status", "active")
       .eq("keys.kiosk_id", kioskId);
     if (accessCodes && accessCodes.length > 0) {
-      const ac = accessCodes[0]!;
+      const ac = accessCodes[0];
+      if (!ac) throw new Error("Código no encontrado");
       const key = (
         ac as unknown as {
           keys: { id: string; kiosk_id: string; host_id: string; subscription_type: string };
@@ -219,8 +233,16 @@ export async function runCodeValidation(
       .or(codeSearchConditions("deposit_code", clean))
       .eq("kiosk_id", kioskId);
     if (keys && keys.length > 0) {
-      const key = keys[0]!;
+      const key = keys[0];
+      if (!key) throw new Error("Código no encontrado");
       logKeyId = key.id;
+
+      const { data: stored } = await supabase.from("key_exchanges")
+        .select("locker_position").eq("key_id", key.id)
+        .in("status", ["deposited", "completed"]).gt("locker_position", 0).limit(1);
+      if (stored?.[0]) {
+        throw new Error(`La llave ya se encuentra depositada en el locker (casillero ${stored[0].locker_position})`);
+      }
 
       const { data: openList } = await supabase
         .from("key_exchanges")
@@ -258,7 +280,7 @@ export async function runCodeValidation(
           kiosk_id: kioskId,
           booking_ref: generateBookingRef(),
           locker_position: position,
-          deposit_code: key.deposit_code!,
+          deposit_code: key.deposit_code ?? clean,
           pickup_code: bidiCode,
           return_code: bidiCode,
           status: "deposited",
@@ -281,7 +303,8 @@ export async function runCodeValidation(
       )
       .order("created_at", { ascending: false });
     if (exchanges && exchanges.length > 0) {
-      const ex = exchanges[0]!;
+      const ex = exchanges[0];
+      if (!ex) throw new Error("Código no encontrado");
       logKeyId = ex.key_id;
 
       const isGuestCode = codesMatch(ex.pickup_code, clean) || codesMatch(ex.return_code, clean);
@@ -323,7 +346,7 @@ export async function runCodeValidation(
 
   const result = await resolve();
 
-  await supabase.from("access_log").insert({
+  if (!movementLogged) await supabase.from("access_log").insert({
     key_id: logKeyId,
     action: result.action,
     role: logRole,

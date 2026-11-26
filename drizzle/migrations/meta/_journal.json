@@ -29,6 +29,20 @@
       "when": 1795646569448,
       "tag": "0003_assisted_device_pairing",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795660755554,
+      "tag": "0004_monthly_guest_code_rotation",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795660820236,
+      "tag": "0005_monthly_stay_from_stored_key",
+      "breakpoints": true
     }
   ]
 }

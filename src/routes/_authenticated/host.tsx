@@ -18,6 +18,7 @@ import { RoleGuard } from "@/components/pasallave/role-guard";
 import { Brand, CodeChip, Pill, SearchField } from "@/components/pasallave/ui-bits";
 import { PlanBadge } from "@/components/pasallave/status-badge";
 import { NewKeyWizard } from "@/components/pasallave/new-key-wizard";
+import { StayCodeDialog } from "@/components/pasallave/stay-code-dialog";
 import { ProAccessCodes } from "@/components/pasallave/pro-access-codes";
 import { NotificationBell } from "@/components/pasallave/notification-bell";
 import { InstallButton } from "@/components/pasallave/install-button";
@@ -73,6 +74,8 @@ export const Route = createFileRoute("/_authenticated/host")({
       { name: "description", content: "Gestioná tus llaves e intercambios como anfitrión." },
       { property: "og:title", content: "Panel de anfitrión PASALLAVE" },
       { property: "og:description", content: "Llaves, intercambios y accesos en tus puntos asociados." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: HostPanel,
@@ -90,6 +93,9 @@ type Exchange = {
   pickup_code: string;
   return_code: string | null;
   pickup_time: string | null;
+  pickup_until: string | null;
+  guest_name: string | null;
+  reusable: boolean;
   check_in: string | null;
   check_out: string | null;
   status: string;
@@ -339,18 +345,29 @@ function KeyDetail({
 
   // History events: every real movement, with its own timestamp
   const historyEvents = [
+    ...keyLog.filter((entry) => ["deposited", "picked_up", "completed"].includes(entry.action ?? "")).map((entry) => ({
+      type: entry.action === "completed" ? "deposited" : entry.action ?? "deposited",
+      label: entry.action === "picked_up" ? "Llave retirada" : entry.action === "completed" ? "Llave depositada (devuelta por el huésped)" : "Llave depositada",
+      ref: null,
+      date: entry.timestamp,
+      icon: entry.action === "picked_up" ? "↑" : "↓",
+      who: entry.person_name ?? "",
+    })),
     ...kEx.flatMap((ex) => {
       const evs: Array<{ type: string; label: string; ref: string | null; date: string; icon: string; who?: string; code?: string }> = [];
       evs.push({ type: "created", label: "Intercambio creado", ref: ex.booking_ref, date: ex.created_at, icon: "+" });
-      if (ex.deposited_at || ["deposited", "picked_up", "completed"].includes(ex.status))
+      if (ex.deposited_at || (k.subscription_type !== "monthly" && ["deposited", "picked_up", "completed"].includes(ex.status)))
         evs.push({ type: "deposited", label: "Llave depositada", ref: ex.booking_ref, date: ex.deposited_at ?? ex.created_at, icon: "↓" });
       if (ex.picked_up_at || ["picked_up", "completed"].includes(ex.status))
         evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.picked_up_at ?? ex.check_in ?? ex.created_at, icon: "↑" });
-      if (ex.status === "completed")
+      if (ex.returned_at || ex.status === "completed")
         evs.push({ type: "deposited", label: "Llave depositada (devuelta por el huésped)", ref: ex.booking_ref, date: ex.returned_at ?? ex.check_out ?? ex.created_at, icon: "↓" });
       if (ex.status === "expired")
         evs.push({ type: "expired", label: "Código vencido (48hs)", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "⏳" });
-      return evs;
+      return evs.filter((event) => event.type === "created" || event.type === "expired" || !keyLog.some((entry) => {
+        const type = entry.action === "completed" ? "deposited" : entry.action;
+        return type === event.type && Math.abs(new Date(entry.timestamp).getTime() - new Date(event.date).getTime()) < 3000;
+      }));
     }),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -516,8 +533,9 @@ function KeyDetail({
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-400">
-              Sin intercambio activo
+            <div className="space-y-3 py-6 text-center text-sm text-muted-foreground">
+              <p>Sin intercambio activo</p>
+              {k.subscription_type === "monthly" && <Button variant="outline" onClick={() => onCreateExchange(k.id)}>Nueva estadía</Button>}
             </div>
           )}
 
@@ -572,14 +590,14 @@ function KeyDetail({
                     </Pill>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 font-medium">Huésped</span>
-                    {isActive && (
-                      <button
+                    <span className="text-xs text-gray-400 font-medium">{ex.guest_name || "Huésped"}{k.subscription_type === "monthly" ? ` · ${ex.reusable ? "Reutilizable" : "Un solo uso"}` : ""}</span>
+                    {["created", "waiting_deposit", "deposited"].includes(ex.status) && (
+                      <Button variant="ghost" size="sm"
                         className="text-xs font-semibold text-electric hover:underline"
                         onClick={() => onEditCodeEx(ex)}
                       >
                         Editar
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -591,6 +609,7 @@ function KeyDetail({
                     ? `${formatDate(ex.check_in)} → ${formatDate(ex.check_out)}`
                     : "Sin fechas (libre)"}
                   {ex.pickup_time ? ` · Retiro desde ${ex.pickup_time}` : ""}
+                  {ex.pickup_until ? ` hasta ${ex.pickup_until}` : ""}
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -680,8 +699,7 @@ function HostPanel() {
   const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", guestName: "" });
 
   // edit guest code (Editar código huésped — from Códigos tab)
-  const [editCodeEx, setEditCodeEx] = useState<{ id: string; pickupCode: string; bookingRef: string } | null>(null);
-  const [editCodeForm, setEditCodeForm] = useState({ checkIn: "", checkOut: "", pickupTime: "", reusable: false });
+  const [editCodeEx, setEditCodeEx] = useState<Exchange | null>(null);
 
   // renew
   const [renewId, setRenewId] = useState<string | null>(null);
@@ -997,15 +1015,7 @@ function HostPanel() {
               onRenewExchange={(exId) => setRenewId(exId)}
               onEditKey={(k) => setEditKey({ id: k.id, name: k.name, property: k.property_name ?? "" })}
               onDeleteKey={(k) => setDeleteKeyTarget({ id: k.id, name: k.name })}
-              onEditCodeEx={(ex) => {
-                setEditCodeForm({
-                  checkIn: ex.check_in ?? "",
-                  checkOut: ex.check_out ?? "",
-                  pickupTime: ex.pickup_time ?? "",
-                  reusable: false,
-                });
-                setEditCodeEx({ id: ex.id, pickupCode: ex.pickup_code, bookingRef: ex.booking_ref });
-              }}
+              onEditCodeEx={setEditCodeEx}
             />
           )}
 
@@ -1202,96 +1212,12 @@ function HostPanel() {
           </DialogContent>
         </Dialog>
 
-        {/* editar código huésped (mes / pro) */}
-        <Dialog open={!!editCodeEx} onOpenChange={(open) => !open && setEditCodeEx(null)}>
-          <DialogContent className="rounded-2xl sm:max-w-[480px]">
-            <DialogHeader>
-              <DialogTitle>Editar código huésped</DialogTitle>
-            </DialogHeader>
-            {editCodeEx && (
-              <div className="space-y-5">
-                {/* código */}
-                <div className="flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3">
-                  <span className="text-xs font-bold uppercase tracking-wide text-gray-400">Código</span>
-                  <span className="text-xl font-black font-mono tracking-widest text-electric">{formatCode(editCodeEx.pickupCode)}</span>
-                  <CodeChip value={editCodeEx.bookingRef} />
-                </div>
-
-                {/* disponibilidad */}
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Disponibilidad</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label>Check-in</Label>
-                      <Input
-                        type="date"
-                        value={editCodeForm.checkIn}
-                        onChange={(e) => setEditCodeForm({ ...editCodeForm, checkIn: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Check-out</Label>
-                      <Input
-                        type="date"
-                        value={editCodeForm.checkOut}
-                        onChange={(e) => setEditCodeForm({ ...editCodeForm, checkOut: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* horario de retiro */}
-                <div className="space-y-1.5">
-                  <Label>Horario de retiro</Label>
-                  <Input
-                    type="time"
-                    value={editCodeForm.pickupTime}
-                    onChange={(e) => setEditCodeForm({ ...editCodeForm, pickupTime: e.target.value })}
-                  />
-                  <p className="text-xs text-gray-400">Hora mínima para retirar la llave</p>
-                </div>
-
-                {/* reutilizable */}
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                  <div className="flex items-start gap-3">
-                    <input
-                      id="ec-reusable"
-                      type="checkbox"
-                      className="mt-0.5 size-4 accent-electric cursor-pointer"
-                      checked={editCodeForm.reusable}
-                      onChange={(e) => setEditCodeForm({ ...editCodeForm, reusable: e.target.checked })}
-                    />
-                    <div>
-                      <label htmlFor="ec-reusable" className="text-sm font-bold text-navy cursor-pointer">Reutilizable</label>
-                      <p className="text-xs text-gray-400 mt-0.5">El link es permanente; el código no se consume tras cada uso</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  if (!editCodeEx) return;
-                  updateExchangeFn({
-                    data: {
-                      exchangeId: editCodeEx.id,
-                      checkIn: editCodeForm.checkIn || null,
-                      checkOut: editCodeForm.checkOut || null,
-                      pickupTime: editCodeForm.pickupTime || null,
-                    },
-                  }).then(() => {
-                    qc.invalidateQueries({ queryKey: ["host", "overview"] });
-                    toast.success("Código actualizado");
-                    setEditCodeEx(null);
-                  }).catch(() => toast.error("No se pudo guardar"));
-                }}
-              >
-                Guardar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {editCodeEx && <StayCodeDialog
+          key={editCodeEx.id}
+          stay={editCodeEx}
+          monthly={editCodeEx.keys.subscription_type === "monthly"}
+          onClose={() => setEditCodeEx(null)}
+        />}
 
         {/* eliminar llave */}
         <Dialog open={!!deleteKeyTarget} onOpenChange={(open) => !open && setDeleteKeyTarget(null)}>

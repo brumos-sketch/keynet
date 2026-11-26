@@ -255,6 +255,7 @@ export type Database = {
           created_at: string
           deposit_code: string
           deposited_at: string | null
+          guest_name: string | null
           id: string
           key_id: string | null
           kiosk_id: string | null
@@ -262,8 +263,10 @@ export type Database = {
           picked_up_at: string | null
           pickup_code: string | null
           pickup_time: string | null
+          pickup_until: string | null
           return_code: string | null
           returned_at: string | null
+          reusable: boolean
           status: string
         }
         Insert: {
@@ -273,6 +276,7 @@ export type Database = {
           created_at?: string
           deposit_code: string
           deposited_at?: string | null
+          guest_name?: string | null
           id?: string
           key_id?: string | null
           kiosk_id?: string | null
@@ -280,8 +284,10 @@ export type Database = {
           picked_up_at?: string | null
           pickup_code?: string | null
           pickup_time?: string | null
+          pickup_until?: string | null
           return_code?: string | null
           returned_at?: string | null
+          reusable?: boolean
           status?: string
         }
         Update: {
@@ -291,6 +297,7 @@ export type Database = {
           created_at?: string
           deposit_code?: string
           deposited_at?: string | null
+          guest_name?: string | null
           id?: string
           key_id?: string | null
           kiosk_id?: string | null
@@ -298,8 +305,10 @@ export type Database = {
           picked_up_at?: string | null
           pickup_code?: string | null
           pickup_time?: string | null
+          pickup_until?: string | null
           return_code?: string | null
           returned_at?: string | null
+          reusable?: boolean
           status?: string
         }
         Relationships: [
@@ -919,6 +928,20 @@ export type Database = {
           positions: number
           schedule: Json
         }[]
+      }
+      start_monthly_stay: {
+        Args: {
+          p_check_in?: string
+          p_check_out?: string
+          p_guest_name?: string
+          p_key_id: string
+          p_pickup_time?: string
+        }
+        Returns: Json
+      }
+      validate_monthly_code: {
+        Args: { p_code: string; p_kiosk_id: string }
+        Returns: Json
       }
     }
     Enums: {
