@@ -51,6 +51,7 @@ import {
   formatDateTime,
   matchesQuery,
   keyStateOf,
+  keyBadgeOf,
   type ExchangeStatus,
   type SubscriptionType,
 } from "@/lib/pasallave";
@@ -182,7 +183,7 @@ function HistoryTimeline({
       if (ex.status === "deposited" || ex.status === "picked_up" || ex.status === "completed") {
         evs.push({
           id: `ex-deposited-${ex.id}`,
-          date: ex.created_at, // no hay deposited_at en la query, usamos created_at como proxy
+          date: ex.deposited_at ?? ex.created_at,
           icon: "↓",
           label: "Llave depositada",
           sub: `Reserva ${ex.booking_ref} · ${kioskName(ex.kiosk_id)}`,
@@ -192,7 +193,7 @@ function HistoryTimeline({
       if (ex.status === "picked_up" || ex.status === "completed") {
         evs.push({
           id: `ex-pickup-${ex.id}`,
-          date: ex.check_in ?? ex.created_at,
+          date: ex.picked_up_at ?? ex.check_in ?? ex.created_at,
           icon: "↑",
           label: "Llave retirada",
           sub: `Reserva ${ex.booking_ref}`,
@@ -202,11 +203,11 @@ function HistoryTimeline({
       if (ex.status === "completed") {
         evs.push({
           id: `ex-completed-${ex.id}`,
-          date: ex.check_out ?? ex.created_at,
-          icon: "↻",
-          label: "Llave devuelta",
+          date: ex.returned_at ?? ex.check_out ?? ex.created_at,
+          icon: "↓",
+          label: "Llave depositada (devuelta por el huésped)",
           sub: `Reserva ${ex.booking_ref}`,
-          tone: "success",
+          tone: "info",
         });
       }
       if (ex.status === "expired") {
@@ -224,10 +225,10 @@ function HistoryTimeline({
     ...accessLog.map((l) => ({
       id: `log-${l.id}`,
       date: l.timestamp,
-      icon: l.action === "picked_up" ? "↑" : l.action === "deposited" ? "↓" : "↻",
+      icon: l.action === "picked_up" ? "↑" : l.action === "deposited" || l.action === "completed" ? "↓" : "↻",
       label: ACTION_LABELS[l.action ?? ""] ?? l.action ?? "—",
       sub: [l.role, l.person_name].filter(Boolean).join(" · "),
-      tone: l.action === "picked_up" ? "purple" : l.action === "deposited" ? "info" : "success",
+      tone: l.action === "picked_up" ? "purple" : l.action === "deposited" || l.action === "completed" ? "info" : "success",
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -346,7 +347,7 @@ function KeyDetail({
       if (ex.picked_up_at || ["picked_up", "completed"].includes(ex.status))
         evs.push({ type: "picked_up", label: "Llave retirada", ref: ex.booking_ref, date: ex.picked_up_at ?? ex.check_in ?? ex.created_at, icon: "↑" });
       if (ex.status === "completed")
-        evs.push({ type: "completed", label: "Llave devuelta", ref: ex.booking_ref, date: ex.returned_at ?? ex.check_out ?? ex.created_at, icon: "↻" });
+        evs.push({ type: "deposited", label: "Llave depositada (devuelta por el huésped)", ref: ex.booking_ref, date: ex.returned_at ?? ex.check_out ?? ex.created_at, icon: "↓" });
       if (ex.status === "expired")
         evs.push({ type: "expired", label: "Código vencido (48hs)", ref: ex.booking_ref, date: ex.check_out ?? ex.created_at, icon: "⏳" });
       return evs;
@@ -377,8 +378,8 @@ function KeyDetail({
               </button>
               <span className="text-xl font-black text-navy truncate">{k.name}</span>
               <PlanBadge plan={k.subscription_type as SubscriptionType} />
-              {activeEx && keyStateOf(activeEx.status) && (
-                <Pill tone={keyStateOf(activeEx.status)!.tone}>{keyStateOf(activeEx.status)!.label}</Pill>
+              {keyBadgeOf(kEx) && (
+                <Pill tone={keyBadgeOf(kEx)!.tone}>{keyBadgeOf(kEx)!.label}</Pill>
               )}
               {k.locked && <span className="text-xs font-bold text-red-600">BLOQUEADA</span>}
             </div>
@@ -530,11 +531,11 @@ function KeyDetail({
                     lastLog.action === "pickup" ? "bg-purple-100 text-purple-600" : "bg-green-100 text-green-600"
                   }`}
                 >
-                  {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "↑" : lastLog.action === "deposited" ? "↓" : "↻"}
+                  {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "↑" : lastLog.action === "deposited" || lastLog.action === "completed" ? "↓" : "↻"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-navy">
-                    {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "Llave retirada" : lastLog.action === "deposited" ? "Llave depositada" : "Llave devuelta"}
+                    {lastLog.action === "picked_up" || lastLog.action === "pickup" ? "Llave retirada" : lastLog.action === "deposited" || lastLog.action === "completed" ? "Llave depositada" : "Movimiento"}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {lastLog.role}{lastLog.person_name ? ` · ${lastLog.person_name}` : ""}
@@ -1043,9 +1044,11 @@ function HostPanel() {
                         <p className="text-xs text-gray-400">{kioskName(k.kiosk_id)}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        {activeEx ? (
-                          <Pill tone={keyStateOf(activeEx.status)?.tone ?? STATUS_TONE[activeEx.status as ExchangeStatus]}>
-                            {keyStateOf(activeEx.status)?.label ?? STATUS_LABELS[activeEx.status as ExchangeStatus]}
+                        {keyBadgeOf(kEx) ? (
+                          <Pill tone={keyBadgeOf(kEx)!.tone}>{keyBadgeOf(kEx)!.label}</Pill>
+                        ) : activeEx ? (
+                          <Pill tone={STATUS_TONE[activeEx.status as ExchangeStatus]}>
+                            {STATUS_LABELS[activeEx.status as ExchangeStatus]}
                           </Pill>
                         ) : expiredEx ? (
                           <Pill tone="danger">Vencido</Pill>

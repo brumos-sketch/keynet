@@ -290,7 +290,7 @@ export const ACCESS_SCOPE_LABELS: Record<string, string> = Object.fromEntries(
 export const ACTION_LABELS: Record<string, string> = {
   deposited: "Depósito",
   picked_up: "Retiro",
-  completed: "Devolución",
+  completed: "Llave depositada (devuelta por el huésped)",
   exchange_created: "Intercambio creado",
   exchange_updated: "Estadía editada",
 };
@@ -322,5 +322,17 @@ export function keyStateOf(status: string | null | undefined): { label: string; 
   if (status === "created" || status === "waiting_deposit") return { label: "Esperando primer depósito", tone: "amber" };
   if (status === "deposited") return { label: "En el locker", tone: "info" };
   if (status === "picked_up") return { label: "Llave en uso", tone: "purple" };
+  // Returned by the guest: the key is physically back in the point.
+  if (status === "completed") return { label: "En el locker", tone: "info" };
   return null;
+}
+
+/** Badge of a key from its latest exchange (a returned key counts as "En el locker"). */
+export function keyBadgeOf<T extends { status: string; created_at: string }>(
+  exchanges: T[],
+): { label: string; tone: Tone } | null {
+  const latest = [...exchanges].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )[0];
+  return latest ? keyStateOf(latest.status) : null;
 }
